@@ -1,5 +1,3 @@
-import { authToken } from "@/providers/keyStorageUtilliy";
-import { StorageUtility } from "@/providers/storageUtility";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -16,11 +14,14 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
+    const utf8Bytes = new TextEncoder().encode(password.toLowerCase());
+    const base64Encoded = btoa(String.fromCharCode(...utf8Bytes));
+    console.log("base64Encoded ====>", base64Encoded);
     if (
       username.toLowerCase() === "admin" &&
       password.toLowerCase() === "1234"
     ) {
-      await StorageUtility.set(authToken, "1");
+      // await StorageUtility.set(authToken, "1");
       router.replace("/(tabs)");
     } else {
       alert("Invalid credentials");
