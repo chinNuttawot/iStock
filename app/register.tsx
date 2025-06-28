@@ -1,6 +1,12 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -24,6 +30,7 @@ export default function RegisterScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Register</Text>
+
       <TextInput
         placeholder="Username"
         value={username}
@@ -44,14 +51,19 @@ export default function RegisterScreen() {
         onChangeText={setConfirm}
         style={styles.input}
       />
-      <Button title="Register" onPress={handleRegister} />
-      <View style={{ marginTop: 12 }}>
-        <Button
-          title="Back to Login"
-          onPress={() => router.replace('/login')}
-          color="#888"
-        />
-      </View>
+
+      {/* ✅ ปุ่ม Register */}
+      <TouchableOpacity style={styles.button} onPress={handleRegister}>
+        <Text style={styles.buttonText}>REGISTER</Text>
+      </TouchableOpacity>
+
+      {/* ✅ ปุ่มกลับ Login */}
+      <TouchableOpacity
+        style={styles.smallButtonFull}
+        onPress={() => router.replace('/login')}
+      >
+        <Text style={styles.smallButtonText}>BACK TO LOGIN</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -65,5 +77,24 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     padding: 10,
     borderRadius: 8,
+  },
+  button: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  buttonText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  smallButtonFull: {
+    marginTop: 12,
+    paddingVertical: 10,
+    borderRadius: 6,
+  },
+  smallButtonText: {
+    textAlign: 'center',
   },
 });

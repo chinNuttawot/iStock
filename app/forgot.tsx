@@ -1,6 +1,12 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -21,6 +27,7 @@ export default function ForgotPasswordScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Forgot Password</Text>
+
       <TextInput
         placeholder="Enter your email"
         value={email}
@@ -29,15 +36,19 @@ export default function ForgotPasswordScreen() {
         keyboardType="email-address"
         autoCapitalize="none"
       />
-      <Button title="Send Reset Link" onPress={handleReset} />
 
-      <View style={{ marginTop: 20 }}>
-        <Button
-          title="Back to Login"
-          onPress={() => router.replace("/login")}
-          color="#888"
-        />
-      </View>
+      {/* ✅ ปุ่มส่งลิงก์ */}
+      <TouchableOpacity style={styles.button} onPress={handleReset}>
+        <Text style={styles.buttonText}>SEND RESET LINK</Text>
+      </TouchableOpacity>
+
+      {/* ✅ ปุ่มกลับ Login */}
+      <TouchableOpacity
+        style={styles.smallButtonFull}
+        onPress={() => router.replace("/login")}
+      >
+        <Text style={styles.smallButtonText}>BACK TO LOGIN</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -51,5 +62,24 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     padding: 10,
     borderRadius: 8,
+  },
+  button: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  buttonText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+  smallButtonFull: {
+    marginTop: 12,
+    paddingVertical: 10,
+    borderRadius: 6,
+  },
+  smallButtonText: {
+    textAlign: "center",
   },
 });

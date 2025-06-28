@@ -2,7 +2,13 @@ import { authToken } from "@/providers/keyStorageUtilliy";
 import { StorageUtility } from "@/providers/storageUtility";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -10,13 +16,12 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-    // ✨ ตัวอย่าง login logic
     if (
       username.toLowerCase() === "admin" &&
       password.toLowerCase() === "1234"
     ) {
-       StorageUtility.set(authToken, "1")
-      router.replace("/(tabs)"); // ไปหน้าแรกของแอป (เช่น home tab)
+      await StorageUtility.set(authToken, "1");
+      router.replace("/(tabs)");
     } else {
       alert("Invalid credentials");
     }
@@ -25,6 +30,7 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Login</Text>
+
       <TextInput
         placeholder="Username"
         value={username}
@@ -38,25 +44,30 @@ export default function LoginScreen() {
         onChangeText={setPassword}
         style={styles.input}
       />
-      <Button title="Login" onPress={handleLogin} />
 
-      {/* ✅ ปุ่มไปหน้า Register */}
+      {/* ✅ ปุ่ม Login */}
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>LOGIN</Text>
+      </TouchableOpacity>
+
+      {/* ✅ Register */}
       <View style={styles.registerContainer}>
         <Text style={styles.registerText}>{"Don't have an account?"}</Text>
-        <Button
-          title="Register"
+        <TouchableOpacity
+          style={styles.smallButton}
           onPress={() => router.replace("/register")}
-          color="#888"
-        />
+        >
+          <Text style={styles.smallButtonText}>REGISTER</Text>
+        </TouchableOpacity>
       </View>
-      {/* ✅ ปุ่มไปหน้า Forgot */}
-      <View style={{ marginTop: 12 }}>
-        <Button
-          title="Forgot Password?"
-          onPress={() => router.replace("/forgot")}
-          color="#888"
-        />
-      </View>
+
+      {/* ✅ Forgot Password */}
+      <TouchableOpacity
+        style={styles.smallButtonFull}
+        onPress={() => router.replace("/forgot")}
+      >
+        <Text style={styles.smallButtonText}>FORGOT PASSWORD?</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -71,14 +82,38 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
   },
+  button: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  buttonText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
   registerContainer: {
     marginTop: 24,
-    flexDirection: "row", // 👈 แนวนอน
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center", // 🧍‍♂️ อยู่ตรงกลางแนวนอน
+    justifyContent: "center",
   },
   registerText: {
-    marginRight: 8, // ✅ ระยะห่างจากปุ่ม
     color: "#666",
+  },
+  smallButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  smallButtonFull: {
+    marginTop: 12,
+    paddingVertical: 10,
+    borderRadius: 6,
+  },
+  smallButtonText: {
+    // fontWeight: "bold",
+    textAlign: "center",
   },
 });
