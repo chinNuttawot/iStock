@@ -1,4 +1,3 @@
-import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   StyleSheet,
@@ -9,7 +8,6 @@ import {
 } from 'react-native';
 
 export default function RegisterScreen() {
-  const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -24,7 +22,6 @@ export default function RegisterScreen() {
     console.log("✅ Registered:", { username, password });
 
     alert("Register success!");
-    router.replace('/login');
   };
 
   return (
