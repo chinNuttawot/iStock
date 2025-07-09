@@ -57,7 +57,7 @@ export default function RegisterScreen() {
       {/* ✅ ปุ่มกลับ Login */}
       <TouchableOpacity
         style={styles.smallButtonFull}
-        onPress={() => router.replace('/login')}
+        onPress={() => {}}
       >
         <Text style={styles.smallButtonText}>BACK TO LOGIN</Text>
       </TouchableOpacity>
