@@ -94,6 +94,7 @@ export default function DashboardScreen() {
         backgroundColor="transparent"
         paddingLeft="15"
         absolute
+        chartConfig={chartConfig} // ✅ FIXED HERE
         style={styles.chart}
       />
     </ScrollView>

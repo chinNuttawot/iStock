@@ -14,11 +14,13 @@ import SettingScreen from "./screens/Setting/SettingScreen";
 export type RootStackParamList = {
   Tabs: undefined;
   Login: undefined;
+  Dashboard: undefined;
 };
 
 export type BottomTabParamList = {
   Home: undefined;
   Setting: undefined;
+  Settings: undefined;
   Menu: undefined;
 };
 
@@ -33,6 +35,7 @@ function Tabs() {
           const icons: Record<string, any> = {
             Home: "home-outline",
             Setting: "settings-outline",
+            Settings: "settings-outline",
             Menu: "menu-outline",
           };
 

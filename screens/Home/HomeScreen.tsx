@@ -1,5 +1,5 @@
-import { View } from "react-native";
+import DashboardScreen from "../DashboardScreen";
 
 export default function HomeScreen() {
-  return <View />;
+  return <DashboardScreen />;
 }
