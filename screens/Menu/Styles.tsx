@@ -6,6 +6,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 16,
+    backgroundColor: theme.white,
   },
   title: {
     ...theme.setFont,
@@ -24,7 +25,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   menuLeft: { ...theme.setFont, flexDirection: "row", alignItems: "center" },
-  menuText: { ...theme.setFont, fontSize: 16, marginLeft: 12 },
+  menuText: { ...theme.setFont, fontSize: 16, marginLeft: 15 },
   menuRight: { ...theme.setFont, flexDirection: "row", alignItems: "center" },
   badge: {
     ...theme.setFont,

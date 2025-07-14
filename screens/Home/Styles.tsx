@@ -5,6 +5,8 @@ const styles = StyleSheet.create({
   container: {
     ...theme.setFont,
     padding: 16,
+    backgroundColor: theme.white,
+    flex: 1,
   },
   groupContainer: {
     ...theme.setFont,

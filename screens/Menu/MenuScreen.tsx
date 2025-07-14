@@ -1,9 +1,8 @@
 import { Assets } from "@/assets/Assets";
 import {
-  Entypo,
   FontAwesome5,
   Ionicons,
-  MaterialIcons,
+  MaterialIcons
 } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
@@ -30,7 +29,7 @@ const menuData = [
     label: "สแกน-ตรวจนับ",
     icon: (
       <Image
-        source={Assets.checkStockICon}
+        source={Assets.checkStockIcon}
         style={{ width: 25, height: 25 }}
         resizeMode="contain"
       />
@@ -44,7 +43,13 @@ const menuData = [
   {
     id: "6",
     label: "อนุมัติรายการ",
-    icon: <Entypo name="text-document" size={24} color="black" />,
+    icon: (
+      <Image
+        source={Assets.menuApproveIcon}
+        style={{ width: 27, height: 27 }}
+        resizeMode="contain"
+      />
+    ),
   },
 ];
 

@@ -1,4 +1,5 @@
 export const Assets = {
   lineIcon: require("./images/img-line.png"),
-  checkStockICon: require("./images/icon-menu-checkStock.png"),
+  checkStockIcon: require("./images/icon-menu-checkStock.png"),
+  menuApproveIcon: require("./images/icon-menu-approve.png"),
 };
