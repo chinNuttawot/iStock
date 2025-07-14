@@ -10,7 +10,6 @@ const styles = StyleSheet.create({
   title: {
     ...theme.setFont,
     fontSize: 20,
-    fontWeight: "bold",
     marginBottom: 16,
     color: theme.mainApp,
   },

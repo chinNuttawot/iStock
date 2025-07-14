@@ -1,3 +1,4 @@
+import { Assets } from "@/assets/Assets";
 import {
   Entypo,
   FontAwesome5,
@@ -5,7 +6,7 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./Styles";
 
 const menuData = [
@@ -27,7 +28,13 @@ const menuData = [
   {
     id: "4",
     label: "สแกน-ตรวจนับ",
-    icon: <FontAwesome5 name="qrcode" size={20} color="black" />,
+    icon: (
+      <Image
+        source={Assets.checkStockICon}
+        style={{ width: 25, height: 25 }}
+        resizeMode="contain"
+      />
+    ),
   },
   {
     id: "5",
