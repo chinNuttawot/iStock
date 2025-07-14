@@ -1,9 +1,10 @@
 
+import { theme } from "@/providers/Theme";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
     headerImage: {
-        color: "#808080",
+        color: theme.gray,
         bottom: -90,
         left: -35,
         position: "absolute",

@@ -1,31 +1,24 @@
-// App.tsx
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import React, { useState } from "react";
+import * as SplashScreen from "expo-splash-screen";
+import React, { useCallback, useState } from "react";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-// Screens
+// Screens & Providers
+import { AppWrapper } from "./AppWrapper";
+import { theme } from "./providers/Theme";
 import HomeScreen from "./screens/Home/HomeScreen";
 import LoginScreen from "./screens/Login/login";
+import MenuScreen from "./screens/Menu/MenuScreen";
+import ProfileScreen from "./screens/Setting/ProfileScreen";
 import SettingScreen from "./screens/Setting/SettingScreen";
+import { useLoadFonts } from "./useLoadFonts";
 
-// 🔹 Type Definitions
-export type RootStackParamList = {
-  Tabs: undefined;
-  Login: undefined;
-  Dashboard: undefined;
-};
-
-export type BottomTabParamList = {
-  Home: undefined;
-  Setting: undefined;
-  Settings: undefined;
-  Menu: undefined;
-};
-
-const RootStack = createNativeStackNavigator<RootStackParamList>();
-const Tab = createBottomTabNavigator<BottomTabParamList>();
+const RootStack = createNativeStackNavigator<any>();
+const Tab = createBottomTabNavigator<any>();
+SplashScreen.preventAutoHideAsync();
 
 function Tabs() {
   return (
@@ -45,7 +38,7 @@ function Tabs() {
             <Ionicons name={icons[route.name]} size={size} color={color} />
           );
         },
-        tabBarActiveTintColor: "#0054A6",
+        tabBarActiveTintColor: theme.mainApp,
         tabBarInactiveTintColor: "gray",
       })}
     >
@@ -56,7 +49,7 @@ function Tabs() {
       />
       <Tab.Screen
         name="Menu"
-        component={SettingScreen}
+        component={MenuScreen}
         options={{ title: "เมนู", headerShown: false }}
       />
       <Tab.Screen
@@ -70,24 +63,47 @@ function Tabs() {
 
 // 🔹 Main App
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // จำลองสถานะล็อกอิน
+  const fontsLoaded = useLoadFonts();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const onLayoutRootView = useCallback(async () => {
+    if (fontsLoaded) {
+      await SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
-    <NavigationContainer theme={DefaultTheme}>
-      <RootStack.Navigator screenOptions={{ headerShown: false }}>
-        {isLoggedIn ? (
-          <RootStack.Screen name="Tabs" component={Tabs} />
-        ) : (
-          <RootStack.Screen name="Login">
-            {(props) => (
-              <LoginScreen
-                {...props}
-                onLoginSuccess={() => setIsLoggedIn(true)}
-              />
-            )}
-          </RootStack.Screen>
-        )}
-      </RootStack.Navigator>
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: theme.background }}
+        onLayout={onLayoutRootView}
+      >
+        <AppWrapper>
+          <NavigationContainer theme={DefaultTheme}>
+            <RootStack.Navigator screenOptions={{ headerShown: false }}>
+              {isLoggedIn ? (
+                <>
+                  <RootStack.Screen name="Tabs" component={Tabs} />
+                  <RootStack.Screen name="Profile" component={ProfileScreen} />
+                </>
+              ) : (
+                <RootStack.Screen name="Login">
+                  {(props) => (
+                    <LoginScreen
+                      {...props}
+                      onLoginSuccess={() => setIsLoggedIn(true)}
+                    />
+                  )}
+                </RootStack.Screen>
+              )}
+            </RootStack.Navigator>
+          </NavigationContainer>
+        </AppWrapper>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }

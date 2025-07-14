@@ -1,39 +1,29 @@
-const dataDashboard = [
+
+const dashboardData = [
   {
-    name: "สแกน-รับ",
-    population: 5,
-    color: "#f39c12",
-    legendFontColor: "#333",
-    legendFontSize: 14,
+    groupName: "สถานะรับ",
+    items: [
+      { status: "Pending Approval", count: 0 },
+      { status: "Approved", count: 0 },
+      { status: "Rejected", count: 0 },
+    ],
   },
   {
-    name: "สแกน-ออก",
-    population: 3,
-    color: "#2980b9",
-    legendFontColor: "#333",
-    legendFontSize: 14,
+    groupName: "สถานะจ่ายออก",
+    items: [
+      { status: "Pending Approval", count: 0 },
+      { status: "Approved", count: 0 },
+      { status: "Rejected", count: 0 },
+    ],
   },
   {
-    name: "สแกน-โอนย้าย",
-    population: 1,
-    color: "#005426",
-    legendFontColor: "#333",
-    legendFontSize: 14,
-  },
-  {
-    name: "สแกน-ตรวจนับ",
-    population: 4,
-    color: "#948",
-    legendFontColor: "#333",
-    legendFontSize: 14,
-  },
-  {
-    name: "อนุมัติรายการ",
-    population: 2,
-    color: "#27ae60",
-    legendFontColor: "#333",
-    legendFontSize: 14,
+    groupName: "สถานะโอนย้าย",
+    items: [
+      { status: "Pending Approval", count: 0 },
+      { status: "Approved", count: 0 },
+      { status: "Rejected", count: 0 },
+    ],
   },
 ];
 
-export { dataDashboard };
+export { dashboardData };

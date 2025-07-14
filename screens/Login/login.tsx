@@ -1,3 +1,4 @@
+import { theme } from "@/providers/Theme";
 import { useState } from "react";
 import {
   Alert,
@@ -67,39 +68,49 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", padding: 24 },
+  container: {
+    ...theme.setFont,
+    flex: 1,
+    justifyContent: "center",
+    padding: 24,
+  },
   title: {
+    ...theme.setFont,
     fontSize: 26,
     marginBottom: 24,
     textAlign: "center",
-    fontWeight: "bold",
   },
   input: {
+    ...theme.setFont,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: theme.border,
     marginBottom: 16,
     padding: 12,
     borderRadius: 10,
-    backgroundColor: "#fff",
+    backgroundColor: theme.white,
     fontSize: 16,
   },
   button: {
-    backgroundColor: "#0054A6",
+    ...theme.setFont,
+    backgroundColor: theme.mainApp,
     paddingVertical: 14,
     borderRadius: 10,
     marginTop: 10,
   },
   buttonText: {
-    color: "#fff",
+    ...theme.setFont,
+    color: theme.white,
     textAlign: "center",
     fontWeight: "600",
     fontSize: 16,
   },
   link: {
+    ...theme.setFont,
     marginTop: 18,
   },
   linkText: {
-    color: "#0054A6",
+    ...theme.setFont,
+    color: theme.mainApp,
     textAlign: "center",
     fontSize: 14,
   },

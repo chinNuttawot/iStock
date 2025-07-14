@@ -1,0 +1,44 @@
+import { theme } from "@/providers/Theme";
+import { StyleSheet } from "react-native";
+
+const styles = StyleSheet.create({
+  container: {
+    ...theme.setFont,
+    padding: 16,
+  },
+  groupContainer: {
+    ...theme.setFont,
+    marginBottom: 16,
+  },
+  groupTitle: {
+    ...theme.setFont,
+    marginBottom: 8,
+  },
+  cardRow: {
+    ...theme.setFont,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  card: {
+    ...theme.setFont,
+    backgroundColor: theme.mainApp,
+    padding: 12,
+    borderRadius: 8,
+    width: "30%",
+    alignItems: "center",
+  },
+  cardCount: {
+    ...theme.setFont,
+    color: theme.white,
+    fontSize: 20,
+    marginVertical: 4,
+  },
+  cardText: {
+    ...theme.setFont,
+    color: theme.white,
+    fontSize: 12,
+    textAlign: "center",
+  },
+});
+
+export { styles };

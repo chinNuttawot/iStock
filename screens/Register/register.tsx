@@ -1,16 +1,17 @@
-import { useState } from 'react';
+import { theme } from "@/providers/Theme";
+import { useState } from "react";
 import {
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
+} from "react-native";
 
 export default function RegisterScreen() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
 
   const handleRegister = () => {
     if (password !== confirm) {
@@ -55,10 +56,7 @@ export default function RegisterScreen() {
       </TouchableOpacity>
 
       {/* ✅ ปุ่มกลับ Login */}
-      <TouchableOpacity
-        style={styles.smallButtonFull}
-        onPress={() => {}}
-      >
+      <TouchableOpacity style={styles.smallButtonFull} onPress={() => {}}>
         <Text style={styles.smallButtonText}>BACK TO LOGIN</Text>
       </TouchableOpacity>
     </View>
@@ -66,32 +64,46 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20 },
-  title: { fontSize: 24, marginBottom: 20, textAlign: 'center' },
+  container: {
+    ...theme.setFont,
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+  },
+  title: {
+    ...theme.setFont,
+    fontSize: 24,
+    marginBottom: 20,
+    textAlign: "center",
+  },
   input: {
+    ...theme.setFont,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: theme.border,
     marginBottom: 12,
     padding: 10,
     borderRadius: 8,
   },
   button: {
-    backgroundColor: '#007AFF',
+    ...theme.setFont,
+    backgroundColor: theme.iosPrimary,
     paddingVertical: 12,
     borderRadius: 8,
     marginTop: 12,
   },
   buttonText: {
-    color: '#fff',
-    textAlign: 'center',
-    fontWeight: 'bold',
+    ...theme.setFont,
+    color: theme.white,
+    textAlign: "center",
   },
   smallButtonFull: {
+    ...theme.setFont,
     marginTop: 12,
     paddingVertical: 10,
     borderRadius: 6,
   },
   smallButtonText: {
-    textAlign: 'center',
+    ...theme.setFont,
+    textAlign: "center",
   },
 });
