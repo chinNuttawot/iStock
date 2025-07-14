@@ -31,6 +31,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: theme.border,
+    padding: 16,
   },
   menuLeft: { ...theme.setFont, flexDirection: "row", alignItems: "center" },
   menuText: { ...theme.setFont, fontSize: 16, marginLeft: 12 },
