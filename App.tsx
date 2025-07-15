@@ -1,6 +1,6 @@
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useCallback } from "react";
@@ -75,14 +75,23 @@ function AppNavigator() {
         <>
           <RootStack.Screen name="Tabs" component={Tabs} />
           <RootStack.Screen name="Profile" component={ProfileScreen} />
-          <RootStack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+          <RootStack.Screen
+            name="DeleteAccount"
+            component={DeleteAccountScreen}
+          />
         </>
       ) : (
         <>
           <RootStack.Screen name="Login" component={LoginScreen} />
           <RootStack.Screen name="Register" component={RegisterScreen} />
-          <RootStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-          <RootStack.Screen name="ConfirmForgotPassword" component={ConfirmForgotPasswordScreen} />
+          <RootStack.Screen
+            name="ForgotPassword"
+            component={ForgotPasswordScreen}
+          />
+          <RootStack.Screen
+            name="ConfirmForgotPassword"
+            component={ConfirmForgotPasswordScreen}
+          />
         </>
       )}
     </RootStack.Navigator>
@@ -110,7 +119,7 @@ export default function App() {
       >
         <AuthProvider>
           <AppWrapper>
-            <NavigationContainer theme={DefaultTheme}>
+            <NavigationContainer>
               <AppNavigator />
             </NavigationContainer>
           </AppWrapper>
