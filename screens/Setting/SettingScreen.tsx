@@ -1,4 +1,13 @@
-import { menuData, MenuItem, RootStackParamList } from "@/dataModel/Setting";
+import {
+  menuData,
+  menuDataText,
+  MenuItem,
+  RootStackParamList,
+} from "@/dataModel/Setting";
+import ModalComponent from "@/providers/Modal";
+import DeleteAccount from "@/providers/Modal/DeleteAccount";
+import ModalLogout from "@/providers/Modal/Logout";
+import { Modeloption } from "@/providers/Modal/Model";
 import { theme } from "@/providers/Theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -8,21 +17,66 @@ import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./Styles";
 
-export default function SettingScreen() {
+export const optionModalComponent: Modeloption = {
+  change: { label: "ยืนยัน", color: theme.red },
+  changeCancel: {
+    label: "ยกเลิก",
+    color: theme.cancel,
+    colorText: theme.black,
+  },
+};
+export default function SettingScreen({ route }: any) {
   const [myMenuData, setMyMenuData] = useState(menuData);
+  const [isOpen, setIsOpen] = useState(false);
+  const [modeMyMidel, setModeMyMidel] = useState("");
+  const { onLogout } = route.params;
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const onPress = (item: MenuItem) => {
     switch (item.label) {
-      case "Profile":
+      case menuDataText.Profile:
         navigation.navigate("Profile");
+        break;
+      case menuDataText.Logout:
+        optionModalComponent.change.label = "ยืนยัน";
+        setModeMyMidel(item.label);
+        setIsOpen(true);
+        break;
+      case menuDataText.DeleteAccount:
+        optionModalComponent.change.label = "ยืนยันการลบบัญชี";
+        setModeMyMidel(item.label);
+        setIsOpen(true);
         break;
     }
   };
 
+  const _onLogout = (isOpen: boolean) => {
+    setIsOpen(isOpen);
+    if (modeMyMidel === menuDataText.DeleteAccount) {
+      navigation.navigate("DeleteAccount");
+      return;
+    }
+
+    onLogout();
+  };
+
   return (
     <View style={styles.container}>
+      <ModalComponent
+        isOpen={isOpen}
+        onChange={(isOpen: boolean) => _onLogout(isOpen)}
+        onChangeCancel={() => {
+          setIsOpen(false);
+        }}
+        option={optionModalComponent}
+      >
+        {modeMyMidel === menuDataText.Logout ? (
+          <ModalLogout />
+        ) : (
+          <DeleteAccount />
+        )}
+      </ModalComponent>
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
           <Ionicons
@@ -61,7 +115,6 @@ export default function SettingScreen() {
           </TouchableOpacity>
         ))}
       </View>
-
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.versionText}>{`version ${

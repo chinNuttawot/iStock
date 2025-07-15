@@ -1,14 +1,36 @@
 import { theme } from "@/providers/Theme";
-import React, { Fragment } from "react";
-import { SafeAreaView, StatusBar } from "react-native";
+import { stylesDeleteAccountScreen } from "@/screens/Setting/Styles";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import React from "react";
+import { SafeAreaView, StatusBar, TouchableOpacity, View } from "react-native";
 
 const Header = (props: any) => {
+  const navigation = useNavigation();
   return (
-    <Fragment>
-      <SafeAreaView style={{ flex: 0 }}>
-        <StatusBar barStyle="light-content" backgroundColor={theme.mainApp} />
+    <View style={{ backgroundColor: props.backgroundColor || theme.white }}>
+      <SafeAreaView>
+        <StatusBar
+          barStyle={props.barStyle || "light-content"}
+          backgroundColor={props.color || theme.mainApp}
+        />
       </SafeAreaView>
-    </Fragment>
+      {!props?.hideGoback && (
+        <TouchableOpacity
+          style={[
+            stylesDeleteAccountScreen.backButton,
+            { width: 40, alignItems: "center" },
+          ]}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons
+            name="chevron-back"
+            size={30}
+            color={props.colorIcon || theme.mainApp}
+          />
+        </TouchableOpacity>
+      )}
+    </View>
   );
 };
 

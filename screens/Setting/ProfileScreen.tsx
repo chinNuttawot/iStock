@@ -1,36 +1,19 @@
 import { Assets } from "@/assets/Assets";
-import { RootStackParamList } from "@/dataModel/Setting";
+import Header from "@/components/Header";
 import { theme } from "@/providers/Theme";
 import {
-    Entypo,
-    Feather,
-    Ionicons,
-    MaterialCommunityIcons,
+  Entypo,
+  Feather,
+  Ionicons,
+  MaterialCommunityIcons,
 } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { JSX } from "react";
-import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 export default function ProfileScreen() {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
   return (
     <View style={styles.container}>
+      <Header backgroundColor={theme.mainApp} colorIcon={theme.white} />
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="chevron-back" size={38} color="#fff" />
-        </TouchableOpacity>
         <View style={styles.avatarContainer}>
           <Ionicons name="person-circle-outline" size={100} color="#fff" />
         </View>
@@ -92,7 +75,6 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: theme.mainApp,
     alignItems: "center",
-    paddingTop: 16,
     paddingBottom: 20,
     borderBottomLeftRadius: 26,
     borderBottomRightRadius: 26,

@@ -1,7 +1,7 @@
 import {
-    AntDesign,
-    Ionicons,
-    MaterialCommunityIcons,
+  AntDesign,
+  Ionicons,
+  MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { JSX } from "react";
 
@@ -12,6 +12,12 @@ export type MenuItem = {
   textColor: string;
   showChevron: boolean;
   onPress?: () => void;
+};
+
+export const menuDataText = {
+  Profile: "Profile",
+  DeleteAccount: "Delete Account",
+  Logout: "Logout",
 };
 
 const menuData: MenuItem[] = [
@@ -41,7 +47,8 @@ const menuData: MenuItem[] = [
 export type RootStackParamList = {
   Tabs: undefined;
   Login: undefined;
-  Profile: undefined; // ✅ ต้องมีตรงนี้
+  Profile: undefined;
+  DeleteAccount: undefined;
 };
 
 export { menuData };

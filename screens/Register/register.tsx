@@ -1,64 +1,170 @@
+import { Assets } from "@/assets/Assets";
+import CustomButton from "@/components/CustomButton";
+import Header from "@/components/Header";
 import { theme } from "@/providers/Theme";
+import {
+  Entypo,
+  Feather,
+  Ionicons,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import {
+  Image,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 
 export default function RegisterScreen() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
+  const navigation = useNavigation<any>();
+  const [form, setForm] = useState({
+    username: "",
+    firstName: "",
+    lastName: "",
+    department: "",
+    branch: "",
+    password: "",
+    email: "",
+    lineId: "",
+    phone: "",
+  });
+
+  const handleChange = (key: string, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
 
   const handleRegister = () => {
-    if (password !== confirm) {
-      alert("Password doesn't match");
-      return;
-    }
-
-    // 🔐 ตัวอย่าง: บันทึก user (mock)
-    console.log("✅ Registered:", { username, password });
-
-    alert("Register success!");
+    console.log("✅ Registered:", form);
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Login" }],
+    });
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Register</Text>
+    <>
+      <Header barStyle="dark-content" color={theme.white} />
+      <ScrollView contentContainerStyle={styles.container}>
+        <Image
+          source={Assets.logoIStock}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.title}>Register</Text>
 
-      <TextInput
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Confirm Password"
-        secureTextEntry
-        value={confirm}
-        onChangeText={setConfirm}
-        style={styles.input}
-      />
+        <FormInput
+          icon="person-outline"
+          placeholder="username"
+          value={form.username}
+          onChange={(v) => handleChange("username", v)}
+        />
+        <FormInput
+          icon="person-outline"
+          placeholder="First Name"
+          value={form.firstName}
+          onChange={(v) => handleChange("firstName", v)}
+        />
+        <FormInput
+          icon="person-outline"
+          placeholder="Last Name"
+          value={form.lastName}
+          onChange={(v) => handleChange("lastName", v)}
+        />
+        <FormInput
+          icon="office-building-outline"
+          placeholder="Department"
+          value={form.department}
+          onChange={(v) => handleChange("department", v)}
+          lib="MaterialCommunityIcons"
+        />
+        <FormInput
+          icon="location"
+          placeholder="Branch"
+          value={form.branch}
+          onChange={(v) => handleChange("branch", v)}
+          lib="Entypo"
+        />
+        <FormInput
+          icon="lock-closed-outline"
+          placeholder="Password"
+          value={form.password}
+          onChange={(v) => handleChange("password", v)}
+        />
 
-      {/* ✅ ปุ่ม Register */}
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>REGISTER</Text>
-      </TouchableOpacity>
+        <Text style={styles.optionText}>Option</Text>
 
-      {/* ✅ ปุ่มกลับ Login */}
-      <TouchableOpacity style={styles.smallButtonFull} onPress={() => {}}>
-        <Text style={styles.smallButtonText}>BACK TO LOGIN</Text>
-      </TouchableOpacity>
+        <FormInput
+          icon="mail-outline"
+          placeholder="Email"
+          value={form.email}
+          onChange={(v) => handleChange("email", v)}
+        />
+        <View style={styles.inputWrapper}>
+          <Image
+            source={Assets.lineIcon}
+            style={styles.lineIcon}
+            resizeMode="contain"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="ID Line"
+            value={form.lineId}
+            onChangeText={(v) => handleChange("lineId", v)}
+          />
+        </View>
+        <FormInput
+          icon="phone"
+          placeholder="Phone Number"
+          value={form.phone}
+          onChange={(v) => handleChange("phone", v)}
+          lib="Feather"
+        />
+        <View style={{ marginTop: 24 }}>
+          <CustomButton label={"Register"} onPress={handleRegister} />
+        </View>
+      </ScrollView>
+    </>
+  );
+}
+
+function FormInput({
+  icon,
+  placeholder,
+  value,
+  onChange,
+  isPassword = false,
+  lib = "Ionicons",
+}: {
+  icon: string;
+  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
+  isPassword?: boolean;
+  lib?: "Ionicons" | "MaterialCommunityIcons" | "Entypo" | "Feather";
+}) {
+  const IconComponent =
+    lib === "MaterialCommunityIcons"
+      ? MaterialCommunityIcons
+      : lib === "Entypo"
+      ? Entypo
+      : lib === "Feather"
+      ? Feather
+      : Ionicons;
+
+  return (
+    <View style={styles.inputWrapper}>
+      <IconComponent name={icon as any} size={20} color="gray" />
+      <TextInput
+        style={styles.input}
+        placeholder={placeholder}
+        value={value}
+        secureTextEntry={isPassword}
+        onChangeText={onChange}
+      />
     </View>
   );
 }
@@ -66,28 +172,48 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     ...theme.setFont,
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
+    flexGrow: 1,
+    // padding: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    backgroundColor: theme.white,
   },
+  logo: { width: 300, height: 250, alignSelf: "center", marginTop: -20 },
   title: {
     ...theme.setFont,
-    fontSize: 24,
-    marginBottom: 20,
+    fontSize: 18,
+    color: theme.mainApp,
     textAlign: "center",
+    marginBottom: 16,
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 12,
   },
   input: {
     ...theme.setFont,
-    borderWidth: 1,
-    borderColor: theme.border,
-    marginBottom: 12,
-    padding: 10,
-    borderRadius: 8,
+    flex: 1,
+    marginLeft: 8,
+  },
+  lineIcon: {
+    width: 20,
+    height: 20,
+  },
+  optionText: {
+    ...theme.setFont,
+    color: theme.mainApp,
+    textAlign: "center",
+    marginVertical: 8,
   },
   button: {
     ...theme.setFont,
-    backgroundColor: theme.iosPrimary,
-    paddingVertical: 12,
+    backgroundColor: theme.mainApp,
+    paddingVertical: 14,
     borderRadius: 8,
     marginTop: 12,
   },
@@ -95,15 +221,6 @@ const styles = StyleSheet.create({
     ...theme.setFont,
     color: theme.white,
     textAlign: "center",
-  },
-  smallButtonFull: {
-    ...theme.setFont,
-    marginTop: 12,
-    paddingVertical: 10,
-    borderRadius: 6,
-  },
-  smallButtonText: {
-    ...theme.setFont,
-    textAlign: "center",
+    fontSize: 16,
   },
 });

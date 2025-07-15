@@ -16,7 +16,7 @@ export default function HomeScreen() {
 
   return (
     <Fragment>
-      <Header />
+      <Header hideGoback={true} />
       <View style={styles.container}>
         {dashboard.map((group, index) => (
           <View key={index} style={styles.groupContainer}>
