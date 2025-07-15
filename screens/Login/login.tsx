@@ -1,9 +1,10 @@
 import { Assets } from "@/assets/Assets";
+import { useAuth } from "@/AuthContext";
 import CustomButton from "@/components/CustomButton";
 import { theme } from "@/providers/Theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Alert,
   Image,
@@ -19,16 +20,14 @@ import {
   View,
 } from "react-native";
 
-type LoginScreenProps = {
-  onLoginSuccess: () => void;
-};
-
-export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
+export default function LoginScreen() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [hidePassword, setHidePassword] = useState(true);
   const navigation = useNavigation<any>();
-  const handleLogin = async () => {
+  const { login } = useAuth();
+
+  const handleLogin = () => {
     const utf8Bytes = new TextEncoder().encode(password.toLowerCase());
     const base64Encoded = btoa(String.fromCharCode(...utf8Bytes));
     console.log("🔐 Encoded password:", base64Encoded);
@@ -37,7 +36,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       username.toLowerCase() === "admin" &&
       password.toLowerCase() === "1234"
     ) {
-      onLoginSuccess();
+      login(); // ✅ เรียก Context ให้ Login สำเร็จ
     } else {
       Alert.alert("เข้าสู่ระบบล้มเหลว", "Username หรือ Password ไม่ถูกต้อง");
     }

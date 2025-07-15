@@ -3,11 +3,12 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useCallback, useState } from "react";
+import React, { useCallback } from "react";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 // Screens & Providers
 import { AppWrapper } from "./AppWrapper";
+import { AuthProvider, useAuth } from "./AuthContext";
 import { theme } from "./providers/Theme";
 import ConfirmForgotPasswordScreen from "./screens/ForgotPassword/ConfirmForgotPasswordScreen";
 import ForgotPasswordScreen from "./screens/ForgotPassword/ForgotPasswordScreen";
@@ -23,10 +24,8 @@ import { useLoadFonts } from "./useLoadFonts";
 const RootStack = createNativeStackNavigator<any>();
 const Tab = createBottomTabNavigator<any>();
 SplashScreen.preventAutoHideAsync();
-type TabsProps = {
-  onLogout: () => void;
-};
-function Tabs({ onLogout }: TabsProps) {
+
+function Tabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -60,7 +59,6 @@ function Tabs({ onLogout }: TabsProps) {
       />
       <Tab.Screen
         name="Setting"
-        initialParams={{ onLogout: onLogout }}
         component={SettingScreen}
         options={{ title: "ตั้งค่า", headerShown: false }}
       />
@@ -68,10 +66,31 @@ function Tabs({ onLogout }: TabsProps) {
   );
 }
 
-// 🔹 Main App
+function AppNavigator() {
+  const { isLoggedIn } = useAuth();
+
+  return (
+    <RootStack.Navigator screenOptions={{ headerShown: false }}>
+      {isLoggedIn ? (
+        <>
+          <RootStack.Screen name="Tabs" component={Tabs} />
+          <RootStack.Screen name="Profile" component={ProfileScreen} />
+          <RootStack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+        </>
+      ) : (
+        <>
+          <RootStack.Screen name="Login" component={LoginScreen} />
+          <RootStack.Screen name="Register" component={RegisterScreen} />
+          <RootStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <RootStack.Screen name="ConfirmForgotPassword" component={ConfirmForgotPasswordScreen} />
+        </>
+      )}
+    </RootStack.Navigator>
+  );
+}
+
 export default function App() {
   const fontsLoaded = useLoadFonts();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded) {
@@ -89,53 +108,13 @@ export default function App() {
         style={{ flex: 1, backgroundColor: theme.background }}
         onLayout={onLayoutRootView}
       >
-        <AppWrapper>
-          <NavigationContainer theme={DefaultTheme}>
-            <RootStack.Navigator screenOptions={{ headerShown: false }}>
-              {isLoggedIn ? (
-                <>
-                  <RootStack.Screen name="Tabs">
-                    {(props) => (
-                      <Tabs {...props} onLogout={() => setIsLoggedIn(false)} />
-                    )}
-                  </RootStack.Screen>
-                  <RootStack.Screen name="Profile" component={ProfileScreen} />
-                  <RootStack.Screen name="DeleteAccount">
-                    {(props) => (
-                      <DeleteAccountScreen
-                        {...props}
-                        onLogout={() => setIsLoggedIn(false)}
-                      />
-                    )}
-                  </RootStack.Screen>
-                </>
-              ) : (
-                <>
-                  <RootStack.Screen name="Login">
-                    {(props) => (
-                      <LoginScreen
-                        {...props}
-                        onLoginSuccess={() => setIsLoggedIn(true)}
-                      />
-                    )}
-                  </RootStack.Screen>
-                  <RootStack.Screen
-                    name="Register"
-                    component={RegisterScreen}
-                  />
-                  <RootStack.Screen
-                    name="ForgotPassword"
-                    component={ForgotPasswordScreen}
-                  />
-                  <RootStack.Screen
-                    name="ConfirmForgotPassword"
-                    component={ConfirmForgotPasswordScreen}
-                  />
-                </>
-              )}
-            </RootStack.Navigator>
-          </NavigationContainer>
-        </AppWrapper>
+        <AuthProvider>
+          <AppWrapper>
+            <NavigationContainer theme={DefaultTheme}>
+              <AppNavigator />
+            </NavigationContainer>
+          </AppWrapper>
+        </AuthProvider>
       </SafeAreaView>
     </SafeAreaProvider>
   );

@@ -1,23 +1,22 @@
 import { Assets } from "@/assets/Assets";
+import { useAuth } from "@/AuthContext";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import { theme } from "@/providers/Theme";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { Image, ScrollView, Text, TextInput, View } from "react-native";
 import { stylesDeleteAccountScreen } from "./Styles";
 
-export default function DeleteAccountScreen({ onLogout }: any) {
-  const navigation = useNavigation();
+export default function DeleteAccountScreen() {
+  const { logout } = useAuth();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleDelete = () => {
     if (password && password === confirmPassword) {
       console.log("Account Deleted");
-      onLogout();
-      // TODO: call API here
+      logout(); // ✅ ออกจากระบบผ่าน Context
     } else {
       alert("Password does not match");
     }
@@ -26,7 +25,7 @@ export default function DeleteAccountScreen({ onLogout }: any) {
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <View style={stylesDeleteAccountScreen.container}>
-        <Header color={theme.white} barStyle={"dark-content"} />
+        <Header color={theme.white} barStyle="dark-content" />
         <Image
           source={Assets.logoIStock}
           style={stylesDeleteAccountScreen.logo}
@@ -54,7 +53,7 @@ export default function DeleteAccountScreen({ onLogout }: any) {
           </View>
         </View>
         <View style={{ marginTop: 24 }}>
-          <CustomButton label={"Delete Account"} onPress={handleDelete} />
+          <CustomButton label="Delete Account" onPress={handleDelete} />
         </View>
       </View>
     </ScrollView>

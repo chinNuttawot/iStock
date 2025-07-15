@@ -1,3 +1,4 @@
+import { useAuth } from "@/AuthContext";
 import {
   menuData,
   menuDataText,
@@ -25,11 +26,12 @@ export const optionModalComponent: Modeloption = {
     colorText: theme.black,
   },
 };
-export default function SettingScreen({ route }: any) {
+
+export default function SettingScreen() {
+  const { logout } = useAuth();
   const [myMenuData, setMyMenuData] = useState(menuData);
   const [isOpen, setIsOpen] = useState(false);
-  const [modeMyMidel, setModeMyMidel] = useState("");
-  const { onLogout } = route.params;
+  const [modeMyModal, setModeMyModal] = useState("");
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -40,12 +42,12 @@ export default function SettingScreen({ route }: any) {
         break;
       case menuDataText.Logout:
         optionModalComponent.change.label = "ยืนยัน";
-        setModeMyMidel(item.label);
+        setModeMyModal(item.label);
         setIsOpen(true);
         break;
       case menuDataText.DeleteAccount:
         optionModalComponent.change.label = "ยืนยันการลบบัญชี";
-        setModeMyMidel(item.label);
+        setModeMyModal(item.label);
         setIsOpen(true);
         break;
     }
@@ -53,25 +55,22 @@ export default function SettingScreen({ route }: any) {
 
   const _onLogout = (isOpen: boolean) => {
     setIsOpen(isOpen);
-    if (modeMyMidel === menuDataText.DeleteAccount) {
+    if (modeMyModal === menuDataText.DeleteAccount) {
       navigation.navigate("DeleteAccount");
       return;
     }
-
-    onLogout();
+    logout();
   };
 
   return (
     <View style={styles.container}>
       <ModalComponent
         isOpen={isOpen}
-        onChange={(isOpen: boolean) => _onLogout(isOpen)}
-        onChangeCancel={() => {
-          setIsOpen(false);
-        }}
+        onChange={_onLogout}
+        onChangeCancel={() => setIsOpen(false)}
         option={optionModalComponent}
       >
-        {modeMyMidel === menuDataText.Logout ? (
+        {modeMyModal === menuDataText.Logout ? (
           <ModalLogout />
         ) : (
           <DeleteAccount />
@@ -95,9 +94,7 @@ export default function SettingScreen({ route }: any) {
           <TouchableOpacity
             style={styles.menuItem}
             key={item.id}
-            onPress={() => {
-              onPress(item);
-            }}
+            onPress={() => onPress(item)}
           >
             <View style={styles.menuLeft}>
               {item.icon}
@@ -115,11 +112,10 @@ export default function SettingScreen({ route }: any) {
           </TouchableOpacity>
         ))}
       </View>
-      {/* Footer */}
       <View style={styles.footer}>
-        <Text style={styles.versionText}>{`version ${
-          Constants.expoConfig?.version || "0.0.0"
-        }`}</Text>
+        <Text style={styles.versionText}>
+          {`version ${Constants.expoConfig?.version || "0.0.0"}`}
+        </Text>
       </View>
     </View>
   );
