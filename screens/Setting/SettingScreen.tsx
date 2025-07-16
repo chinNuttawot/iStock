@@ -1,4 +1,5 @@
 import { useAuth } from "@/AuthContext";
+import Header from "@/components/Header";
 import {
   menuData,
   menuDataText,
@@ -64,6 +65,7 @@ export default function SettingScreen() {
 
   return (
     <View style={styles.container}>
+      <Header/>
       <ModalComponent
         isOpen={isOpen}
         onChange={_onLogout}

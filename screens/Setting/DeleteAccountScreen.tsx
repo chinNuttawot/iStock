@@ -23,39 +23,47 @@ export default function DeleteAccountScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-      <View style={stylesDeleteAccountScreen.container}>
-        <Header color={theme.white} barStyle="dark-content" />
-        <Image
-          source={Assets.logoIStock}
-          style={stylesDeleteAccountScreen.logo}
-          resizeMode="contain"
-        />
-        <Text style={stylesDeleteAccountScreen.title}>Delete Account</Text>
-        <View style={stylesDeleteAccountScreen.form}>
-          <View style={stylesDeleteAccountScreen.inputWrapper}>
-            <Ionicons name="lock-closed-outline" size={20} color="gray" />
-            <TextInput
-              placeholder="Password"
-              style={stylesDeleteAccountScreen.input}
-              value={password}
-              onChangeText={setPassword}
-            />
+    <View style={{ backgroundColor: theme.white, flex: 1 }}>
+      <Header
+        backgroundColor={theme.white}
+        color={theme.white}
+        colorIcon={theme.black}
+        hideGoback={false}
+        barStyle="dark-content"
+      />
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={stylesDeleteAccountScreen.container}>
+          <Image
+            source={Assets.logoIStock}
+            style={stylesDeleteAccountScreen.logo}
+            resizeMode="contain"
+          />
+          <Text style={stylesDeleteAccountScreen.title}>Delete Account</Text>
+          <View style={stylesDeleteAccountScreen.form}>
+            <View style={stylesDeleteAccountScreen.inputWrapper}>
+              <Ionicons name="lock-closed-outline" size={20} color="gray" />
+              <TextInput
+                placeholder="Password"
+                style={stylesDeleteAccountScreen.input}
+                value={password}
+                onChangeText={setPassword}
+              />
+            </View>
+            <View style={stylesDeleteAccountScreen.inputWrapper}>
+              <Ionicons name="lock-closed-outline" size={20} color="gray" />
+              <TextInput
+                placeholder="Confirm Password"
+                style={stylesDeleteAccountScreen.input}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+              />
+            </View>
           </View>
-          <View style={stylesDeleteAccountScreen.inputWrapper}>
-            <Ionicons name="lock-closed-outline" size={20} color="gray" />
-            <TextInput
-              placeholder="Confirm Password"
-              style={stylesDeleteAccountScreen.input}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-            />
+          <View style={{ marginTop: 24 }}>
+            <CustomButton label="Delete Account" onPress={handleDelete} />
           </View>
         </View>
-        <View style={{ marginTop: 24 }}>
-          <CustomButton label="Delete Account" onPress={handleDelete} />
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

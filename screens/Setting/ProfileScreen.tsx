@@ -11,52 +11,64 @@ import React, { JSX } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 export default function ProfileScreen() {
   return (
-    <View style={styles.container}>
-      <Header backgroundColor={theme.mainApp} colorIcon={theme.white} />
-      <View style={styles.header}>
-        <View style={styles.avatarContainer}>
-          <Ionicons name="person-circle-outline" size={100} color="#fff" />
+    <View style={{ backgroundColor: theme.white, flex: 1 }}>
+      <Header
+        backgroundColor={theme.mainApp}
+        colorIcon={theme.white}
+        hideGoback={false}
+      />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.avatarContainer}>
+            <Ionicons name="person-circle-outline" size={100} color="#fff" />
+          </View>
         </View>
+        <ScrollView contentContainerStyle={styles.formContainer}>
+          <FormItem
+            icon={<Ionicons name="id-card-outline" size={20} />}
+            label="Employee ID"
+          />
+          <FormItem
+            icon={<Ionicons name="person-outline" size={20} />}
+            label="First Name"
+          />
+          <FormItem
+            icon={<Ionicons name="person-outline" size={20} />}
+            label="Last Name"
+          />
+          <FormItem
+            icon={
+              <MaterialCommunityIcons
+                name="office-building-outline"
+                size={20}
+              />
+            }
+            label="Department"
+          />
+          <FormItem
+            icon={<Entypo name="location" size={20} />}
+            label="Branch"
+          />
+          <FormItem
+            icon={<Ionicons name="mail-outline" size={20} />}
+            label="Email"
+          />
+          <FormItem
+            icon={
+              <Image
+                source={Assets.lineIcon}
+                style={{ width: 20, height: 20 }}
+                resizeMode="contain"
+              />
+            }
+            label="ID Line"
+          />
+          <FormItem
+            icon={<Feather name="phone" size={20} />}
+            label="Phone Number"
+          />
+        </ScrollView>
       </View>
-      <ScrollView contentContainerStyle={styles.formContainer}>
-        <FormItem
-          icon={<Ionicons name="id-card-outline" size={20} />}
-          label="Employee ID"
-        />
-        <FormItem
-          icon={<Ionicons name="person-outline" size={20} />}
-          label="First Name"
-        />
-        <FormItem
-          icon={<Ionicons name="person-outline" size={20} />}
-          label="Last Name"
-        />
-        <FormItem
-          icon={
-            <MaterialCommunityIcons name="office-building-outline" size={20} />
-          }
-          label="Department"
-        />
-        <FormItem icon={<Entypo name="location" size={20} />} label="Branch" />
-        <FormItem
-          icon={<Ionicons name="mail-outline" size={20} />}
-          label="Email"
-        />
-        <FormItem
-          icon={
-            <Image
-              source={Assets.lineIcon}
-              style={{ width: 20, height: 20 }}
-              resizeMode="contain"
-            />
-          }
-          label="ID Line"
-        />
-        <FormItem
-          icon={<Feather name="phone" size={20} />}
-          label="Phone Number"
-        />
-      </ScrollView>
     </View>
   );
 }

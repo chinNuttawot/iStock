@@ -4,7 +4,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useCallback } from "react";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 // Screens & Providers
 import { AppWrapper } from "./AppWrapper";
@@ -16,6 +16,7 @@ import HomeScreen from "./screens/Home/HomeScreen";
 import LoginScreen from "./screens/Login/login";
 import MenuScreen from "./screens/Menu/MenuScreen";
 import RegisterScreen from "./screens/Register/register";
+import ScanInScreen from "./screens/ScanIn ";
 import DeleteAccountScreen from "./screens/Setting/DeleteAccountScreen";
 import ProfileScreen from "./screens/Setting/ProfileScreen";
 import SettingScreen from "./screens/Setting/SettingScreen";
@@ -79,6 +80,7 @@ function AppNavigator() {
             name="DeleteAccount"
             component={DeleteAccountScreen}
           />
+          <RootStack.Screen name="ScanIn" component={ScanInScreen} />
         </>
       ) : (
         <>
@@ -112,19 +114,14 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView
-        style={{ flex: 1, backgroundColor: theme.background }}
-        onLayout={onLayoutRootView}
-      >
-        <AuthProvider>
-          <AppWrapper>
-            <NavigationContainer>
-              <AppNavigator />
-            </NavigationContainer>
-          </AppWrapper>
-        </AuthProvider>
-      </SafeAreaView>
+    <SafeAreaProvider onLayout={onLayoutRootView}>
+      <AuthProvider>
+        <AppWrapper>
+          <NavigationContainer>
+            <AppNavigator />
+          </NavigationContainer>
+        </AppWrapper>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

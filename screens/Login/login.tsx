@@ -8,8 +8,6 @@ import React, { useState } from "react";
 import {
   Alert,
   Image,
-  KeyboardAvoidingView,
-  Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -43,70 +41,65 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View style={styles.main}>
-          <SafeAreaView>
-            <StatusBar barStyle="dark-content" backgroundColor={theme.white} />
-          </SafeAreaView>
-          <Image
-            source={Assets.logoIStock}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <View style={styles.container}>
-            <View style={styles.inputWrapper}>
-              <Ionicons name="person-outline" size={20} color="gray" />
-              <TextInput
-                placeholder="username"
-                value={username}
-                onChangeText={setUsername}
-                style={styles.input}
-                autoCapitalize="none"
+    <ScrollView contentContainerStyle={{ flex: 1 }}>
+      <View style={styles.main}>
+        <SafeAreaView>
+          <StatusBar barStyle="dark-content" backgroundColor={theme.white} />
+        </SafeAreaView>
+        <Image
+          source={Assets.logoIStock}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <View style={styles.container}>
+          <View style={styles.inputWrapper}>
+            <Ionicons name="person-outline" size={20} color="gray" />
+            <TextInput
+              placeholder="username"
+              value={username}
+              onChangeText={setUsername}
+              style={styles.input}
+              autoCapitalize="none"
+            />
+          </View>
+          <View style={styles.inputWrapper}>
+            <Ionicons name="lock-closed-outline" size={20} color="gray" />
+            <TextInput
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              style={styles.input}
+              secureTextEntry={hidePassword}
+            />
+            <TouchableOpacity onPress={() => setHidePassword(!hidePassword)}>
+              <Ionicons
+                name={hidePassword ? "eye-off-outline" : "eye-outline"}
+                size={20}
+                color="gray"
               />
-            </View>
-            <View style={styles.inputWrapper}>
-              <Ionicons name="lock-closed-outline" size={20} color="gray" />
-              <TextInput
-                placeholder="Password"
-                value={password}
-                onChangeText={setPassword}
-                style={styles.input}
-                secureTextEntry={hidePassword}
-              />
-              <TouchableOpacity onPress={() => setHidePassword(!hidePassword)}>
-                <Ionicons
-                  name={hidePassword ? "eye-off-outline" : "eye-outline"}
-                  size={20}
-                  color="gray"
-                />
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              style={styles.textLink}
-              onPress={() => navigation.navigate("ForgotPassword")}
-            >
-              <Text style={styles.textLinkText}>Forgot password?</Text>
             </TouchableOpacity>
-            <Text style={styles.registerText}>
-              {"Don't have an account? "}
-              <Text
-                style={styles.registerLink}
-                onPress={() => navigation.navigate("Register")}
-              >
-                Register
-              </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.textLink}
+            onPress={() => navigation.navigate("ForgotPassword")}
+          >
+            <Text style={styles.textLinkText}>Forgot password?</Text>
+          </TouchableOpacity>
+          <Text style={styles.registerText}>
+            {"Don't have an account? "}
+            <Text
+              style={styles.registerLink}
+              onPress={() => navigation.navigate("Register")}
+            >
+              Register
             </Text>
-            <View style={{ marginTop: 24 }}>
-              <CustomButton label={"Login"} onPress={handleLogin} />
-            </View>
+          </Text>
+          <View style={{ marginTop: 24 }}>
+            <CustomButton label={"Login"} onPress={handleLogin} />
           </View>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </View>
+    </ScrollView>
   );
 }
 

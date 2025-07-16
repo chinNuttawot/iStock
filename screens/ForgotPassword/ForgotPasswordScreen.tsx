@@ -5,19 +5,32 @@ import { theme } from "@/providers/Theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
-import { Image, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 export default function ForgotPasswordScreen() {
   const [username, setUsername] = useState("");
-const navigation = useNavigation<any>();
+  const navigation = useNavigation<any>();
   const handleSend = () => {
     console.log("📧 ส่งลืมรหัสผ่านให้:", username);
-    navigation.navigate("ConfirmForgotPassword")
+    navigation.navigate("ConfirmForgotPassword");
   };
 
   return (
-    <>
-      <Header barStyle="dark-content" color={theme.white} />
+    <View style={{ backgroundColor: theme.white, flex: 1 }}>
+      <Header
+        backgroundColor={theme.white}
+        color={theme.white}
+        colorIcon={theme.black}
+        hideGoback={false}
+        barStyle="dark-content"
+      />
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={styles.container}>
           <Image
@@ -38,7 +51,7 @@ const navigation = useNavigation<any>();
           <CustomButton label="Send" onPress={handleSend} />
         </View>
       </ScrollView>
-    </>
+    </View>
   );
 }
 

@@ -6,12 +6,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
 export default function ConfirmForgotPasswordScreen() {
@@ -32,8 +32,14 @@ export default function ConfirmForgotPasswordScreen() {
   };
 
   return (
-    <>
-      <Header barStyle="dark-content" color={theme.white} />
+    <View style={{ backgroundColor: theme.white, flex: 1 }}>
+      <Header
+        backgroundColor={theme.white}
+        color={theme.white}
+        colorIcon={theme.black}
+        hideGoback={false}
+        barStyle="dark-content"
+      />
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={styles.container}>
           <Image
@@ -68,7 +74,7 @@ export default function ConfirmForgotPasswordScreen() {
           <CustomButton label="Confirm" onPress={handleConfirm} />
         </View>
       </ScrollView>
-    </>
+    </View>
   );
 }
 

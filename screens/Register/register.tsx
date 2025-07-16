@@ -46,8 +46,14 @@ export default function RegisterScreen() {
   };
 
   return (
-    <>
-      <Header barStyle="dark-content" color={theme.white} />
+    <View style={{backgroundColor: theme.white}}>
+      <Header
+        backgroundColor={theme.white}
+        color={theme.white}
+        colorIcon={theme.black}
+        hideGoback={false}
+        barStyle="dark-content"
+      />
       <ScrollView contentContainerStyle={styles.container}>
         <Image
           source={Assets.logoIStock}
@@ -127,7 +133,7 @@ export default function RegisterScreen() {
           <CustomButton label={"Register"} onPress={handleRegister} />
         </View>
       </ScrollView>
-    </>
+    </View>
   );
 }
 
@@ -173,7 +179,6 @@ const styles = StyleSheet.create({
   container: {
     ...theme.setFont,
     flexGrow: 1,
-    // padding: 24,
     paddingHorizontal: 24,
     paddingBottom: 24,
     backgroundColor: theme.white,
