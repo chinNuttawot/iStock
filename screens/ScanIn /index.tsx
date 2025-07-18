@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
 import { theme } from "@/providers/Theme";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./Styles";
@@ -52,7 +53,11 @@ const cardData = [
       { label: "เลขที่เอกสาร", value: "TRO2506-011" },
       { label: "ส่งจากคลัง", value: "00HO - Head Office" },
       { label: "E-Shop No.", value: "PRE2309026" },
-      { label: "หมายเหตุ", value: "Operation Gropdhgjkdhbgjkdfhg;jskdfhg;adfhgkjdfhg;kjsdfhgkj;dfahgljkdfsbkgjsbdfglkjhsdfgkjhdflgkjbsdflkgbdsflkjbgoup สำหรับ CCC" },
+      {
+        label: "หมายเหตุ",
+        value:
+          "Operation Gropdhgjkdhbgjkdfhg;jskdfhg;adfhgkjdfhg;kjsdfhgkj;dfahgljkdfsbkgjsbdfglkjhsdfgkjhdflgkjbsdflkgbdsflkjbgoup สำหรับ CCC",
+      },
     ],
   },
 ];
@@ -60,7 +65,7 @@ const cardData = [
 export default function ScanInScreen() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
-
+  const navigation = useNavigation<any>();
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
@@ -89,12 +94,16 @@ export default function ScanInScreen() {
         hideGoback={false}
         title={"สแกน-รับ"}
         IconComponent={
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate("Filter");
+            }}
+          >
             <Ionicons name="filter" size={30} color="white" />
           </TouchableOpacity>
         }
       />
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: theme.white }}>
         <ScrollView contentContainerStyle={styles.content}>
           <TouchableOpacity onPress={handleSelectAll}>
             <Text style={styles.selectAllText}>เลือกทั้งหมด</Text>

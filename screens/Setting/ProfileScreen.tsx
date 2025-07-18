@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   formItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: theme.background,
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,

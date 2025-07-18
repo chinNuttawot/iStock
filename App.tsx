@@ -10,6 +10,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AppWrapper } from "./AppWrapper";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { theme } from "./providers/Theme";
+import FilterScreen from "./screens/Filter";
 import ConfirmForgotPasswordScreen from "./screens/ForgotPassword/ConfirmForgotPasswordScreen";
 import ForgotPasswordScreen from "./screens/ForgotPassword/ForgotPasswordScreen";
 import HomeScreen from "./screens/Home/HomeScreen";
@@ -81,6 +82,7 @@ function AppNavigator() {
             component={DeleteAccountScreen}
           />
           <RootStack.Screen name="ScanIn" component={ScanInScreen} />
+          <RootStack.Screen name="Filter" component={FilterScreen} />
         </>
       ) : (
         <>

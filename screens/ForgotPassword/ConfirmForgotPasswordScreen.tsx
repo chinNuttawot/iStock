@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: theme.background,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
