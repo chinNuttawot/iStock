@@ -46,6 +46,7 @@ export default function ForgotPasswordScreen() {
               value={username}
               onChangeText={setUsername}
               style={styles.input}
+              placeholderTextColor={theme.border}
             />
           </View>
           <CustomButton label="Send" onPress={handleSend} />

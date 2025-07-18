@@ -47,6 +47,7 @@ export default function DeleteAccountScreen() {
                 style={stylesDeleteAccountScreen.input}
                 value={password}
                 onChangeText={setPassword}
+                placeholderTextColor={theme.border}
               />
             </View>
             <View style={stylesDeleteAccountScreen.inputWrapper}>
@@ -56,6 +57,7 @@ export default function DeleteAccountScreen() {
                 style={stylesDeleteAccountScreen.input}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
+                placeholderTextColor={theme.border}
               />
             </View>
           </View>

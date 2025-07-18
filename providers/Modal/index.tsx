@@ -6,16 +6,28 @@ import { theme } from "../Theme";
 import { ModalComponentModel } from "./Model";
 
 function ModalComponent(props: ModalComponentModel) {
-  const { isOpen = false, onChange, children, onChangeCancel } = props;
+  const {
+    isOpen = false,
+    onChange,
+    children,
+    onChangeCancel,
+    hideCustomButtons = false,
+    backgroundColor,
+  } = props;
 
   const toggleModal = () => {
     onChange && onChange(!isOpen);
   };
 
   return (
-    <Modal isVisible={isOpen}>
+    <Modal isVisible={isOpen} onBackdropPress={() => toggleModal()}>
       <View
-        style={{ backgroundColor: theme.white, borderRadius: 8, padding: 16 }}
+        style={{
+          backgroundColor: props.backgroundColor || theme.white,
+          borderRadius: 8,
+          padding: 16,
+          alignItems: "center",
+        }}
       >
         {children && children}
         <View style={{ flexDirection: "row" }}>
@@ -25,7 +37,9 @@ function ModalComponent(props: ModalComponentModel) {
               {...props.option?.changeCancel}
             />
           )}
-          <CustomButtons onPress={toggleModal} {...props.option?.change} />
+          {!hideCustomButtons && (
+            <CustomButtons onPress={toggleModal} {...props.option?.change} />
+          )}
         </View>
       </View>
     </Modal>

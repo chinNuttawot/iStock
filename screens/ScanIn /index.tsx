@@ -2,11 +2,13 @@ import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
 import { theme } from "@/providers/Theme";
-import { Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useSelector } from "react-redux";
 import { styles } from "./Styles";
+
 const cardData = [
   {
     id: "1",
@@ -66,6 +68,12 @@ export default function ScanInScreen() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const navigation = useNavigation<any>();
+  const filter = useSelector((state: any) => state.filter);
+
+  useEffect(() => {
+    console.log("Filter Changed:", filter);
+  }, [filter]);
+
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
@@ -86,6 +94,10 @@ export default function ScanInScreen() {
     }
   };
 
+  const openFilter = () => {
+    navigation.navigate("Filter", {});
+  };
+
   return (
     <>
       <Header
@@ -96,10 +108,14 @@ export default function ScanInScreen() {
         IconComponent={
           <TouchableOpacity
             onPress={() => {
-              navigation.navigate("Filter");
+              openFilter();
             }}
           >
-            <Ionicons name="filter" size={30} color="white" />
+            <MaterialCommunityIcons
+              name={filter?.isFilter ? "filter-check" : "filter"}
+              size={30}
+              color="white"
+            />
           </TouchableOpacity>
         }
       />

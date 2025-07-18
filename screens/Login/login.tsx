@@ -60,6 +60,7 @@ export default function LoginScreen() {
               onChangeText={setUsername}
               style={styles.input}
               autoCapitalize="none"
+              placeholderTextColor={theme.border}
             />
           </View>
           <View style={styles.inputWrapper}>
@@ -70,6 +71,7 @@ export default function LoginScreen() {
               onChangeText={setPassword}
               style={styles.input}
               secureTextEntry={hidePassword}
+              placeholderTextColor={theme.border}
             />
             <TouchableOpacity onPress={() => setHidePassword(!hidePassword)}>
               <Ionicons

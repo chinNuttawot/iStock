@@ -12,12 +12,19 @@ import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import {
   Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  KeyboardTypeOptions,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
+
+export const keyboardTypeNumber = "numeric";
 
 export default function RegisterScreen() {
   const navigation = useNavigation<any>();
@@ -46,7 +53,7 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View style={{backgroundColor: theme.white}}>
+    <View style={{ flex: 1, backgroundColor: theme.white }}>
       <Header
         backgroundColor={theme.white}
         color={theme.white}
@@ -54,85 +61,94 @@ export default function RegisterScreen() {
         hideGoback={false}
         barStyle="dark-content"
       />
-      <ScrollView contentContainerStyle={styles.container}>
-        <Image
-          source={Assets.logoIStock}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.title}>Register</Text>
-
-        <FormInput
-          icon="person-outline"
-          placeholder="username"
-          value={form.username}
-          onChange={(v) => handleChange("username", v)}
-        />
-        <FormInput
-          icon="person-outline"
-          placeholder="First Name"
-          value={form.firstName}
-          onChange={(v) => handleChange("firstName", v)}
-        />
-        <FormInput
-          icon="person-outline"
-          placeholder="Last Name"
-          value={form.lastName}
-          onChange={(v) => handleChange("lastName", v)}
-        />
-        <FormInput
-          icon="office-building-outline"
-          placeholder="Department"
-          value={form.department}
-          onChange={(v) => handleChange("department", v)}
-          lib="MaterialCommunityIcons"
-        />
-        <FormInput
-          icon="location"
-          placeholder="Branch"
-          value={form.branch}
-          onChange={(v) => handleChange("branch", v)}
-          lib="Entypo"
-        />
-        <FormInput
-          icon="lock-closed-outline"
-          placeholder="Password"
-          value={form.password}
-          onChange={(v) => handleChange("password", v)}
-        />
-
-        <Text style={styles.optionText}>Option</Text>
-
-        <FormInput
-          icon="mail-outline"
-          placeholder="Email"
-          value={form.email}
-          onChange={(v) => handleChange("email", v)}
-        />
-        <View style={styles.inputWrapper}>
-          <Image
-            source={Assets.lineIcon}
-            style={styles.lineIcon}
-            resizeMode="contain"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="ID Line"
-            value={form.lineId}
-            onChangeText={(v) => handleChange("lineId", v)}
-          />
-        </View>
-        <FormInput
-          icon="phone"
-          placeholder="Phone Number"
-          value={form.phone}
-          onChange={(v) => handleChange("phone", v)}
-          lib="Feather"
-        />
-        <View style={{ marginTop: 24 }}>
-          <CustomButton label={"Register"} onPress={handleRegister} />
-        </View>
-      </ScrollView>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={styles.container}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Image
+              source={Assets.logoIStock}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <Text style={styles.title}>Register</Text>
+            <FormInput
+              icon="person-outline"
+              placeholder="username"
+              value={form.username}
+              onChange={(v) => handleChange("username", v)}
+            />
+            <FormInput
+              icon="person-outline"
+              placeholder="First Name"
+              value={form.firstName}
+              onChange={(v) => handleChange("firstName", v)}
+            />
+            <FormInput
+              icon="person-outline"
+              placeholder="Last Name"
+              value={form.lastName}
+              onChange={(v) => handleChange("lastName", v)}
+            />
+            <FormInput
+              icon="office-building-outline"
+              placeholder="Department"
+              value={form.department}
+              onChange={(v) => handleChange("department", v)}
+              lib="MaterialCommunityIcons"
+            />
+            <FormInput
+              icon="location"
+              placeholder="Branch"
+              value={form.branch}
+              onChange={(v) => handleChange("branch", v)}
+              lib="Entypo"
+            />
+            <FormInput
+              icon="lock-closed-outline"
+              placeholder="Password"
+              value={form.password}
+              onChange={(v) => handleChange("password", v)}
+            />
+            <Text style={styles.optionText}>Option</Text>
+            <FormInput
+              icon="mail-outline"
+              placeholder="Email"
+              value={form.email}
+              onChange={(v) => handleChange("email", v)}
+            />
+            <View style={styles.inputWrapper}>
+              <Image
+                source={Assets.lineIcon}
+                style={styles.lineIcon}
+                resizeMode="contain"
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="ID Line"
+                value={form.lineId}
+                onChangeText={(v) => handleChange("lineId", v)}
+                placeholderTextColor={theme.border}
+              />
+            </View>
+            <FormInput
+              icon="phone"
+              placeholder="Phone Number"
+              value={form.phone}
+              onChange={(v) => handleChange("phone", v)}
+              lib="Feather"
+              keyboardType={keyboardTypeNumber}
+            />
+            <View style={{ marginTop: 24 }}>
+              <CustomButton label={"Register"} onPress={handleRegister} />
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -144,6 +160,7 @@ function FormInput({
   onChange,
   isPassword = false,
   lib = "Ionicons",
+  keyboardType,
 }: {
   icon: string;
   placeholder: string;
@@ -151,6 +168,7 @@ function FormInput({
   onChange: (v: string) => void;
   isPassword?: boolean;
   lib?: "Ionicons" | "MaterialCommunityIcons" | "Entypo" | "Feather";
+  keyboardType?: KeyboardTypeOptions;
 }) {
   const IconComponent =
     lib === "MaterialCommunityIcons"
@@ -170,6 +188,8 @@ function FormInput({
         value={value}
         secureTextEntry={isPassword}
         onChangeText={onChange}
+        placeholderTextColor={theme.border}
+        keyboardType={keyboardType || "default"}
       />
     </View>
   );
@@ -214,18 +234,5 @@ const styles = StyleSheet.create({
     color: theme.mainApp,
     textAlign: "center",
     marginVertical: 8,
-  },
-  button: {
-    ...theme.setFont,
-    backgroundColor: theme.mainApp,
-    paddingVertical: 14,
-    borderRadius: 8,
-    marginTop: 12,
-  },
-  buttonText: {
-    ...theme.setFont,
-    color: theme.white,
-    textAlign: "center",
-    fontSize: 16,
   },
 });

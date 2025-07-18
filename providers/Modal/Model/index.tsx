@@ -6,6 +6,8 @@ export interface ModalComponentModel {
   labelCancel?: string;
   children?: any;
   option?: Modeloption;
+  hideCustomButtons?: boolean;
+  backgroundColor?: any;
 }
 
 export interface Modeloption {

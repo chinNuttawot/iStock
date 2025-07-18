@@ -57,6 +57,7 @@ export default function ConfirmForgotPasswordScreen() {
               value={password}
               onChangeText={setPassword}
               style={styles.input}
+              placeholderTextColor={theme.border}
             />
           </View>
 
@@ -68,6 +69,7 @@ export default function ConfirmForgotPasswordScreen() {
               value={confirm}
               onChangeText={setConfirm}
               style={styles.input}
+              placeholderTextColor={theme.border}
             />
           </View>
 
