@@ -59,7 +59,7 @@ const Header = (props: any) => {
             </TouchableOpacity>
           )}
           {title && <Text style={styles.headerTitle}>{title}</Text>}
-          {IconComponent && IconComponent}
+          {IconComponent ? IconComponent : <View  style={{width: 30}}/>}
         </View>
       </SafeAreaView>
     </Fragment>

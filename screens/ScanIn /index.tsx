@@ -95,6 +95,7 @@ export default function ScanInScreen() {
   };
 
   const openFilter = () => {
+    setSelectedIds([]);
     navigation.navigate("Filter", {});
   };
 
@@ -122,7 +123,11 @@ export default function ScanInScreen() {
       <View style={{ flex: 1, backgroundColor: theme.white }}>
         <ScrollView contentContainerStyle={styles.content}>
           <TouchableOpacity onPress={handleSelectAll}>
-            <Text style={styles.selectAllText}>เลือกทั้งหมด</Text>
+            <Text style={styles.selectAllText}>
+              {selectedIds.length === cardData.length
+                ? "ยกเลิก"
+                : "เลือกทั้งหมด"}
+            </Text>
           </TouchableOpacity>
           {cardData.map((card) => (
             <ScanCard
