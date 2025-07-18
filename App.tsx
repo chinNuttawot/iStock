@@ -7,6 +7,7 @@ import React, { useCallback } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 // Screens & Providers
+import { Provider } from "react-redux";
 import { AppWrapper } from "./AppWrapper";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { theme } from "./providers/Theme";
@@ -21,6 +22,7 @@ import ScanInScreen from "./screens/ScanIn ";
 import DeleteAccountScreen from "./screens/Setting/DeleteAccountScreen";
 import ProfileScreen from "./screens/Setting/ProfileScreen";
 import SettingScreen from "./screens/Setting/SettingScreen";
+import { store } from "./store/store";
 import { useLoadFonts } from "./useLoadFonts";
 
 const RootStack = createNativeStackNavigator<any>();
@@ -119,9 +121,11 @@ export default function App() {
     <SafeAreaProvider onLayout={onLayoutRootView}>
       <AuthProvider>
         <AppWrapper>
-          <NavigationContainer>
-            <AppNavigator />
-          </NavigationContainer>
+          <Provider store={store}>
+            <NavigationContainer>
+              <AppNavigator />
+            </NavigationContainer>
+          </Provider>
         </AppWrapper>
       </AuthProvider>
     </SafeAreaProvider>
