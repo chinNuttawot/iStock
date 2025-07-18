@@ -105,9 +105,7 @@ export default function FilterScreen() {
               placeholder=""
               placeholderTextColor={theme.border}
             />
-            {/* <TouchableOpacity onPress={() => setShowDatePicker(true)}> */}
             <Ionicons name="calendar-outline" size={20} color={theme.gray} />
-            {/* </TouchableOpacity> */}
           </TouchableOpacity>
         </View>
 
@@ -209,7 +207,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: Platform.OS === "ios" ? 8 : 0,
   },
   input: {
     flex: 1,
