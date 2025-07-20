@@ -18,7 +18,7 @@ export default function HomeScreen() {
     <Fragment>
       <Header hideGoback={true} />
       <View style={styles.container}>
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1, paddingTop: 16 }}>
           {dashboard.map((group, index) => (
             <View key={index} style={styles.groupContainer}>
               <Text style={styles.groupTitle}>{group.groupName}</Text>

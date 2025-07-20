@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 const styles = StyleSheet.create({
   container: {
     ...theme.setFont,
-    padding: 16,
+    paddingHorizontal: 16,
     backgroundColor: theme.white,
     flex: 1,
   },

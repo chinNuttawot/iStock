@@ -53,7 +53,6 @@ export default function ConfirmForgotPasswordScreen() {
             <Ionicons name="lock-closed-outline" size={20} color="gray" />
             <TextInput
               placeholder="Password"
-              secureTextEntry
               value={password}
               onChangeText={setPassword}
               style={styles.input}
@@ -65,7 +64,6 @@ export default function ConfirmForgotPasswordScreen() {
             <Ionicons name="lock-closed-outline" size={20} color="gray" />
             <TextInput
               placeholder="Confirm Password"
-              secureTextEntry
               value={confirm}
               onChangeText={setConfirm}
               style={styles.input}

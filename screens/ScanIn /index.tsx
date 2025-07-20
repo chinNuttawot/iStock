@@ -1,3 +1,4 @@
+import { emitter, filterScanIn } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
@@ -6,13 +7,12 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { useSelector } from "react-redux";
 import { styles } from "./Styles";
 
 const cardData = [
   {
     id: "1",
-    title: "TRO2506-079",
+    docId: "TRO2506-079",
     status: "Open",
     details: [
       { label: "วันที่ส่งสินค้า", value: "23/06/2025" },
@@ -24,7 +24,7 @@ const cardData = [
   },
   {
     id: "2",
-    title: "TRO2506-080",
+    docId: "TRO2506-080",
     status: "Approved",
     details: [
       { label: "วันที่ส่งสินค้า", value: "24/06/2025" },
@@ -36,7 +36,7 @@ const cardData = [
   },
   {
     id: "3",
-    title: "TRO2506-010",
+    docId: "TRO2506-010",
     status: "Pending Approval",
     details: [
       { label: "วันที่ส่งสินค้า", value: "24/06/2025" },
@@ -48,7 +48,7 @@ const cardData = [
   },
   {
     id: "4",
-    title: "TRO2506-011",
+    docId: "TRO2506-011",
     status: "Rejected",
     details: [
       { label: "วันที่ส่งสินค้า", value: "25/06/2025" },
@@ -67,12 +67,19 @@ const cardData = [
 export default function ScanInScreen() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
+  const [filter, setFilter] = useState<any>({});
   const navigation = useNavigation<any>();
-  const filter = useSelector((state: any) => state.filter);
 
   useEffect(() => {
-    console.log("Filter Changed:", filter);
-  }, [filter]);
+    const onFilterChanged = (data: any) => {
+      console.log(`${filterScanIn} =====> `, data);
+      setFilter(data);
+    };
+    emitter.on(filterScanIn, onFilterChanged);
+    return () => {
+      emitter.off(filterScanIn, onFilterChanged);
+    };
+  }, []);
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) =>
@@ -96,9 +103,13 @@ export default function ScanInScreen() {
 
   const openFilter = () => {
     setSelectedIds([]);
-    navigation.navigate("Filter", {});
+    navigation.navigate("Filter", { filter });
   };
 
+  const goToDetail = (item: any) => {
+    const { card } = item;
+    navigation.navigate("ScanInDetail", { docId: card.docId });
+  };
   return (
     <>
       <Header
@@ -106,6 +117,10 @@ export default function ScanInScreen() {
         colorIcon={theme.white}
         hideGoback={false}
         title={"สแกน-รับ"}
+        onGoBack={() => {
+          if (filter?.isFilter) {
+          }
+        }}
         IconComponent={
           <TouchableOpacity
             onPress={() => {
@@ -134,13 +149,14 @@ export default function ScanInScreen() {
               status={card.status as StatusType}
               key={card.id}
               id={card.id}
-              title={card.title}
+              docId={card.docId}
               details={card.details}
               selectedIds={selectedIds}
               isSelected={selectedIds.includes(card.id)}
               isExpanded={expandedIds.includes(card.id)}
               onSelect={toggleSelect}
               onExpand={toggleExpand}
+              goTo={() => goToDetail({ card })}
             />
           ))}
         </ScrollView>

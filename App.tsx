@@ -19,6 +19,7 @@ import LoginScreen from "./screens/Login/login";
 import MenuScreen from "./screens/Menu/MenuScreen";
 import RegisterScreen from "./screens/Register/register";
 import ScanInScreen from "./screens/ScanIn ";
+import ScanInDetailScreen from "./screens/ScanIn /Detail";
 import DeleteAccountScreen from "./screens/Setting/DeleteAccountScreen";
 import ProfileScreen from "./screens/Setting/ProfileScreen";
 import SettingScreen from "./screens/Setting/SettingScreen";
@@ -85,6 +86,7 @@ function AppNavigator() {
           />
           <RootStack.Screen name="ScanIn" component={ScanInScreen} />
           <RootStack.Screen name="Filter" component={FilterScreen} />
+          <RootStack.Screen name="ScanInDetail" component={ScanInDetailScreen} />
         </>
       ) : (
         <>

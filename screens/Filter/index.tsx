@@ -1,12 +1,12 @@
+import { emitter, filterScanIn, filterScanInDetail } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScannerModal from "@/components/Scanner";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
-import { resetFilter, setFilter } from "@/store/slices/filterSlice";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
   Platform,
@@ -18,7 +18,6 @@ import {
   View,
 } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
-import { useDispatch, useSelector } from "react-redux";
 
 const statusOptions = [
   { key: "All", value: "All" },
@@ -36,25 +35,69 @@ export default function FilterScreen() {
   const [showScanner, setShowScanner] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const navigation = useNavigation<any>();
-  const filter = useSelector((state: any) => state.filter);
-  const dispatch = useDispatch();
+  const routes = navigation.getState().routes;
+  const prevRoute = routes[routes.length - 2];
+
+  const route = useRoute();
+  const {
+    filter,
+    showFilterDoc = true,
+    showFilterDate = true,
+    showFilterStatus = true,
+    ScanName = "เลขที่เอกสาร",
+  } = route.params as {
+    filter: any;
+    showFilterDoc: boolean;
+    showFilterDate: boolean;
+    showFilterStatus: boolean;
+    ScanName?: string;
+  };
 
   useEffect(() => {
-    setStatus(filter.status);
-    setDocumentDate(filter.documentDate);
-    setDocumentNo(filter.documentNo);
+    if (filter) {
+      setStatus(filter?.status || status);
+      setDocumentDate(filter?.documentDate || documentDate);
+      setDocumentNo(filter?.documentNo || documentNo);
+    }
   }, []);
 
   const resetFilterForm = () => {
-    dispatch(resetFilter());
-    setDocumentNo("");
-    setDocumentDate("");
-    setStatus("All");
+    Promise.all([setDocumentNo(""), setDocumentDate(""), setStatus("All")]);
+    const parmas = {
+      status: "All",
+      documentDate: "",
+      documentNo: "",
+      isFilter: false,
+      isReset: true,
+    };
+    goEmitter(parmas);
     navigation.goBack();
   };
 
+  const goEmitter = (item: any) => {
+    let dataToscreen: string = "";
+    console.log("prevRoute.name ====>", prevRoute.name);
+
+    switch (prevRoute.name) {
+      case "ScanIn":
+        dataToscreen = filterScanIn;
+        break;
+      case "ScanInDetail":
+        dataToscreen = filterScanInDetail;
+        break;
+    }
+    emitter.emit(dataToscreen, item);
+  };
+
   const onSearch = () => {
-    dispatch(setFilter({ status, documentDate, documentNo, isFilter: true }));
+    const parmas = {
+      status,
+      documentDate,
+      documentNo,
+      isFilter: true,
+      isReset: false,
+    };
+    goEmitter(parmas);
     navigation.goBack();
   };
 
@@ -76,56 +119,62 @@ export default function FilterScreen() {
       />
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>เลขที่เอกสาร</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              value={documentNo}
-              onChangeText={setDocumentNo}
-              style={styles.input}
-              placeholder=""
-              placeholderTextColor={theme.border}
-            />
-            <TouchableOpacity onPress={() => setShowScanner(true)}>
-              <Ionicons name="scan-outline" size={20} color={theme.gray} />
+        {showFilterDoc && (
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>{ScanName}</Text>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                value={documentNo}
+                onChangeText={setDocumentNo}
+                style={styles.input}
+                placeholder=""
+                placeholderTextColor={theme.border}
+              />
+              <TouchableOpacity onPress={() => setShowScanner(true)}>
+                <Ionicons name="scan-outline" size={20} color={theme.gray} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {showFilterDate && (
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>วันที่เอกสาร</Text>
+            <TouchableOpacity
+              style={styles.inputWrapper}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <TextInput
+                value={documentDate}
+                editable={false}
+                style={styles.input}
+                placeholder=""
+                placeholderTextColor={theme.border}
+              />
+              <Ionicons name="calendar-outline" size={20} color={theme.gray} />
             </TouchableOpacity>
           </View>
-        </View>
+        )}
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>วันที่เอกสาร</Text>
-          <TouchableOpacity
-            style={styles.inputWrapper}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <TextInput
-              value={documentDate}
-              editable={false}
-              style={styles.input}
-              placeholder=""
-              placeholderTextColor={theme.border}
+        {showFilterStatus && (
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>สถานะเอกสาร</Text>
+            <SelectList
+              setSelected={setStatus}
+              data={statusOptions}
+              boxStyles={{
+                flex: 1,
+                borderWidth: 0,
+                backgroundColor: theme.background,
+              }}
+              dropdownStyles={{ borderColor: theme.gray }}
+              search={false}
+              placeholder="Select Status"
+              save="key"
+              defaultOption={statusOptions.find((s) => s.key === status)}
             />
-            <Ionicons name="calendar-outline" size={20} color={theme.gray} />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>สถานะเอกสาร</Text>
-          <SelectList
-            setSelected={setStatus}
-            data={statusOptions}
-            boxStyles={{
-              flex: 1,
-              borderWidth: 0,
-              backgroundColor: theme.background,
-            }}
-            dropdownStyles={{ borderColor: theme.gray }}
-            search={false}
-            placeholder="Select Status"
-            save="key"
-            defaultOption={statusOptions.find((s) => s.key === status)}
-          />
-        </View>
+          </View>
+        )}
 
         <TouchableOpacity style={styles.resetButton} onPress={resetFilterForm}>
           <Ionicons name="refresh-outline" size={20} color={theme.black} />

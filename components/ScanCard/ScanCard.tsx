@@ -9,7 +9,7 @@ export type StatusType = "Open" | "Pending Approval" | "Approved" | "Rejected";
 
 type ScanCardProps = {
   id: string;
-  title: string;
+  docId: string;
   details: { label: string; value: string }[];
   status: StatusType;
   isSelected: boolean;
@@ -17,11 +17,12 @@ type ScanCardProps = {
   isExpanded: boolean;
   onSelect: (id: string) => void;
   onExpand: (id: string) => void;
+  goTo?: () => void;
 };
 
 export default function ScanCard({
   id,
-  title,
+  docId,
   details,
   status,
   isSelected,
@@ -29,6 +30,7 @@ export default function ScanCard({
   selectedIds,
   onSelect,
   onExpand,
+  goTo,
 }: ScanCardProps) {
   const renderStatusIcon = () => {
     switch (status) {
@@ -64,7 +66,7 @@ export default function ScanCard({
           color={theme.mainApp}
           onPress={() => onSelect(id)}
         />
-        <Text style={styles.cardTitle}>{title}</Text>
+        <Text style={styles.cardTitle}>{docId}</Text>
         {renderStatusIcon()}
         <Ionicons
           name={isExpanded ? "chevron-up" : "chevron-down"}
@@ -87,6 +89,7 @@ export default function ScanCard({
             <CustomButton
               label="ดูรายการ"
               disabled={selectedIds.length > 0}
+              onPress={() => goTo?.()}
             />
           </View>
         </View>

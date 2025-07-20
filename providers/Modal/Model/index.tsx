@@ -1,13 +1,16 @@
+import { ReactElement } from "react";
+
 export interface ModalComponentModel {
   isOpen: boolean;
   onChange?: any;
+  onBackdropPress?: any;
   onChangeCancel?: any;
   label?: string;
   labelCancel?: string;
-  children?: any;
   option?: Modeloption;
   hideCustomButtons?: boolean;
   backgroundColor?: any;
+  children?: ReactElement<{ changeButton?: React.ReactNode }>;
 }
 
 export interface Modeloption {

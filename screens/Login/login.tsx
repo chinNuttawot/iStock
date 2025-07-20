@@ -6,7 +6,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import {
-  Alert,
   Image,
   SafeAreaView,
   ScrollView,
@@ -15,7 +14,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 export default function LoginScreen() {
@@ -29,15 +28,8 @@ export default function LoginScreen() {
     const utf8Bytes = new TextEncoder().encode(password.toLowerCase());
     const base64Encoded = btoa(String.fromCharCode(...utf8Bytes));
     console.log("🔐 Encoded password:", base64Encoded);
-
-    if (
-      username.toLowerCase() === "admin" &&
-      password.toLowerCase() === "1234"
-    ) {
-      login(); // ✅ เรียก Context ให้ Login สำเร็จ
-    } else {
-      Alert.alert("เข้าสู่ระบบล้มเหลว", "Username หรือ Password ไม่ถูกต้อง");
-    }
+    login();
+    return;
   };
 
   return (
