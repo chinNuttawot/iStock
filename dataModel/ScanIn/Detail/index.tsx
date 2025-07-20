@@ -10,4 +10,5 @@ export type ProductItem = {
   receivedQty: number;
   totalQty: number;
   details: ProductDetail[];
+  image: string;
 };

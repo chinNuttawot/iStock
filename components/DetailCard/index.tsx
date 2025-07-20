@@ -1,7 +1,7 @@
 import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import { theme } from "@/providers/Theme";
 import { Ionicons } from "@expo/vector-icons";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 import { Divider } from "react-native-elements";
 import CustomButton from "../CustomButton";
 import { styles } from "./styles";
@@ -51,6 +51,11 @@ export default function DetailCard({
               </Text>
             </View>
           ))}
+          <Image
+            source={{ uri: data.image }}
+            style={styles.imageItem}
+            resizeMode="cover"
+          />
           <View style={{ paddingHorizontal: 120, marginTop: 32 }}>
             <CustomButton label="แก้ไข" onPress={() => goTo?.()} />
           </View>

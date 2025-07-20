@@ -27,4 +27,10 @@ export const styles = StyleSheet.create({
   cardContent: {
     marginTop: 8,
   },
+  imageItem: {
+    width: 120,
+    height: 100,
+    alignSelf: "center",
+    marginTop: 16,
+  },
 });

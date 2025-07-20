@@ -34,6 +34,7 @@ export const productData = [
       },
       { label: "จำนวนที่รับ", value: null },
     ],
+    image: "https://picsum.photos/seed/shirt/100/100",
   },
   {
     id: "2",
@@ -49,6 +50,7 @@ export const productData = [
       },
       { label: "จำนวนที่รับ", value: null },
     ],
+    image: "https://picsum.photos/seed/shirt/100/100",
   },
   {
     id: "3",
@@ -64,6 +66,7 @@ export const productData = [
       },
       { label: "จำนวนที่รับ", value: null },
     ],
+    image: "https://picsum.photos/seed/shirt/100/100",
   },
 ];
 
@@ -170,7 +173,6 @@ export default function ScanInDetailScreen() {
             />
           </View>
         </View>
-
         <View style={styles.inputGroup}>
           <Text style={styles.label}>{`Serial No`}</Text>
           <View style={styles.inputWrapper}>
@@ -183,7 +185,7 @@ export default function ScanInDetailScreen() {
             />
           </View>
         </View>
-        <View style={{ padding: 16 }}>
+        <View style={{ paddingHorizontal: 64 }}>
           <CustomButton
             label="บันทึก"
             onPress={() => {
