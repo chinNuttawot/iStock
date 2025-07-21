@@ -13,6 +13,7 @@ type ScanCardProps = {
   details: { label: string; value: string }[];
   status: StatusType;
   isSelected: boolean;
+  hideSelectedIds?: boolean;
   selectedIds?: any;
   isExpanded: boolean;
   onSelect: (id: string) => void;
@@ -31,6 +32,7 @@ export default function ScanCard({
   onSelect,
   onExpand,
   goTo,
+  hideSelectedIds = false,
 }: ScanCardProps) {
   const renderStatusIcon = () => {
     switch (status) {
@@ -60,12 +62,14 @@ export default function ScanCard({
   return (
     <View style={styles.card}>
       <TouchableOpacity style={styles.cardHeader} onPress={() => onExpand(id)}>
-        <Ionicons
-          name={isSelected ? "checkbox" : "square-outline"}
-          size={24}
-          color={theme.mainApp}
-          onPress={() => onSelect(id)}
-        />
+        {!hideSelectedIds && (
+          <Ionicons
+            name={isSelected ? "checkbox" : "square-outline"}
+            size={24}
+            color={theme.mainApp}
+            onPress={() => onSelect(id)}
+          />
+        )}
         <Text style={styles.cardTitle}>{docId}</Text>
         {renderStatusIcon()}
         <Ionicons

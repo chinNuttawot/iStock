@@ -1,11 +1,16 @@
-import { emitter, filterScanIn, filterScanInDetail } from "@/common/emitter";
+import {
+  emitter,
+  filterScanIn,
+  filterScanInDetail,
+  filterTransactionHistory,
+  filterTransactionHistoryDetail,
+} from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
+import CustomDatePicker from "@/components/CustomDatePicker";
 import Header from "@/components/Header";
 import ScannerModal from "@/components/Scanner";
-import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
@@ -84,6 +89,12 @@ export default function FilterScreen() {
         break;
       case "ScanInDetail":
         dataToscreen = filterScanInDetail;
+        break;
+      case "TransactionHistory":
+        dataToscreen = filterTransactionHistory;
+        break;
+      case "TransactionHistoryDetail":
+        dataToscreen = filterTransactionHistoryDetail;
         break;
     }
     emitter.emit(dataToscreen, item);
@@ -184,49 +195,21 @@ export default function FilterScreen() {
       <View style={{ padding: 16, marginBottom: 16 }}>
         <CustomButton label="ค้นหา" onPress={onSearch} />
       </View>
-      {Platform.OS === "ios" && (
-        <ModalComponent
-          isOpen={showDatePicker}
-          hideCustomButtons={true}
-          onChange={onDateChange}
-          backgroundColor={"Transparent"}
-        >
-          {showDatePicker && (
-            <View style={{ backgroundColor: theme.gray, borderRadius: 8 }}>
-              <DateTimePicker
-                value={selectedDate}
-                mode="date"
-                display="inline"
-                onChange={(e, date) => date && setSelectedDate(date)}
-              />
-
-              <View style={{ padding: 16, marginBottom: 16 }}>
-                <CustomButton
-                  label="ยืนยัน"
-                  onPress={() => {
-                    setDocumentDate(
-                      selectedDate.toLocaleDateString("th-TH", {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                      })
-                    );
-                    setShowDatePicker(false);
-                  }}
-                />
-              </View>
-            </View>
-          )}
-        </ModalComponent>
-      )}
-      {Platform.OS === "android" && showDatePicker && (
-        <DateTimePicker
-          textColor={theme.mainApp}
-          style={{ backgroundColor: "#000" }}
-          value={new Date()}
-          mode="date"
-          display="inline"
-          onChange={onDateChange}
+      {showDatePicker && (
+        <CustomDatePicker
+          value={selectedDate}
+          onConfirm={(date) => {
+            setSelectedDate(date);
+            setShowDatePicker(false);
+            setDocumentDate(
+              date.toLocaleDateString("th-TH", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              })
+            );
+          }}
+          onCancel={() => setShowDatePicker(false)}
         />
       )}
       <ScannerModal

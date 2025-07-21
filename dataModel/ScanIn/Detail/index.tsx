@@ -7,8 +7,9 @@ export type ProductItem = {
   id: string;
   docId: string;
   model: string;
-  receivedQty: number;
-  totalQty: number;
+  receivedQty: null | number;
+  totalQty: null | number;
   details: ProductDetail[];
   image: string;
+  isDelete: boolean;
 };

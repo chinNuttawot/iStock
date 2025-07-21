@@ -1,12 +1,11 @@
-import { emitter, filterScanIn } from "@/common/emitter";
-import CustomButton from "@/components/CustomButton";
+import { emitter, filterTransactionHistory } from "@/common/emitter";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
 import { theme } from "@/providers/Theme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, TouchableOpacity, View } from "react-native";
 import { styles } from "./Styles";
 
 const cardData = [
@@ -64,7 +63,7 @@ const cardData = [
   },
 ];
 
-export default function ScanInScreen() {
+export default function TransactionHistoryScreen() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<any>({});
@@ -72,12 +71,12 @@ export default function ScanInScreen() {
 
   useEffect(() => {
     const onFilterChanged = (data: any) => {
-      console.log(`${filterScanIn} =====> `, data);
+      console.log(`${filterTransactionHistory} =====> `, data);
       setFilter(data);
     };
-    emitter.on(filterScanIn, onFilterChanged);
+    emitter.on(filterTransactionHistory, onFilterChanged);
     return () => {
-      emitter.off(filterScanIn, onFilterChanged);
+      emitter.off(filterTransactionHistory, onFilterChanged);
     };
   }, []);
 
@@ -93,14 +92,6 @@ export default function ScanInScreen() {
     );
   };
 
-  const handleSelectAll = () => {
-    if (selectedIds.length === cardData.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(cardData.map((item) => item.id));
-    }
-  };
-
   const openFilter = () => {
     setSelectedIds([]);
     navigation.navigate("Filter", { filter });
@@ -108,7 +99,7 @@ export default function ScanInScreen() {
 
   const goToDetail = (item: any) => {
     const { card } = item;
-    navigation.navigate("ScanInDetail", { docId: card.docId });
+    navigation.navigate("TransactionHistoryDetail", { docId: card.docId });
   };
   return (
     <>
@@ -116,7 +107,7 @@ export default function ScanInScreen() {
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
         hideGoback={false}
-        title={"สแกน-รับ"}
+        title={"ประวัติการทำรายการ"}
         IconComponent={[
           <TouchableOpacity
             onPress={() => {
@@ -133,13 +124,6 @@ export default function ScanInScreen() {
       />
       <View style={{ flex: 1, backgroundColor: theme.white }}>
         <ScrollView contentContainerStyle={styles.content}>
-          <TouchableOpacity onPress={handleSelectAll}>
-            <Text style={styles.selectAllText}>
-              {selectedIds.length === cardData.length
-                ? "ยกเลิก"
-                : "เลือกทั้งหมด"}
-            </Text>
-          </TouchableOpacity>
           {cardData.map((card) => (
             <ScanCard
               status={card.status as StatusType}
@@ -147,6 +131,7 @@ export default function ScanInScreen() {
               id={card.id}
               docId={card.docId}
               details={card.details}
+              hideSelectedIds
               selectedIds={selectedIds}
               isSelected={selectedIds.includes(card.id)}
               isExpanded={expandedIds.includes(card.id)}
@@ -156,9 +141,6 @@ export default function ScanInScreen() {
             />
           ))}
         </ScrollView>
-        <View style={{ padding: 16, marginBottom: 16 }}>
-          <CustomButton label="ส่งเอกสาร" disabled={selectedIds.length === 0} />
-        </View>
       </View>
     </>
   );

@@ -1,4 +1,4 @@
-import { emitter, filterScanInDetail } from "@/common/emitter";
+import { emitter, filterTransactionHistoryDetail } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import DetailCard from "@/components/DetailCard";
 import Header from "@/components/Header";
@@ -70,7 +70,7 @@ export const productData = [
   },
 ];
 
-export default function ScanInDetailScreen() {
+export default function TransactionHistoryDetailScreen() {
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<any>({});
   const [isOpen, setIsOpen] = useState(false);
@@ -82,12 +82,12 @@ export default function ScanInDetailScreen() {
 
   useEffect(() => {
     const onFilterChanged = (data: any) => {
-      console.log(`${filterScanInDetail} =====> `, data);
+      console.log(`${filterTransactionHistoryDetail} =====> `, data);
       setFilter(data);
     };
-    emitter.on(filterScanInDetail, onFilterChanged);
+    emitter.on(filterTransactionHistoryDetail, onFilterChanged);
     return () => {
-      emitter.off(filterScanInDetail, onFilterChanged);
+      emitter.off(filterTransactionHistoryDetail, onFilterChanged);
     };
   }, []);
 
@@ -240,6 +240,7 @@ export default function ScanInDetailScreen() {
           <DetailCard
             key={item.id}
             data={item}
+            viewMode
             isExpanded={expandedIds.includes(item.id)}
             onToggle={() => toggleExpand(item.id)}
             goTo={() => {
@@ -248,9 +249,6 @@ export default function ScanInDetailScreen() {
           />
         ))}
       </ScrollView>
-      <View style={{ padding: 16, marginBottom: 16 }}>
-        <CustomButton label="บันทึก" />
-      </View>
     </View>
   );
 }

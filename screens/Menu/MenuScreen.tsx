@@ -68,6 +68,12 @@ export default function MenuScreen() {
       case menuMapping.ScanIn:
         navigation.navigate("ScanIn");
         break;
+      case menuMapping.TransactionHistory:
+        navigation.navigate("TransactionHistory");
+        break;
+      case menuMapping.ScanOut:
+        navigation.navigate("ScanOut");
+        break;
     }
   };
   return (

@@ -64,7 +64,7 @@ const cardData = [
   },
 ];
 
-export default function ScanInScreen() {
+export default function ScanOutScreen() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<any>({});
@@ -108,7 +108,11 @@ export default function ScanInScreen() {
 
   const goToDetail = (item: any) => {
     const { card } = item;
-    navigation.navigate("ScanInDetail", { docId: card.docId });
+    navigation.navigate("ScanOutDetail", { docId: card.docId });
+  };
+
+  const goToCreateDocument = () => {
+    navigation.navigate("CreateDocumentScanOut");
   };
   return (
     <>
@@ -116,13 +120,12 @@ export default function ScanInScreen() {
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
         hideGoback={false}
-        title={"สแกน-รับ"}
+        title={"สแกน-ออก"}
         IconComponent={[
-          <TouchableOpacity
-            onPress={() => {
-              openFilter();
-            }}
-          >
+          <TouchableOpacity onPress={goToCreateDocument}>
+            <MaterialCommunityIcons name={"plus"} size={30} color="white" />
+          </TouchableOpacity>,
+          <TouchableOpacity onPress={openFilter}>
             <MaterialCommunityIcons
               name={filter?.isFilter ? "filter-check" : "filter"}
               size={30}
