@@ -62,7 +62,7 @@ export default function CreateDocumentScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.rowWrapper}>
-          <View style={styles.flex1}>
+          <View style={[styles.flex1, { marginRight: 16 }]}>
             <Text style={styles.label}>เลขที่เอกสาร</Text>
             <TextInput
               style={styles.input}
@@ -94,7 +94,7 @@ export default function CreateDocumentScreen() {
         </View>
 
         <View style={styles.rowWrapper}>
-          <View style={styles.flex1}>
+          <View style={[styles.flex1, { marginRight: 16 }]}>
             <Text style={styles.label}>รหัสคลังหลัก</Text>
             <TextInput
               style={styles.input}
@@ -171,7 +171,6 @@ const styles = StyleSheet.create({
   },
   flex1: {
     flex: 1,
-    marginRight: 8,
   },
   inputGroup: {
     marginBottom: 16,
