@@ -13,6 +13,14 @@ import { useForm } from "react-hook-form";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./styles";
 
+export const RenderGoBackItem = (
+  <View style={styles.mainView}>
+    <Text
+      style={[styles.label, { textAlign: "center", padding: 8 }]}
+    >{`คุณมีรายการที่ทำค้างอยู่ ต้องการออกจากหน้านี้หรือไม่`}</Text>
+  </View>
+);
+
 export const _productData = [
   {
     id: "1",
@@ -149,13 +157,6 @@ export default function ScanOutDetailScreen() {
       onSavedataDetail(_open);
     }
   };
-  const RenderGoBackItem = (
-    <View style={styles.mainView}>
-      <Text
-        style={[styles.label, { textAlign: "center", padding: 8 }]}
-      >{`คุณมีรายการที่ทำค้างอยู่ ต้องการออกจากหน้านี้หรือไม่`}</Text>
-    </View>
-  );
 
   const RenderDeleteItem = (
     <View style={styles.mainView}>

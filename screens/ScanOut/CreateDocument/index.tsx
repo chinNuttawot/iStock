@@ -1,7 +1,9 @@
 import CustomButton from "@/components/CustomButton";
 import CustomDatePicker from "@/components/CustomDatePicker";
 import Header from "@/components/Header";
+import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
+import { optionModalComponent } from "@/screens/Setting/SettingScreen";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
@@ -14,6 +16,7 @@ import {
     View,
 } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
+import { RenderGoBackItem } from "../Detail";
 
 export default function CreateDocumentScreen() {
   const navigation = useNavigation<any>();
@@ -26,6 +29,7 @@ export default function CreateDocumentScreen() {
   const [remark, setRemark] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
 
   const isValid =
     documentNo !== "" &&
@@ -50,16 +54,34 @@ export default function CreateDocumentScreen() {
     });
     navigation.goBack();
   };
+  const mainGoBack = (_open: boolean) => {
+    setIsOpen(false);
+    navigation.goBack();
+  };
+
+  const onBackdropPress = (isOpen: boolean) => {
+    setIsOpen(isOpen);
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.white }}>
+      <ModalComponent
+        isOpen={isOpen}
+        onChange={mainGoBack}
+        option={optionModalComponent}
+        onBackdropPress={onBackdropPress}
+        onChangeCancel={() => setIsOpen(false)}
+      >
+        {RenderGoBackItem}
+      </ModalComponent>
+
       <Header
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
         hideGoback={false}
         title="สร้างเอกสาร"
+        onGoBack={() => setIsOpen(true)}
       />
-
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.rowWrapper}>
           <View style={[styles.flex1, { marginRight: 16 }]}>
