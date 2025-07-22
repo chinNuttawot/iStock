@@ -5,15 +5,17 @@ const theme = {
   border: "#ccc",
   cancel: "#D9D9D9",
   gray: "#808080",
+  mainInput: "#E4E4E4",
   black: "#000000",
   iosPrimary: "#007AFF",
-  red: "#FF0000",
-  error: "#FF0000",
+  red: "#D41F1F",
+  error: "#D41F1F",
   orange: "#D4731F",
-  green: "#46D223",
-  secondary: "#0A7EA4", // ✅ สีรอง หรือ Accent Color
-  setFont: { fontFamily: "Kanit-Regular", fontSize: 16 },
-  setFont_Bold: { fontFamily: "Kanit-Bold", fontSize: 16 },
+  green: "#398814",
+  green2: "#00C524",
+  secondary: "#0A7EA4",
+  setFont: { fontFamily: "NotoSans-Regular", fontSize: 16 },
+  setFont_Bold: { fontFamily: "NotoSans-Bold", fontSize: 16 },
 };
 
 export { theme };

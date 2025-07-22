@@ -28,6 +28,9 @@ import ProfileScreen from "./screens/Setting/ProfileScreen";
 import SettingScreen from "./screens/Setting/SettingScreen";
 import TransactionHistoryScreen from "./screens/TransactionHistory";
 import TransactionHistoryDetailScreen from "./screens/TransactionHistory/Detail";
+import TransferScreen from "./screens/Transfer";
+import CreateDocumentTransferScreen from "./screens/Transfer/CreateDocument";
+import TransferDetailScreen from "./screens/Transfer/Detail";
 import { store } from "./store/store";
 import { useLoadFonts } from "./useLoadFonts";
 
@@ -91,12 +94,36 @@ function AppNavigator() {
           />
           <RootStack.Screen name="ScanIn" component={ScanInScreen} />
           <RootStack.Screen name="Filter" component={FilterScreen} />
-          <RootStack.Screen name="ScanInDetail" component={ScanInDetailScreen} />
-          <RootStack.Screen name="TransactionHistory" component={TransactionHistoryScreen} />
-          <RootStack.Screen name="TransactionHistoryDetail" component={TransactionHistoryDetailScreen} />
+          <RootStack.Screen
+            name="ScanInDetail"
+            component={ScanInDetailScreen}
+          />
+          <RootStack.Screen
+            name="TransactionHistory"
+            component={TransactionHistoryScreen}
+          />
+          <RootStack.Screen
+            name="TransactionHistoryDetail"
+            component={TransactionHistoryDetailScreen}
+          />
           <RootStack.Screen name="ScanOut" component={ScanOutScreen} />
-          <RootStack.Screen name="ScanOutDetail" component={ScanOutDetailScreen} />
-          <RootStack.Screen name="CreateDocumentScanOut" component={CreateDocumentScreen} />
+          <RootStack.Screen
+            name="ScanOutDetail"
+            component={ScanOutDetailScreen}
+          />
+          <RootStack.Screen
+            name="CreateDocumentScanOut"
+            component={CreateDocumentScreen}
+          />
+          <RootStack.Screen
+            name="CreateDocumentTransfer"
+            component={CreateDocumentTransferScreen}
+          />
+          <RootStack.Screen name="Transfer" component={TransferScreen} />
+          <RootStack.Screen
+            name="TransferDetail"
+            component={TransferDetailScreen}
+          />
         </>
       ) : (
         <>

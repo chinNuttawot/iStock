@@ -1,4 +1,4 @@
-import { emitter, filterScanOut } from "@/common/emitter";
+import { emitter, filterTransfer } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
@@ -12,41 +12,37 @@ import { styles } from "./Styles";
 const cardData = [
   {
     id: "1",
-    docId: "TRO2506-079",
+    docId: "GRI2506-0742",
     status: "Open",
     details: [
       { label: "วันที่ส่งสินค้า", value: "23/06/2025" },
-      { label: "ส่งจากคลัง", value: "00HO - Head Office" },
-      { label: "E-Shop No.", value: "PRE2309023" },
-      { label: "หมายเหตุ", value: "Operation Group สำหรับ Jubu Jibi" },
+      { label: "คลังต้นทาง", value: "10CCB - สาขาเซ็นทรัลชลบุรี" },
+      { label: "คลังปลายทาง", value: "00HQ - คลังสำนักงานใหญ่" },
+      { label: "จัดทำโดย", value: "CCB" },
+      { label: "หมายเหตุ", value: "ตัดเบิกโอเปอร์ประชุม ผจก. เดือน มิ.ย.68" },
     ],
   },
   {
     id: "2",
     docId: "TRO2506-080",
     status: "Approved",
-    details: [
-      { label: "วันที่ส่งสินค้า", value: "24/06/2025" },
-      { label: "ส่งจากคลัง", value: "00HO - Head Office" },
-      { label: "E-Shop No.", value: "PRE2309024" },
-      { label: "หมายเหตุ", value: "Operation Group สำหรับ AAA" },
-    ],
+    details: [],
   },
   {
     id: "3",
-    docId: "TRO2506-010",
+    docId: "GRI2506-0742",
     status: "Pending Approval",
     details: [],
   },
   {
     id: "4",
-    docId: "TRO2506-011",
+    docId: "GRI2506-0742",
     status: "Rejected",
     details: [],
   },
 ];
 
-export default function ScanOutScreen() {
+export default function TransferScreen() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<any>({});
@@ -54,12 +50,12 @@ export default function ScanOutScreen() {
 
   useEffect(() => {
     const onFilterChanged = (data: any) => {
-      console.log(`${filterScanOut} =====> `, data);
+      console.log(`${filterTransfer} =====> `, data);
       setFilter(data);
     };
-    emitter.on(filterScanOut, onFilterChanged);
+    emitter.on(filterTransfer, onFilterChanged);
     return () => {
-      emitter.off(filterScanOut, onFilterChanged);
+      emitter.off(filterTransfer, onFilterChanged);
     };
   }, []);
 
@@ -90,11 +86,11 @@ export default function ScanOutScreen() {
 
   const goToDetail = (item: any) => {
     const { card } = item;
-    navigation.navigate("ScanOutDetail", { docId: card.docId });
+    navigation.navigate("TransferDetail", { docId: card.docId });
   };
 
   const goToCreateDocument = () => {
-    navigation.navigate("CreateDocumentScanOut");
+    navigation.navigate("CreateDocumentTransfer");
   };
   return (
     <>
