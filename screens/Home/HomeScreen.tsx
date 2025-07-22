@@ -4,7 +4,7 @@ import { theme } from "@/providers/Theme";
 import { Ionicons } from "@expo/vector-icons";
 import React, { Fragment, useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
-import { dashboardData } from "../MockupData";
+import { dashboardData } from "./MockupData";
 import { styles } from "./Styles";
 
 export default function HomeScreen() {
