@@ -1,4 +1,7 @@
-import { emitter, filterTransferDetail } from "@/common/emitter";
+import {
+  emitter,
+  filterStockCheckDetail
+} from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import DetailCard from "@/components/DetailCard";
 import Header from "@/components/Header";
@@ -25,8 +28,8 @@ export const _productData = [
     id: "1",
     docId: "5OTH01475",
     model: "VR001",
-    receivedQty: 2,
-    totalQty: 99,
+    receivedQty: null,
+    totalQty: null,
     isDelete: false,
     details: [
       { label: "รุ่น", value: "VR000" },
@@ -34,13 +37,47 @@ export const _productData = [
         label: "หมายเหตุ",
         value: "ของเล่น ลาโพงน้องหมา M10",
       },
-      { label: "รับแล้ว", value: null },
+      { label: "คงเหลือ", value: "10" },
+    ],
+    image: "https://picsum.photos/seed/shirt/100/100",
+  },
+  {
+    id: "2",
+    docId: "5OTH01475",
+    model: "VR001",
+    receivedQty: null,
+    totalQty: null,
+    isDelete: false,
+    details: [
+      { label: "รุ่น", value: "VR001" },
+      {
+        label: "หมายเหตุ",
+        value: "ของเล่น น้องแมว M20",
+      },
+      { label: "คงเหลือ", value: "10" },
+    ],
+    image: "https://picsum.photos/seed/shirt/100/100",
+  },
+  {
+    id: "3",
+    docId: "5OTH01475",
+    model: "VR002",
+    receivedQty: null,
+    totalQty: null,
+    isDelete: false,
+    details: [
+      { label: "รุ่น", value: "VR002" },
+      {
+        label: "หมายเหตุ",
+        value: "ของเล่น น้องกระต่าย M30",
+      },
+      { label: "คงเหลือ", value: "10" },
     ],
     image: "https://picsum.photos/seed/shirt/100/100",
   },
 ];
 
-export default function TransferDetailScreen() {
+export default function StockCheckDetailScreen() {
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [productData, setProductData] = useState<ProductItem[]>(_productData);
   const [filter, setFilter] = useState<any>({});
@@ -55,12 +92,12 @@ export default function TransferDetailScreen() {
 
   useEffect(() => {
     const onFilterChanged = (data: any) => {
-      console.log(`${filterTransferDetail} =====> `, data);
+      console.log(`${filterStockCheckDetail} =====> `, data);
       setFilter(data);
     };
-    emitter.on(filterTransferDetail, onFilterChanged);
+    emitter.on(filterStockCheckDetail, onFilterChanged);
     return () => {
-      emitter.off(filterTransferDetail, onFilterChanged);
+      emitter.off(filterStockCheckDetail, onFilterChanged);
     };
   }, []);
 

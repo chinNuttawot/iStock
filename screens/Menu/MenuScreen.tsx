@@ -77,6 +77,9 @@ export default function MenuScreen() {
       case menuMapping.Transfer:
         navigation.navigate("Transfer");
         break;
+      case menuMapping.StockCheck:
+        navigation.navigate("StockCheck");
+        break;
     }
   };
   return (

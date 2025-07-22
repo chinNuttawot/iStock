@@ -26,6 +26,9 @@ import ScanOutDetailScreen from "./screens/ScanOut/Detail";
 import DeleteAccountScreen from "./screens/Setting/DeleteAccountScreen";
 import ProfileScreen from "./screens/Setting/ProfileScreen";
 import SettingScreen from "./screens/Setting/SettingScreen";
+import StockCheckScreen from "./screens/StockCheck";
+import CreateDocumentStockCheckScreen from "./screens/StockCheck/CreateDocument";
+import StockCheckDetailScreen from "./screens/StockCheck/Detail";
 import TransactionHistoryScreen from "./screens/TransactionHistory";
 import TransactionHistoryDetailScreen from "./screens/TransactionHistory/Detail";
 import TransferScreen from "./screens/Transfer";
@@ -123,6 +126,15 @@ function AppNavigator() {
           <RootStack.Screen
             name="TransferDetail"
             component={TransferDetailScreen}
+          />
+          <RootStack.Screen name="StockCheck" component={StockCheckScreen} />
+          <RootStack.Screen
+            name="StockCheckDetail"
+            component={StockCheckDetailScreen}
+          />
+          <RootStack.Screen
+            name="CreateDocumentStockCheck"
+            component={CreateDocumentStockCheckScreen}
           />
         </>
       ) : (
