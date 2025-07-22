@@ -96,7 +96,7 @@ export default function StockCheckScreen() {
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
         hideGoback={false}
-        title={"สแกน-ออก"}
+        title={"สแกน-ตรวจนับ"}
         IconComponent={[
           <TouchableOpacity onPress={goToCreateDocument}>
             <MaterialCommunityIcons name={"plus"} size={30} color="white" />

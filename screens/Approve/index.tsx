@@ -101,7 +101,7 @@ export default function ApproveScreen() {
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
         hideGoback={false}
-        title={"สแกน-ออก"}
+        title={"อนุมัติรายการ"}
         IconComponent={[
           <TouchableOpacity onPress={goToCreateDocument}>
             <MaterialCommunityIcons name={"plus"} size={30} color="white" />

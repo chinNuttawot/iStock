@@ -98,7 +98,7 @@ export default function TransferScreen() {
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
         hideGoback={false}
-        title={"สแกน-ออก"}
+        title={"สแกน-โอนย้าย"}
         IconComponent={[
           <TouchableOpacity onPress={goToCreateDocument}>
             <MaterialCommunityIcons name={"plus"} size={30} color="white" />
