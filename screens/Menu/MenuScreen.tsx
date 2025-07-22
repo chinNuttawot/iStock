@@ -80,6 +80,9 @@ export default function MenuScreen() {
       case menuMapping.StockCheck:
         navigation.navigate("StockCheck");
         break;
+      case menuMapping.Approve:
+        navigation.navigate("Approve");
+        break;
     }
   };
   return (

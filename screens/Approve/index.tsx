@@ -1,11 +1,12 @@
-import { emitter, filterTransactionHistory } from "@/common/emitter";
+import { emitter, filterApprove } from "@/common/emitter";
+import CustomButtons from "@/components/CustomButtons";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
 import { theme } from "@/providers/Theme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
-import { ScrollView, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./Styles";
 
 const cardData = [
@@ -14,11 +15,9 @@ const cardData = [
     docId: "TRO2506-079",
     status: "Open",
     details: [
-      { label: "วันที่ส่งสินค้า", value: "23/06/2025" },
-      { label: "เลขที่เอกสาร", value: "TRO2506-079" },
-      { label: "ส่งจากคลัง", value: "00HO - Head Office" },
-      { label: "E-Shop No.", value: "PRE2309023" },
-      { label: "หมายเหตุ", value: "Operation Group สำหรับ Jubu Jibi" },
+      { label: "วันที่ตรวจนับ", value: "23/06/2025" },
+      { label: "จัดทำโดย", value: "CHY" },
+      { label: "หมายเหตุ", value: "ตัดเบิกโอเปอร์ประชุม ผจก. เดือน มิ.ย.68" },
     ],
   },
   {
@@ -27,7 +26,6 @@ const cardData = [
     status: "Approved",
     details: [
       { label: "วันที่ส่งสินค้า", value: "24/06/2025" },
-      { label: "เลขที่เอกสาร", value: "TRO2506-080" },
       { label: "ส่งจากคลัง", value: "00HO - Head Office" },
       { label: "E-Shop No.", value: "PRE2309024" },
       { label: "หมายเหตุ", value: "Operation Group สำหรับ AAA" },
@@ -37,33 +35,17 @@ const cardData = [
     id: "3",
     docId: "TRO2506-010",
     status: "Pending Approval",
-    details: [
-      { label: "วันที่ส่งสินค้า", value: "24/06/2025" },
-      { label: "เลขที่เอกสาร", value: "TRO2506-010" },
-      { label: "ส่งจากคลัง", value: "00HO - Head Office" },
-      { label: "E-Shop No.", value: "PRE2309025" },
-      { label: "หมายเหตุ", value: "Operation Group สำหรับ BBB" },
-    ],
+    details: [],
   },
   {
     id: "4",
     docId: "TRO2506-011",
     status: "Rejected",
-    details: [
-      { label: "วันที่ส่งสินค้า", value: "25/06/2025" },
-      { label: "เลขที่เอกสาร", value: "TRO2506-011" },
-      { label: "ส่งจากคลัง", value: "00HO - Head Office" },
-      { label: "E-Shop No.", value: "PRE2309026" },
-      {
-        label: "หมายเหตุ",
-        value:
-          "Operation Gropdhgjkdhbgjkdfhg;jskdfhg;adfhgkjdfhg;kjsdfhgkj;dfahgljkdfsbkgjsbdfglkjhsdfgkjhdflgkjbsdflkgbdsflkjbgoup สำหรับ CCC",
-      },
-    ],
+    details: [],
   },
 ];
 
-export default function TransactionHistoryScreen() {
+export default function ApproveScreen() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<any>({});
@@ -71,12 +53,12 @@ export default function TransactionHistoryScreen() {
 
   useEffect(() => {
     const onFilterChanged = (data: any) => {
-      console.log(`${filterTransactionHistory} =====> `, data);
+      console.log(`${filterApprove} =====> `, data);
       setFilter(data);
     };
-    emitter.on(filterTransactionHistory, onFilterChanged);
+    emitter.on(filterApprove, onFilterChanged);
     return () => {
-      emitter.off(filterTransactionHistory, onFilterChanged);
+      emitter.off(filterApprove, onFilterChanged);
     };
   }, []);
 
@@ -92,6 +74,14 @@ export default function TransactionHistoryScreen() {
     );
   };
 
+  const handleSelectAll = () => {
+    if (selectedIds.length === cardData.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(cardData.map((item) => item.id));
+    }
+  };
+
   const openFilter = () => {
     setSelectedIds([]);
     navigation.navigate("Filter", { filter, statusName: "ประเภทเอกสาร" });
@@ -99,7 +89,11 @@ export default function TransactionHistoryScreen() {
 
   const goToDetail = (item: any) => {
     const { card } = item;
-    navigation.navigate("TransactionHistoryDetail", { docId: card.docId });
+    navigation.navigate("ApproveDetail", { docId: card.docId });
+  };
+
+  const goToCreateDocument = () => {
+    navigation.navigate("CreateDocumentApprove");
   };
   return (
     <>
@@ -107,13 +101,12 @@ export default function TransactionHistoryScreen() {
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
         hideGoback={false}
-        title={"ประวัติการทำรายการ"}
+        title={"สแกน-ออก"}
         IconComponent={[
-          <TouchableOpacity
-            onPress={() => {
-              openFilter();
-            }}
-          >
+          <TouchableOpacity onPress={goToCreateDocument}>
+            <MaterialCommunityIcons name={"plus"} size={30} color="white" />
+          </TouchableOpacity>,
+          <TouchableOpacity onPress={openFilter}>
             <MaterialCommunityIcons
               name={filter?.isFilter ? "filter-check" : "filter"}
               size={30}
@@ -124,6 +117,13 @@ export default function TransactionHistoryScreen() {
       />
       <View style={{ flex: 1, backgroundColor: theme.white }}>
         <ScrollView contentContainerStyle={styles.content}>
+          <TouchableOpacity onPress={handleSelectAll}>
+            <Text style={styles.selectAllText}>
+              {selectedIds.length === cardData.length
+                ? "ยกเลิก"
+                : "เลือกทั้งหมด"}
+            </Text>
+          </TouchableOpacity>
           {cardData.map((card) => (
             <ScanCard
               status={card.status as StatusType}
@@ -131,7 +131,6 @@ export default function TransactionHistoryScreen() {
               id={card.id}
               docId={card.docId}
               details={card.details}
-              hideSelectedIds
               selectedIds={selectedIds}
               isSelected={selectedIds.includes(card.id)}
               isExpanded={expandedIds.includes(card.id)}
@@ -141,6 +140,18 @@ export default function TransactionHistoryScreen() {
             />
           ))}
         </ScrollView>
+        <View style={{ padding: 16, marginBottom: 16, flexDirection: "row" }}>
+          <CustomButtons
+            color={theme.red}
+            label="ปฏิเสธ"
+            disabled={selectedIds.length === 0}
+          />
+          <CustomButtons
+            color={theme.green}
+            label="อนุมัติรายการ"
+            disabled={selectedIds.length === 0}
+          />
+        </View>
       </View>
     </>
   );

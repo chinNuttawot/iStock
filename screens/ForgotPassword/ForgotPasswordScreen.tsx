@@ -11,7 +11,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  View,
+  View
 } from "react-native";
 
 export default function ForgotPasswordScreen() {
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.background,
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
     marginBottom: 34,
   },
   input: { ...theme.setFont, flex: 1, marginLeft: 8 },

@@ -24,15 +24,13 @@ import { SelectList } from "react-native-dropdown-select-list";
 import { Divider } from "react-native-elements";
 import { RenderGoBackItem } from "../Detail";
 
-export default function CreateDocumentTransferScreen() {
+export default function CreateDocumentApproveScreen() {
   const navigation = useNavigation<any>();
   const [documentNo, setDocumentNo] = useState("");
   const [documentDate, setDocumentDate] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [mainWarehouseFrom, setMainWarehouseFrom] = useState("");
-  const [subWarehouseFrom, setSubWarehouseFrom] = useState("");
-  const [mainWarehouseTo, setMainWarehouseTo] = useState("");
-  const [subWarehouseTo, setSubWarehouseTo] = useState("");
+  const [mainWarehouse, setMainWarehouse] = useState("");
+  const [subWarehouse, setSubWarehouse] = useState("");
   const [remark, setRemark] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -45,10 +43,8 @@ export default function CreateDocumentTransferScreen() {
   const isValid =
     documentNo !== "" &&
     documentDate !== "" &&
-    mainWarehouseFrom !== "" &&
-    subWarehouseFrom !== "" &&
-    mainWarehouseTo !== "" &&
-    subWarehouseTo !== "" &&
+    mainWarehouse !== "" &&
+    subWarehouse !== "" &&
     products.length > 0;
 
   const optionModalComponent: Modeloption = {
@@ -74,10 +70,8 @@ export default function CreateDocumentTransferScreen() {
     console.log("📄 Saved:", {
       documentNo,
       documentDate,
-      mainWarehouseFrom,
-      subWarehouseFrom,
-      mainWarehouseTo,
-      subWarehouseTo,
+      mainWarehouse,
+      subWarehouse,
       remark,
       products,
     });
@@ -135,74 +129,6 @@ export default function CreateDocumentTransferScreen() {
     setProducts(updatedProducts);
     const updatedViewMode = viewMode.filter((item) => item.id !== id);
     setViewMode(updatedViewMode);
-  };
-
-  const RenderFrom = () => {
-    return (
-      <View style={styles.mainInput}>
-        <Text style={styles.labelMainInput}>คลังต้นทาง</Text>
-        <View style={styles.rowWrapper}>
-          <View style={[styles.flex1, { marginRight: 16 }]}>
-            <Text style={styles.label}>รหัสคลังหลัก</Text>
-            <TextInput
-              style={styles.input}
-              value={mainWarehouseFrom}
-              onChangeText={setMainWarehouseFrom}
-              placeholder=""
-              placeholderTextColor={theme.border}
-            />
-          </View>
-          <View style={styles.flex1}>
-            <Text style={styles.label}>รหัสคลังย่อย</Text>
-            <SelectList
-              setSelected={setSubWarehouseFrom}
-              data={[{ key: "ABC-123", value: "ABC-123" }]}
-              boxStyles={styles.selectBox}
-              dropdownStyles={{ borderColor: theme.gray }}
-              search={false}
-              placeholder="Select"
-              save="key"
-              defaultOption={{ key: subWarehouseFrom, value: subWarehouseFrom }}
-            />
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  const RenderTo = () => {
-    return (
-      <View style={styles.mainInput}>
-        <Text style={[styles.labelMainInput, { color: theme.error }]}>
-          คลังปลายทาง
-        </Text>
-        <View style={styles.rowWrapper}>
-          <View style={[styles.flex1, { marginRight: 16 }]}>
-            <Text style={styles.label}>รหัสคลังหลัก</Text>
-            <TextInput
-              style={styles.input}
-              value={mainWarehouseTo}
-              onChangeText={setMainWarehouseTo}
-              placeholder=""
-              placeholderTextColor={theme.border}
-            />
-          </View>
-          <View style={styles.flex1}>
-            <Text style={styles.label}>รหัสคลังย่อย</Text>
-            <SelectList
-              setSelected={setSubWarehouseTo}
-              data={[{ key: "ABC-123", value: "ABC-123" }]}
-              boxStyles={styles.selectBox}
-              dropdownStyles={{ borderColor: theme.gray }}
-              search={false}
-              placeholder="Select"
-              save="key"
-              defaultOption={{ key: subWarehouseTo, value: subWarehouseTo }}
-            />
-          </View>
-        </View>
-      </View>
-    );
   };
 
   return (
@@ -284,8 +210,31 @@ export default function CreateDocumentTransferScreen() {
             </View>
           </View>
         </View>
-        {RenderFrom()}
-        {RenderTo()}
+        <View style={styles.rowWrapper}>
+          <View style={[styles.flex1, { marginRight: 16 }]}>
+            <Text style={styles.label}>รหัสคลังหลัก</Text>
+            <TextInput
+              style={styles.input}
+              value={mainWarehouse}
+              onChangeText={setMainWarehouse}
+              placeholder=""
+              placeholderTextColor={theme.border}
+            />
+          </View>
+          <View style={styles.flex1}>
+            <Text style={styles.label}>รหัสคลังย่อย</Text>
+            <SelectList
+              setSelected={setSubWarehouse}
+              data={[{ key: "ABC-123", value: "ABC-123" }]}
+              boxStyles={styles.selectBox}
+              dropdownStyles={{ borderColor: theme.gray }}
+              search={false}
+              placeholder="Select"
+              save="key"
+              defaultOption={{ key: subWarehouse, value: subWarehouse }}
+            />
+          </View>
+        </View>
         <View style={styles.inputGroup}>
           <Text style={styles.label}>หมายเหตุ</Text>
           <TextInput
@@ -341,13 +290,6 @@ export default function CreateDocumentTransferScreen() {
 }
 
 const styles = StyleSheet.create({
-  mainInput: {
-    backgroundColor: theme.mainInput,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    borderRadius: 16,
-    marginBottom: 16,
-  },
   content: {
     padding: 16,
   },
@@ -366,12 +308,6 @@ const styles = StyleSheet.create({
     ...theme.setFont,
     color: theme.mainApp,
     marginBottom: 4,
-  },
-  labelMainInput: {
-    ...theme.setFont,
-    color: theme.green2,
-    marginBottom: 20,
-    fontSize: 20,
   },
   input: {
     backgroundColor: theme.background,

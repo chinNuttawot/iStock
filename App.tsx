@@ -11,6 +11,9 @@ import { Provider } from "react-redux";
 import { AppWrapper } from "./AppWrapper";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { theme } from "./providers/Theme";
+import ApproveScreen from "./screens/Approve";
+import CreateDocumentApproveScreen from "./screens/Approve/CreateDocument";
+import ApproveDetailScreen from "./screens/Approve/Detail";
 import FilterScreen from "./screens/Filter";
 import ConfirmForgotPasswordScreen from "./screens/ForgotPassword/ConfirmForgotPasswordScreen";
 import ForgotPasswordScreen from "./screens/ForgotPassword/ForgotPasswordScreen";
@@ -135,6 +138,15 @@ function AppNavigator() {
           <RootStack.Screen
             name="CreateDocumentStockCheck"
             component={CreateDocumentStockCheckScreen}
+          />
+          <RootStack.Screen name="Approve" component={ApproveScreen} />
+          <RootStack.Screen
+            name="ApproveDetail"
+            component={ApproveDetailScreen}
+          />
+          <RootStack.Screen
+            name="CreateDocumentApprove"
+            component={CreateDocumentApproveScreen}
           />
         </>
       ) : (

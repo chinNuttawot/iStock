@@ -50,12 +50,14 @@ export default function FilterScreen() {
     showFilterDate = true,
     showFilterStatus = true,
     ScanName = "เลขที่เอกสาร",
+    statusName = "สถานะเอกสาร",
   } = route.params as {
     filter: any;
     showFilterDoc: boolean;
     showFilterDate: boolean;
     showFilterStatus: boolean;
     ScanName?: string;
+    statusName?: string;
   };
 
   useEffect(() => {
@@ -169,7 +171,7 @@ export default function FilterScreen() {
 
         {showFilterStatus && (
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>สถานะเอกสาร</Text>
+            <Text style={styles.label}>{statusName}</Text>
             <SelectList
               setSelected={setStatus}
               data={statusOptions}
@@ -239,7 +241,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
-    paddingVertical: Platform.OS === "ios" ? 8 : 0,
+    paddingVertical: Platform.OS === "ios" ? 12 : 0,
   },
   input: {
     flex: 1,

@@ -18,7 +18,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
 import { Divider } from "react-native-elements";
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.background,
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
     ...theme.setFont,
   },
   inputWrapper: {

@@ -8,7 +8,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
 import uuid from "react-native-uuid";
@@ -151,9 +151,7 @@ const ProductAddModalComponent = ({
             label="บันทึก"
             onPress={handleSave}
             disabled={
-              selectedModel === "" ||
-              orderQty === "" ||
-              serialNo === "" 
+              selectedModel === "" || orderQty === "" || serialNo === ""
             }
           />
         </View>
@@ -215,7 +213,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.background,
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
     marginBottom: 8,
     ...theme.setFont,
   },

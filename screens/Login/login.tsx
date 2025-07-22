@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.background,
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
     marginBottom: 16,
   },
   input: { ...theme.setFont, flex: 1, marginLeft: 8 },
