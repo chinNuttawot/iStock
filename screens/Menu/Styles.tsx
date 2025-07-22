@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
     ...theme.setFont,
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderBottomColor: theme.border,
     borderBottomWidth: 1,
     justifyContent: "space-between",
