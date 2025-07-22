@@ -14,6 +14,7 @@ export default function DetailCard({
   viewMode,
   textGoTo,
   colorButton,
+  customButton,
 }: {
   data: ProductItem;
   isExpanded: boolean;
@@ -22,6 +23,7 @@ export default function DetailCard({
   viewMode?: boolean;
   textGoTo?: string;
   colorButton?: string;
+  customButton?: any;
 }) {
   return (
     <View style={styles.card}>
@@ -62,7 +64,10 @@ export default function DetailCard({
             style={styles.imageItem}
             resizeMode="cover"
           />
-          {!viewMode && (
+          {customButton && (
+            <View style={{ marginTop: 32 }}>{customButton}</View>
+          )}
+          {!viewMode && !customButton && (
             <View style={{ paddingHorizontal: 120, marginTop: 32 }}>
               <CustomButton
                 label={textGoTo || "แก้ไข"}

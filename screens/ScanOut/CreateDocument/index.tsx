@@ -1,26 +1,30 @@
 import CustomButton from "@/components/CustomButton";
+import CustomButtons from "@/components/CustomButtons";
 import CustomDatePicker from "@/components/CustomDatePicker";
+import DetailCard from "@/components/DetailCard";
 import Header from "@/components/Header";
+import ProductAddModalComponent from "@/components/ProductAdd";
 import ModalComponent from "@/providers/Modal";
+import { AddItemProduct } from "@/providers/Modal/AddItemProduct/indx";
+import { Modeloption } from "@/providers/Modal/Model";
 import { theme } from "@/providers/Theme";
-import { optionModalComponent } from "@/screens/Setting/SettingScreen";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
 import { RenderGoBackItem } from "../Detail";
 
 export default function CreateDocumentScreen() {
   const navigation = useNavigation<any>();
-
   const [documentNo, setDocumentNo] = useState("");
   const [documentDate, setDocumentDate] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -28,19 +32,37 @@ export default function CreateDocumentScreen() {
   const [subWarehouse, setSubWarehouse] = useState("");
   const [remark, setRemark] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
+  const [editProducts, setEditProducts] = useState<any>({});
+  const [viewMode, setViewMode] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-
+  const [expandedIds, setExpandedIds] = useState<string[]>([]);
+  const stockQty = 99;
   const isValid =
     documentNo !== "" &&
     documentDate !== "" &&
     mainWarehouse !== "" &&
     subWarehouse !== "" &&
-    remark !== "" &&
     products.length > 0;
 
+  const optionModalComponent: Modeloption = {
+    change: { label: "ลบ", color: theme.red },
+    changeCancel: {
+      label: "แก้ไข",
+      color: theme.mainApp,
+    },
+  };
+
+  useEffect(() => {
+    const isEmptyObject = Object.keys(editProducts).length === 0;
+    if (!isEmptyObject) {
+      setShowAddModal(true);
+    }
+  }, [editProducts]);
+
   const handleAddProduct = () => {
-    // setProducts([...products, { id: Date.now(), name: "" }]);
+    setShowAddModal(true);
   };
 
   const handleSave = () => {
@@ -63,6 +85,51 @@ export default function CreateDocumentScreen() {
     setIsOpen(isOpen);
   };
 
+  const onSaveList = (list: AddItemProduct) => {
+    const dataView = {
+      id: list.uuid,
+      docId: list.productCode,
+      model: list.selectedModel,
+      receivedQty: null,
+      totalQty: null,
+      isDelete: false,
+      details: [
+        { label: "รหัสแบบ", value: list.selectedModel || "-" },
+        { label: "คงเหลือ", value: stockQty.toString() || "-" },
+        { label: "จำนวนสินค้า", value: list.orderQty || "-" },
+        { label: "Serial No", value: list.serialNo || "-" },
+        { label: "หมายเหตุ", value: list.remark || "-" },
+      ],
+      image: "https://picsum.photos/seed/shirt/100/100",
+    };
+    const updatedViewMode = viewMode.some((item) => item.id === dataView.id)
+      ? viewMode.map((item) => (item.id === dataView.id ? dataView : item))
+      : [...viewMode, dataView];
+    setViewMode(updatedViewMode);
+    const updatedProducts = products.some((item) => item.uuid === list.uuid)
+      ? products.map((item) => (item.uuid === list.uuid ? list : item))
+      : [...products, list];
+    setProducts(updatedProducts);
+  };
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const onEditList = (id: string) => {
+    const editlist = products.filter((v) => v.uuid === id)[0];
+    setEditProducts(editlist);
+  };
+
+  const onDeleteList = (id: string) => {
+    const updatedProducts = products.filter((item) => item.uuid !== id);
+    setProducts(updatedProducts);
+    const updatedViewMode = viewMode.filter((item) => item.id !== id);
+    setViewMode(updatedViewMode);
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.white }}>
       <ModalComponent
@@ -74,7 +141,35 @@ export default function CreateDocumentScreen() {
       >
         {RenderGoBackItem}
       </ModalComponent>
-
+      <ProductAddModalComponent
+        isVisible={showAddModal}
+        onClose={() => {
+          setEditProducts({});
+          setShowAddModal(false);
+        }}
+        onSave={onSaveList}
+        productCode="50TH01475"
+        modelOptions={[{ key: "VR000", value: "VR000" }]}
+        stockQty={stockQty}
+        value={editProducts}
+      />
+      {showDatePicker && (
+        <CustomDatePicker
+          value={selectedDate}
+          onConfirm={(date) => {
+            setSelectedDate(date);
+            setDocumentDate(
+              date.toLocaleDateString("th-TH", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              })
+            );
+            setShowDatePicker(false);
+          }}
+          onCancel={() => setShowDatePicker(false)}
+        />
+      )}
       <Header
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
@@ -114,7 +209,6 @@ export default function CreateDocumentScreen() {
             </View>
           </View>
         </View>
-
         <View style={styles.rowWrapper}>
           <View style={[styles.flex1, { marginRight: 16 }]}>
             <Text style={styles.label}>รหัสคลังหลัก</Text>
@@ -140,7 +234,6 @@ export default function CreateDocumentScreen() {
             />
           </View>
         </View>
-
         <View style={styles.inputGroup}>
           <Text style={styles.label}>หมายเหตุ</Text>
           <TextInput
@@ -151,33 +244,45 @@ export default function CreateDocumentScreen() {
             placeholderTextColor={theme.border}
           />
         </View>
-
-        <TouchableOpacity onPress={handleAddProduct}>
+        <TouchableOpacity
+          onPress={handleAddProduct}
+          style={{ marginBottom: 16 }}
+        >
           <Text style={styles.addProductText}>เพิ่มสินค้า</Text>
         </TouchableOpacity>
+        {viewMode
+          .filter((v) => !v.isDelete)
+          .map((item, k) => (
+            <DetailCard
+              key={k}
+              data={item}
+              isExpanded={expandedIds.includes(item.id)}
+              onToggle={() => toggleExpand(item.id)}
+              textGoTo="ลบ"
+              colorButton={theme.red}
+              goTo={() => {}}
+              customButton={
+                <View style={{ flexDirection: "row" }}>
+                  <CustomButtons
+                    {...optionModalComponent.changeCancel}
+                    onPress={() => {
+                      onEditList(item.id);
+                    }}
+                  />
+                  <CustomButtons
+                    {...optionModalComponent.change}
+                    onPress={() => {
+                      onDeleteList(item.id);
+                    }}
+                  />
+                </View>
+              }
+            />
+          ))}
       </ScrollView>
-
       <View style={{ padding: 16, marginBottom: 16 }}>
         <CustomButton label="บันทึก" onPress={handleSave} disabled={!isValid} />
       </View>
-
-      {showDatePicker && (
-        <CustomDatePicker
-          value={selectedDate}
-          onConfirm={(date) => {
-            setSelectedDate(date);
-            setDocumentDate(
-              date.toLocaleDateString("th-TH", {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-              })
-            );
-            setShowDatePicker(false);
-          }}
-          onCancel={() => setShowDatePicker(false)}
-        />
-      )}
     </View>
   );
 }

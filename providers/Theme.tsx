@@ -8,6 +8,7 @@ const theme = {
   black: "#000000",
   iosPrimary: "#007AFF",
   red: "#FF0000",
+  error: "#FF0000",
   orange: "#D4731F",
   green: "#46D223",
   secondary: "#0A7EA4", // ✅ สีรอง หรือ Accent Color

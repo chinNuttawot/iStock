@@ -16,7 +16,6 @@ const cardData = [
     status: "Open",
     details: [
       { label: "วันที่ส่งสินค้า", value: "23/06/2025" },
-      { label: "เลขที่เอกสาร", value: "TRO2506-079" },
       { label: "ส่งจากคลัง", value: "00HO - Head Office" },
       { label: "E-Shop No.", value: "PRE2309023" },
       { label: "หมายเหตุ", value: "Operation Group สำหรับ Jubu Jibi" },
@@ -28,7 +27,6 @@ const cardData = [
     status: "Approved",
     details: [
       { label: "วันที่ส่งสินค้า", value: "24/06/2025" },
-      { label: "เลขที่เอกสาร", value: "TRO2506-080" },
       { label: "ส่งจากคลัง", value: "00HO - Head Office" },
       { label: "E-Shop No.", value: "PRE2309024" },
       { label: "หมายเหตุ", value: "Operation Group สำหรับ AAA" },
@@ -36,23 +34,10 @@ const cardData = [
   },
   {
     id: "3",
-    docId: "TRO2506-010",
-    status: "Pending Approval",
-    details: [
-      { label: "วันที่ส่งสินค้า", value: "24/06/2025" },
-      { label: "เลขที่เอกสาร", value: "TRO2506-010" },
-      { label: "ส่งจากคลัง", value: "00HO - Head Office" },
-      { label: "E-Shop No.", value: "PRE2309025" },
-      { label: "หมายเหตุ", value: "Operation Group สำหรับ BBB" },
-    ],
-  },
-  {
-    id: "4",
     docId: "TRO2506-011",
     status: "Rejected",
     details: [
       { label: "วันที่ส่งสินค้า", value: "25/06/2025" },
-      { label: "เลขที่เอกสาร", value: "TRO2506-011" },
       { label: "ส่งจากคลัง", value: "00HO - Head Office" },
       { label: "E-Shop No.", value: "PRE2309026" },
       {
