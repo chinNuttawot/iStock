@@ -84,7 +84,7 @@ export default function StockCheckScreen() {
 
   const goToDetail = (item: any) => {
     const { card } = item;
-    navigation.navigate("ScanOutDetail", { docId: card.docId });
+    navigation.navigate("StockCheckDetail", { docId: card.docId });
   };
 
   const goToCreateDocument = () => {

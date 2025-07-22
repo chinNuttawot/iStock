@@ -1,9 +1,17 @@
 import {
   emitter,
+  filterApprove,
+  filterApproveDetail,
   filterScanIn,
   filterScanInDetail,
+  filterScanOut,
+  filterScanOutDetail,
+  filterStockCheck,
+  filterStockCheckDetail,
   filterTransactionHistory,
   filterTransactionHistoryDetail,
+  filterTransfer,
+  filterTransferDetail,
 } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import CustomDatePicker from "@/components/CustomDatePicker";
@@ -97,6 +105,30 @@ export default function FilterScreen() {
         break;
       case "TransactionHistoryDetail":
         dataToscreen = filterTransactionHistoryDetail;
+        break;
+      case "Transfer":
+        dataToscreen = filterTransfer;
+        break;
+      case "TransferDetail":
+        dataToscreen = filterTransferDetail;
+        break;
+      case "StockCheck":
+        dataToscreen = filterStockCheck;
+        break;
+      case "StockCheckDetail":
+        dataToscreen = filterStockCheckDetail;
+        break;
+      case "Approve":
+        dataToscreen = filterApprove;
+        break;
+      case "ApproveDetail":
+        dataToscreen = filterApproveDetail;
+        break;
+      case "ScanOut":
+        dataToscreen = filterScanOut;
+        break;
+      case "ScanOutDetail":
+        dataToscreen = filterScanOutDetail;
         break;
     }
     emitter.emit(dataToscreen, item);

@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     ...theme.setFont,
     backgroundColor: "red",
     borderRadius: 12,
-    paddingHorizontal: 6,
+    paddingHorizontal: 5,
     marginRight: 8,
     alignItems: "center",
   },
