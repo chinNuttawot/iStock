@@ -15,6 +15,16 @@ export const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 16,
   },
+  mainView: {
+    width: "100%",
+    alignItems: "center",
+    height: 100,
+    justifyContent: "center",
+  },
+  label: {
+    ...theme.setFont,
+    marginBottom: 4,
+  },
   content: {
     flexGrow: 1,
     padding: 16,

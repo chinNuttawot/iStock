@@ -5,11 +5,11 @@ import Header from "@/components/Header";
 import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
-import { optionModalComponent } from "@/screens/Setting/SettingScreen";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { RenderViewApprove, RenderViewReject } from "..";
 import { styles } from "./styles";
 
 export const RenderGoBackItem = (
@@ -78,13 +78,10 @@ export default function ApproveDetailScreen() {
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [productData, setProductData] = useState<ProductItem[]>(_productData);
   const [filter, setFilter] = useState<any>({});
-  const [isOpen, setIsOpen] = useState(false);
-  const [isShowGoBackScreen, setIsShowGoBackScreen] = useState(false);
-  const [itemDetail, setItemDetail] = useState<ProductItem>();
+  const [isOpenViewReject, setIsOpenViewReject] = useState<boolean>(false);
+  const [isOpenViewApprove, setIsOpenViewApprove] = useState<boolean>(false);
   const navigation = useNavigation<any>();
   const route = useRoute();
-  const itemDetailRef = useRef<ProductItem | undefined>(undefined);
-  const isShowGoBackScreenRef = useRef<boolean>(false);
   const { docId } = route.params as { docId: string };
 
   useEffect(() => {
@@ -113,67 +110,27 @@ export default function ApproveDetailScreen() {
     });
   };
 
-  const onDeleteItem = (item: ProductItem) => {
-    setIsOpen(true);
-    setItemDetail(item);
-    itemDetailRef.current = item; // ✅ เก็บไว้ใน ref ด้วย
-  };
-
-  const onSavedataDetail = (isOpen: boolean) => {
-    setProductData((prev) =>
-      prev.map((item) =>
-        item.id === itemDetailRef.current?.id
-          ? { ...item, isDelete: true }
-          : item
-      )
-    );
-    setIsOpen(!isOpen);
-  };
-
-  const onBackdropPress = (isOpen: boolean) => {
-    setIsOpen(isOpen);
-  };
-
   const onGoBack = () => {
-    const filterIsDelete = productData.filter((v) => v.isDelete).length;
-    if (filterIsDelete > 0) {
-      setIsShowGoBackScreen(true);
-      isShowGoBackScreenRef.current = true;
-      setIsOpen(true);
-    } else {
-      navigation.goBack();
-    }
+    navigation.goBack();
   };
-
-  const mainGoBack = (_open: boolean) => {
-    if (isShowGoBackScreenRef.current) {
-      setIsOpen(false);
-      setIsShowGoBackScreen(false);
-      isShowGoBackScreenRef.current = false;
-      navigation.goBack();
-    } else {
-      onSavedataDetail(_open);
-    }
-  };
-
-  const RenderDeleteItem = (
-    <View style={styles.mainView}>
-      <Text
-        style={styles.label}
-      >{`คุณต้องการลบ "${itemDetail?.docId}-${itemDetail?.model}" หรือไม่`}</Text>
-    </View>
-  );
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.white }}>
       <ModalComponent
-        isOpen={isOpen}
-        onChange={mainGoBack}
-        option={optionModalComponent}
-        onBackdropPress={onBackdropPress}
-        onChangeCancel={() => setIsOpen(false)}
+        isOpen={isOpenViewReject}
+        onChange={() => {}}
+        onBackdropPress={setIsOpenViewReject}
+        option={{ change: { label: "ตกลง", color: theme.mainApp } }}
       >
-        {isShowGoBackScreen ? RenderGoBackItem : RenderDeleteItem}
+        {RenderViewReject}
+      </ModalComponent>
+      <ModalComponent
+        isOpen={isOpenViewApprove}
+        onChange={() => {}}
+        onBackdropPress={setIsOpenViewApprove}
+        option={{ change: { label: "ตกลง", color: theme.mainApp } }}
+      >
+        {RenderViewApprove}
       </ModalComponent>
       <Header
         backgroundColor={theme.mainApp}
@@ -200,21 +157,32 @@ export default function ApproveDetailScreen() {
           .filter((v) => !v.isDelete)
           .map((item) => (
             <DetailCard
+              viewMode
               key={item.id}
               data={item}
               isExpanded={expandedIds.includes(item.id)}
               onToggle={() => toggleExpand(item.id)}
               textGoTo="ลบ"
               colorButton={theme.red}
-              goTo={() => {
-                onDeleteItem(item);
-              }}
+              goTo={() => {}}
             />
           ))}
       </ScrollView>
       <View style={{ padding: 16, marginBottom: 16, flexDirection: "row" }}>
-        <CustomButtons color={theme.red} label="ปฏิเสธ" />
-        <CustomButtons color={theme.green} label="อนุมัติรายการ" />
+        <CustomButtons
+          color={theme.red}
+          label="ปฏิเสธ"
+          onPress={() => {
+            setIsOpenViewReject(true);
+          }}
+        />
+        <CustomButtons
+          color={theme.green}
+          label="อนุมัติรายการ"
+          onPress={() => {
+            setIsOpenViewApprove(true);
+          }}
+        />
       </View>
     </View>
   );

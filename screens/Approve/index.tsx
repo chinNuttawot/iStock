@@ -2,12 +2,49 @@ import { emitter, filterApprove } from "@/common/emitter";
 import CustomButtons from "@/components/CustomButtons";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
+import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React, { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./Styles";
+
+export const RenderViewReject = (
+  <View style={styles.mainView}>
+    <Text
+      style={[
+        styles.label,
+        { ...theme.setFont_Bold },
+        { textAlign: "center", padding: 8, fontSize: 20 },
+      ]}
+    >{`ปฏิเสธรายการ`}</Text>
+    <Text
+      style={[
+        styles.label,
+        { textAlign: "center", padding: 8, marginBottom: 26 },
+      ]}
+    >{`คุณต้องการที่จะปฏิเสธรายการที่เลือกหรือไม่`}</Text>
+  </View>
+);
+
+export const RenderViewApprove = (
+  <View style={styles.mainView}>
+    <Text
+      style={[
+        styles.label,
+        { ...theme.setFont_Bold },
+        { textAlign: "center", padding: 8, fontSize: 20 },
+      ]}
+    >{`อนุมัติรายการ`}</Text>
+    <Text
+      style={[
+        styles.label,
+        { textAlign: "center", padding: 8, marginBottom: 26 },
+      ]}
+    >{`คุณต้องการที่จะอนุมัติรายการที่เลือกหรือไม่`}</Text>
+  </View>
+);
 
 const cardData = [
   {
@@ -48,6 +85,8 @@ const cardData = [
 export default function ApproveScreen() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
+  const [isOpenViewReject, setIsOpenViewReject] = useState<boolean>(false);
+  const [isOpenViewApprove, setIsOpenViewApprove] = useState<boolean>(false);
   const [filter, setFilter] = useState<any>({});
   const navigation = useNavigation<any>();
 
@@ -92,20 +131,30 @@ export default function ApproveScreen() {
     navigation.navigate("ApproveDetail", { docId: card.docId });
   };
 
-  const goToCreateDocument = () => {
-    navigation.navigate("CreateDocumentApprove");
-  };
   return (
-    <>
+    <Fragment>
+      <ModalComponent
+        isOpen={isOpenViewReject}
+        onChange={() => {}}
+        onBackdropPress={setIsOpenViewReject}
+        option={{ change: { label: "ตกลง", color: theme.mainApp } }}
+      >
+        {RenderViewReject}
+      </ModalComponent>
+      <ModalComponent
+        isOpen={isOpenViewApprove}
+        onChange={() => {}}
+        onBackdropPress={setIsOpenViewApprove}
+        option={{ change: { label: "ตกลง", color: theme.mainApp } }}
+      >
+        {RenderViewApprove}
+      </ModalComponent>
       <Header
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
         hideGoback={false}
         title={"อนุมัติรายการ"}
         IconComponent={[
-          <TouchableOpacity onPress={goToCreateDocument}>
-            <MaterialCommunityIcons name={"plus"} size={30} color="white" />
-          </TouchableOpacity>,
           <TouchableOpacity onPress={openFilter}>
             <MaterialCommunityIcons
               name={filter?.isFilter ? "filter-check" : "filter"}
@@ -145,14 +194,20 @@ export default function ApproveScreen() {
             color={theme.red}
             label="ปฏิเสธ"
             disabled={selectedIds.length === 0}
+            onPress={() => {
+              setIsOpenViewReject(true);
+            }}
           />
           <CustomButtons
             color={theme.green}
             label="อนุมัติรายการ"
             disabled={selectedIds.length === 0}
+            onPress={() => {
+              setIsOpenViewApprove(true);
+            }}
           />
         </View>
       </View>
-    </>
+    </Fragment>
   );
 }
