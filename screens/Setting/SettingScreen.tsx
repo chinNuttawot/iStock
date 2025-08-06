@@ -6,10 +6,12 @@ import {
   MenuItem,
   RootStackParamList,
 } from "@/dataModel/Setting";
+import { authToken } from "@/providers/keyStorageUtilliy";
 import ModalComponent from "@/providers/Modal";
 import DeleteAccount from "@/providers/Modal/DeleteAccount";
 import ModalLogout from "@/providers/Modal/Logout";
 import { Modeloption } from "@/providers/Modal/Model";
+import { StorageUtility } from "@/providers/storageUtility";
 import { theme } from "@/providers/Theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -54,18 +56,19 @@ export default function SettingScreen() {
     }
   };
 
-  const _onLogout = (isOpen: boolean) => {
-    setIsOpen(isOpen);
-    if (modeMyModal === menuDataText.DeleteAccount) {
+  const _onLogout = async (isOpen: boolean) => {
+    setIsOpen(false);
+    if (modeMyModal === menuDataText.Logout) {
+      await StorageUtility.remove(authToken);
+      logout();
+    } else {
       navigation.navigate("DeleteAccount");
-      return;
     }
-    logout();
   };
 
   return (
     <View style={styles.container}>
-      <Header/>
+      <Header />
       <ModalComponent
         isOpen={isOpen}
         onChange={_onLogout}

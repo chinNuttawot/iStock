@@ -1,10 +1,13 @@
 import { Assets } from "@/assets/Assets";
 import { useAuth } from "@/AuthContext";
 import CustomButton from "@/components/CustomButton";
+import { authToken } from "@/providers/keyStorageUtilliy";
+import { StorageUtility } from "@/providers/storageUtility";
 import { theme } from "@/providers/Theme";
+import { loginService } from "@/service";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   SafeAreaView,
@@ -14,21 +17,44 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 export default function LoginScreen() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [hidePassword, setHidePassword] = useState(true);
+  const [isload, setIsload] = useState(false);
   const navigation = useNavigation<any>();
   const { login } = useAuth();
 
-  const handleLogin = () => {
+  useEffect(() => {
+    getToken();
+  }, []);
+
+  const getToken = async () => {
+    const token = await StorageUtility.get(authToken);
+    if (token) {
+      login();
+    }
+  };
+
+  const handleLogin = async () => {
     const utf8Bytes = new TextEncoder().encode(password.toLowerCase());
     const base64Encoded = btoa(String.fromCharCode(...utf8Bytes));
-    console.log("🔐 Encoded password:", base64Encoded);
-    login();
+    try {
+      setIsload(true);
+      const { data } = await loginService({
+        username,
+        password: base64Encoded,
+      });
+      await StorageUtility.set(authToken, data.token);
+      login();
+    } catch (error) {
+    } finally {
+      setIsload(false);
+    }
+
     return;
   };
 
@@ -89,7 +115,11 @@ export default function LoginScreen() {
             </Text>
           </Text>
           <View style={{ marginTop: 24 }}>
-            <CustomButton label={"Login"} onPress={handleLogin} />
+            <CustomButton
+              label={"Login"}
+              onPress={handleLogin}
+              isload={isload}
+            />
           </View>
         </View>
       </View>

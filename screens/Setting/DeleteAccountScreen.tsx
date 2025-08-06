@@ -2,6 +2,8 @@ import { Assets } from "@/assets/Assets";
 import { useAuth } from "@/AuthContext";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
+import { authToken } from "@/providers/keyStorageUtilliy";
+import { StorageUtility } from "@/providers/storageUtility";
 import { theme } from "@/providers/Theme";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
@@ -13,9 +15,9 @@ export default function DeleteAccountScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (password && password === confirmPassword) {
-      console.log("Account Deleted");
+      await StorageUtility.remove(authToken);
       logout(); // ✅ ออกจากระบบผ่าน Context
     } else {
       alert("Password does not match");

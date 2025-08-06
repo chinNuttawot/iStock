@@ -63,6 +63,29 @@ export const menuMapping = {
 export default function MenuScreen() {
   const [badgeNumber, setBadgeNumber] = useState(1);
   const navigation = useNavigation<any>();
+
+  const renderIcon = (item: any) => {
+    switch (item.IconType) {
+      case "MaterialIcons":
+        return <MaterialIcons name={item.IconName} size={24} color="black" />;
+      case "FontAwesome5":
+        return <FontAwesome5 name={item.IconName} size={20} color="black" />;
+      case "Ionicons":
+        return <Ionicons name={item.IconName} size={24} color="black" />;
+      case "Image":
+        return (
+          <Image
+            // source={Assets[item.ImagePath]}
+            source={Assets.menuApproveIcon}
+            style={{ width: 25, height: 25 }}
+            resizeMode="contain"
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   const goTo = (item: goToModel) => {
     switch (item.menu) {
       case menuMapping.ScanIn:
