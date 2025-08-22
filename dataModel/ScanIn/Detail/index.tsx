@@ -5,7 +5,7 @@ export type ProductDetail = {
 
 export type ProductItem = {
   id: string;
-  docId: string;
+  docNo: string;
   model: string;
   receivedQty: null | number;
   totalQty: null | number;

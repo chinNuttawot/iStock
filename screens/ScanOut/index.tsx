@@ -111,7 +111,7 @@ export default function ScanOutScreen() {
 
   const goToDetail = useCallback(
     (card: CardListModel) => {
-      navigation.navigate("ScanOutDetail", { docId: card.docId });
+      navigation.navigate("ScanOutDetail", { docNo: card.docNo });
     },
     [navigation]
   );
@@ -211,7 +211,7 @@ export default function ScanOutScreen() {
                 <ScanCard
                   key={card.id}
                   id={card.id}
-                  docId={card.docId}
+                  docNo={card.docNo}
                   status={card.status as StatusType}
                   details={card.details}
                   selectedIds={selectedIds}

@@ -4,7 +4,7 @@ export interface DetailItem {
 
 export interface DocumentItem {
   id: string;
-  docId: string;
+  docNo: string;
   status: "Open" | "Approved" | "Pending Approval" | "Rejected";
   details: DetailItem[];
 }

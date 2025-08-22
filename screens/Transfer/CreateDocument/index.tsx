@@ -95,7 +95,7 @@ export default function CreateDocumentTransferScreen() {
   const onSaveList = (list: AddItemProduct) => {
     const dataView = {
       id: list.uuid,
-      docId: list.productCode,
+      docNo: list.productCode,
       model: list.selectedModel,
       receivedQty: null,
       totalQty: null,

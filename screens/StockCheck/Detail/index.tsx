@@ -1,6 +1,6 @@
 import {
-  emitter,
-  filterStockCheckDetail
+    emitter,
+    filterStockCheckDetail
 } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import DetailCard from "@/components/DetailCard";
@@ -26,7 +26,7 @@ export const RenderGoBackItem = (
 export const _productData = [
   {
     id: "1",
-    docId: "5OTH01475",
+    docNo: "5OTH01475",
     model: "VR001",
     receivedQty: null,
     totalQty: null,
@@ -43,7 +43,7 @@ export const _productData = [
   },
   {
     id: "2",
-    docId: "5OTH01475",
+    docNo: "5OTH01475",
     model: "VR001",
     receivedQty: null,
     totalQty: null,
@@ -60,7 +60,7 @@ export const _productData = [
   },
   {
     id: "3",
-    docId: "5OTH01475",
+    docNo: "5OTH01475",
     model: "VR002",
     receivedQty: null,
     totalQty: null,
@@ -88,7 +88,7 @@ export default function StockCheckDetailScreen() {
   const route = useRoute();
   const itemDetailRef = useRef<ProductItem | undefined>(undefined);
   const isShowGoBackScreenRef = useRef<boolean>(false);
-  const { docId } = route.params as { docId: string };
+  const { docNo } = route.params as { docNo: string };
 
   useEffect(() => {
     const onFilterChanged = (data: any) => {
@@ -163,7 +163,7 @@ export default function StockCheckDetailScreen() {
     <View style={styles.mainView}>
       <Text
         style={styles.label}
-      >{`คุณต้องการลบ "${itemDetail?.docId}-${itemDetail?.model}" หรือไม่`}</Text>
+      >{`คุณต้องการลบ "${itemDetail?.docNo}-${itemDetail?.model}" หรือไม่`}</Text>
     </View>
   );
 
@@ -182,7 +182,7 @@ export default function StockCheckDetailScreen() {
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
         hideGoback={false}
-        title={docId}
+        title={docNo}
         onGoBack={onGoBack}
         IconComponent={[
           <TouchableOpacity

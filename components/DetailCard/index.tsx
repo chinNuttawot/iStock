@@ -31,7 +31,7 @@ export default function DetailCard({
         style={styles.cardHeader}
         onPress={() => onToggle(data.id)}
       >
-        <Text style={styles.cardTitle}>{`${data.docId}-${data.model}`}</Text>
+        <Text style={styles.cardTitle}>{`${data.docNo}-${data.model}`}</Text>
         <Ionicons
           name={isExpanded ? "chevron-up" : "chevron-down"}
           size={24}

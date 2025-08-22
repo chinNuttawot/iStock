@@ -9,7 +9,7 @@ export type StatusType = "Open" | "Pending Approval" | "Approved" | "Rejected";
 
 type ScanCardProps = {
   id: string;
-  docId: string;
+  docNo: string;
   details: { label: string; value: string }[];
   status: StatusType;
   isSelected: boolean;
@@ -23,7 +23,7 @@ type ScanCardProps = {
 
 export default function ScanCard({
   id,
-  docId,
+  docNo,
   details,
   status,
   isSelected,
@@ -70,7 +70,7 @@ export default function ScanCard({
             onPress={() => onSelect(id)}
           />
         )}
-        <Text style={styles.cardTitle}>{docId}</Text>
+        <Text style={styles.cardTitle}>{docNo}</Text>
         {renderStatusIcon()}
         <Ionicons
           name={isExpanded ? "chevron-up" : "chevron-down"}

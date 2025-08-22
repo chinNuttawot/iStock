@@ -114,7 +114,7 @@ export default function ScanInScreen() {
 
   const goToDetail = useCallback(
     (item: CardListModel) => {
-      navigation.navigate("ScanInDetail", { docId: item.docId });
+      navigation.navigate("ScanInDetail", { docNo: item.docNo });
     },
     [navigation]
   );
@@ -213,7 +213,7 @@ export default function ScanInScreen() {
                   status={card.status as StatusType}
                   key={card.id}
                   id={card.id}
-                  docId={card.docId}
+                  docNo={card.docNo}
                   details={card.details}
                   selectedIds={selectedIds}
                   isSelected={selectedIds.includes(card.id)}

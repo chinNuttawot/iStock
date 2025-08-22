@@ -53,7 +53,7 @@ export interface ResModel<T = any> {
 
 export interface CardListModel {
   id: string;
-  docId: string;
+  docNo: string;
   menuType: string;
   status: string;
   details: CardListDetail[];

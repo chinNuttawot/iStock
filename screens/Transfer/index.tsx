@@ -12,7 +12,7 @@ import { styles } from "./Styles";
 const cardData = [
   {
     id: "1",
-    docId: "GRI2506-0742",
+    docNo: "GRI2506-0742",
     status: "Open",
     details: [
       { label: "วันที่ส่งสินค้า", value: "23/06/2025" },
@@ -24,19 +24,19 @@ const cardData = [
   },
   {
     id: "2",
-    docId: "TRO2506-080",
+    docNo: "TRO2506-080",
     status: "Approved",
     details: [],
   },
   {
     id: "3",
-    docId: "GRI2506-0742",
+    docNo: "GRI2506-0742",
     status: "Pending Approval",
     details: [],
   },
   {
     id: "4",
-    docId: "GRI2506-0742",
+    docNo: "GRI2506-0742",
     status: "Rejected",
     details: [],
   },
@@ -86,7 +86,7 @@ export default function TransferScreen() {
 
   const goToDetail = (item: any) => {
     const { card } = item;
-    navigation.navigate("TransferDetail", { docId: card.docId });
+    navigation.navigate("TransferDetail", { docNo: card.docNo });
   };
 
   const goToCreateDocument = () => {
@@ -126,7 +126,7 @@ export default function TransferScreen() {
               status={card.status as StatusType}
               key={card.id}
               id={card.id}
-              docId={card.docId}
+              docNo={card.docNo}
               details={card.details}
               selectedIds={selectedIds}
               isSelected={selectedIds.includes(card.id)}

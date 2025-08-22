@@ -23,7 +23,7 @@ export const RenderGoBackItem = (
 export const _productData = [
   {
     id: "1",
-    docId: "5OTH01475",
+    docNo: "5OTH01475",
     model: "VR001",
     receivedQty: 2,
     totalQty: 99,
@@ -51,7 +51,7 @@ export default function TransferDetailScreen() {
   const route = useRoute();
   const itemDetailRef = useRef<ProductItem | undefined>(undefined);
   const isShowGoBackScreenRef = useRef<boolean>(false);
-  const { docId } = route.params as { docId: string };
+  const { docNo } = route.params as { docNo: string };
 
   useEffect(() => {
     const onFilterChanged = (data: any) => {
@@ -126,7 +126,7 @@ export default function TransferDetailScreen() {
     <View style={styles.mainView}>
       <Text
         style={styles.label}
-      >{`คุณต้องการลบ "${itemDetail?.docId}-${itemDetail?.model}" หรือไม่`}</Text>
+      >{`คุณต้องการลบ "${itemDetail?.docNo}-${itemDetail?.model}" หรือไม่`}</Text>
     </View>
   );
 
@@ -145,7 +145,7 @@ export default function TransferDetailScreen() {
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
         hideGoback={false}
-        title={docId}
+        title={docNo}
         onGoBack={onGoBack}
         IconComponent={[
           <TouchableOpacity

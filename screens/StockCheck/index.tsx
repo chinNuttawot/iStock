@@ -12,7 +12,7 @@ import { styles } from "./Styles";
 const cardData = [
   {
     id: "1",
-    docId: "GRI2506-0742",
+    docNo: "GRI2506-0742",
     status: "Open",
     details: [
       { label: "วันที่ส่งสินค้า", value: "23/06/2025" },
@@ -22,19 +22,19 @@ const cardData = [
   },
   {
     id: "2",
-    docId: "GRI2506-0742",
+    docNo: "GRI2506-0742",
     status: "Approved",
     details: [],
   },
   {
     id: "3",
-    docId: "GRI2506-0742",
+    docNo: "GRI2506-0742",
     status: "Pending Approval",
     details: [],
   },
   {
     id: "4",
-    docId: "GRI2506-0742",
+    docNo: "GRI2506-0742",
     status: "Rejected",
     details: [],
   },
@@ -84,7 +84,7 @@ export default function StockCheckScreen() {
 
   const goToDetail = (item: any) => {
     const { card } = item;
-    navigation.navigate("StockCheckDetail", { docId: card.docId });
+    navigation.navigate("StockCheckDetail", { docNo: card.docNo });
   };
 
   const goToCreateDocument = () => {
@@ -124,7 +124,7 @@ export default function StockCheckScreen() {
               status={card.status as StatusType}
               key={card.id}
               id={card.id}
-              docId={card.docId}
+              docNo={card.docNo}
               details={card.details}
               selectedIds={selectedIds}
               isSelected={selectedIds.includes(card.id)}

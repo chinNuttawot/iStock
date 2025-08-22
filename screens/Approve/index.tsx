@@ -49,7 +49,7 @@ export const RenderViewApprove = (
 const cardData = [
   {
     id: "1",
-    docId: "TRO2506-079",
+    docNo: "TRO2506-079",
     status: "Open",
     details: [
       { label: "วันที่ตรวจนับ", value: "23/06/2025" },
@@ -59,7 +59,7 @@ const cardData = [
   },
   {
     id: "2",
-    docId: "TRO2506-080",
+    docNo: "TRO2506-080",
     status: "Approved",
     details: [
       { label: "วันที่ส่งสินค้า", value: "24/06/2025" },
@@ -70,13 +70,13 @@ const cardData = [
   },
   {
     id: "3",
-    docId: "TRO2506-010",
+    docNo: "TRO2506-010",
     status: "Pending Approval",
     details: [],
   },
   {
     id: "4",
-    docId: "TRO2506-011",
+    docNo: "TRO2506-011",
     status: "Rejected",
     details: [],
   },
@@ -128,7 +128,7 @@ export default function ApproveScreen() {
 
   const goToDetail = (item: any) => {
     const { card } = item;
-    navigation.navigate("ApproveDetail", { docId: card.docId });
+    navigation.navigate("ApproveDetail", { docNo: card.docNo });
   };
 
   return (
@@ -178,7 +178,7 @@ export default function ApproveScreen() {
               status={card.status as StatusType}
               key={card.id}
               id={card.id}
-              docId={card.docId}
+              docNo={card.docNo}
               details={card.details}
               selectedIds={selectedIds}
               isSelected={selectedIds.includes(card.id)}

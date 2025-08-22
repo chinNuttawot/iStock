@@ -11,18 +11,18 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { memo, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { styles } from "./styles";
 
 export const productData = [
   {
     id: "1",
-    docId: "5OTH01475",
+    docNo: "5OTH01475",
     model: "VR001",
     receivedQty: 1,
     totalQty: 5,
@@ -38,7 +38,7 @@ export const productData = [
   },
   {
     id: "2",
-    docId: "5OTH01475",
+    docNo: "5OTH01475",
     model: "VR001",
     receivedQty: 0,
     totalQty: 4,
@@ -54,7 +54,7 @@ export const productData = [
   },
   {
     id: "3",
-    docId: "5OTH01475",
+    docNo: "5OTH01475",
     model: "VR002",
     receivedQty: 2,
     totalQty: 5,
@@ -78,7 +78,7 @@ export default function ScanInDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute();
   const scanInDetailForm = useForm();
-  const { docId } = route.params as { docId: string };
+  const { docNo } = route.params as { docNo: string };
 
   useEffect(() => {
     const onFilterChanged = (data: any) => {
@@ -124,13 +124,13 @@ export default function ScanInDetailScreen() {
     const {
       receivedQty,
       totalQty,
-      docId: myDocId,
+      docNo: myDocId,
       model: myModel,
     } = props.itemDetail;
 
     useEffect(() => {
       const currentQty = scanInDetailForm.getValues(
-        `newReceivedQty-docId-${myDocId}-model-${myModel}`
+        `newReceivedQty-docNo-${myDocId}-model-${myModel}`
       );
 
       if (currentQty) {
@@ -142,7 +142,7 @@ export default function ScanInDetailScreen() {
 
     useEffect(() => {
       const currentserialNo = scanInDetailForm.getValues(
-        `serialNo-docId-${myDocId}-model-${myModel}`
+        `serialNo-docNo-${myDocId}-model-${myModel}`
       );
 
       if (currentserialNo) {
@@ -190,11 +190,11 @@ export default function ScanInDetailScreen() {
             label="บันทึก"
             onPress={() => {
               scanInDetailForm.setValue(
-                `newReceivedQty-docId-${myDocId}-model-${myModel}`,
+                `newReceivedQty-docNo-${myDocId}-model-${myModel}`,
                 qty
               );
               scanInDetailForm.setValue(
-                `serialNo-docId-${myDocId}-model-${myModel}`,
+                `serialNo-docNo-${myDocId}-model-${myModel}`,
                 serialNo
               );
               props.onChange && props.onChange(false);
@@ -220,7 +220,7 @@ export default function ScanInDetailScreen() {
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
         hideGoback={false}
-        title={docId}
+        title={docNo}
         IconComponent={[
           <TouchableOpacity
             onPress={() => {
