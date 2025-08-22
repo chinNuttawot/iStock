@@ -1,14 +1,14 @@
 export type ProductDetail = {
   label: string;
-  value: null | string;
+  value: string;
 };
 
 export type ProductItem = {
   id: string;
   docNo: string;
   model: string;
-  receivedQty: null | number;
-  totalQty: null | number;
+  receivedQty: number | null;
+  totalQty: number | null;
   details: ProductDetail[];
   image: string;
   isDelete: boolean;

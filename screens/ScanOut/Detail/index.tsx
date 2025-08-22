@@ -4,24 +4,23 @@ import DetailCard from "@/components/DetailCard";
 import Header from "@/components/Header";
 import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
+import { Modeloption } from "@/providers/Modal/Model";
 import { theme } from "@/providers/Theme";
-import { optionModalComponent } from "@/screens/Setting/SettingScreen";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./styles";
 
 export const RenderGoBackItem = (
   <View style={styles.mainView}>
-    <Text
-      style={[styles.label, { textAlign: "center", padding: 8 }]}
-    >{`คุณมีรายการที่ทำค้างอยู่ ต้องการออกจากหน้านี้หรือไม่`}</Text>
+    <Text style={[styles.label, { textAlign: "center", padding: 8 }]}>
+      คุณมีรายการที่ทำค้างอยู่ ต้องการออกจากหน้านี้หรือไม่
+    </Text>
   </View>
 );
 
-export const _productData = [
+export const _productData: ProductItem[] = [
   {
     id: "1",
     docNo: "5OTH01475",
@@ -31,10 +30,7 @@ export const _productData = [
     isDelete: false,
     details: [
       { label: "รุ่น", value: "VR000" },
-      {
-        label: "หมายเหตุ",
-        value: "ของเล่น ลาโพงน้องหมา M10",
-      },
+      { label: "หมายเหตุ", value: "ของเล่น ลาโพงน้องหมา M10" },
       { label: "คงเหลือ", value: "10" },
     ],
     image: "https://picsum.photos/seed/shirt/100/100",
@@ -48,10 +44,7 @@ export const _productData = [
     isDelete: false,
     details: [
       { label: "รุ่น", value: "VR001" },
-      {
-        label: "หมายเหตุ",
-        value: "ของเล่น น้องแมว M20",
-      },
+      { label: "หมายเหตุ", value: "ของเล่น น้องแมว M20" },
       { label: "คงเหลือ", value: "10" },
     ],
     image: "https://picsum.photos/seed/shirt/100/100",
@@ -65,10 +58,7 @@ export const _productData = [
     isDelete: false,
     details: [
       { label: "รุ่น", value: "VR002" },
-      {
-        label: "หมายเหตุ",
-        value: "ของเล่น น้องกระต่าย M30",
-      },
+      { label: "หมายเหตุ", value: "ของเล่น น้องกระต่าย M30" },
       { label: "คงเหลือ", value: "10" },
     ],
     image: "https://picsum.photos/seed/shirt/100/100",
@@ -76,28 +66,34 @@ export const _productData = [
 ];
 
 export default function ScanOutDetailScreen() {
+  const optionModalComponent: Modeloption = {
+    change: { label: "ยืนยัน", color: theme.red },
+    changeCancel: {
+      label: "ยกเลิก",
+      color: theme.cancel,
+      colorText: theme.black,
+    },
+  };
+  const navigation = useNavigation<any>();
+  const route = useRoute();
+  const { docNo } = route.params as { docNo: string };
+
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [productData, setProductData] = useState<ProductItem[]>(_productData);
   const [filter, setFilter] = useState<any>({});
-  const [isOpen, setIsOpen] = useState(false);
+
+  // ✅ ใช้ Confirm modal เดียว
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [isShowGoBackScreen, setIsShowGoBackScreen] = useState(false);
-  const [itemDetail, setItemDetail] = useState<ProductItem>();
-  const navigation = useNavigation<any>();
-  const route = useRoute();
-  const scanOutDetailForm = useForm();
+
+  // refs
   const itemDetailRef = useRef<ProductItem | undefined>(undefined);
   const isShowGoBackScreenRef = useRef<boolean>(false);
-  const { docNo } = route.params as { docNo: string };
 
   useEffect(() => {
-    const onFilterChanged = (data: any) => {
-      console.log(`${filterScanOutDetail} =====> `, data);
-      setFilter(data);
-    };
+    const onFilterChanged = (data: any) => setFilter(data);
     emitter.on(filterScanOutDetail, onFilterChanged);
-    return () => {
-      emitter.off(filterScanOutDetail, onFilterChanged);
-    };
+    return () => emitter.off(filterScanOutDetail, onFilterChanged);
   }, []);
 
   const toggleExpand = (id: string) => {
@@ -115,68 +111,74 @@ export default function ScanOutDetailScreen() {
     });
   };
 
+  // กดปุ่ม "ลบ" ในการ์ด
   const onDeleteItem = (item: ProductItem) => {
-    setIsOpen(true);
-    setItemDetail(item);
-    itemDetailRef.current = item; // ✅ เก็บไว้ใน ref ด้วย
+    itemDetailRef.current = item;
+    setIsShowGoBackScreen(false);
+    isShowGoBackScreenRef.current = false;
+    setConfirmOpen(true);
   };
 
-  const onSavedataDetail = (isOpen: boolean) => {
-    setProductData((prev) =>
-      prev.map((item) =>
-        item.id === itemDetailRef.current?.id
-          ? { ...item, isDelete: true }
-          : item
-      )
-    );
-    setIsOpen(!isOpen);
-  };
-
-  const onBackdropPress = (isOpen: boolean) => {
-    setIsOpen(isOpen);
-  };
-
+  // ปุ่ม Back บน Header
   const onGoBack = () => {
-    const filterIsDelete = productData.filter((v) => v.isDelete).length;
-    if (filterIsDelete > 0) {
+    const hasDeleted = productData.some((v) => v.isDelete);
+    if (hasDeleted) {
       setIsShowGoBackScreen(true);
       isShowGoBackScreenRef.current = true;
-      setIsOpen(true);
+      setConfirmOpen(true);
     } else {
       navigation.goBack();
     }
   };
 
-  const mainGoBack = (_open: boolean) => {
+  // กด "ตกลง" ในโมดัล
+  const handleConfirm = () => {
     if (isShowGoBackScreenRef.current) {
-      setIsOpen(false);
+      // ยืนยันออกจากหน้า
+      setConfirmOpen(false);
       setIsShowGoBackScreen(false);
       isShowGoBackScreenRef.current = false;
       navigation.goBack();
-    } else {
-      onSavedataDetail(_open);
+      return;
     }
+    // ยืนยันลบรายการ
+    const target = itemDetailRef.current;
+    if (target) {
+      setProductData((prev) =>
+        prev.map((it) => (it.id === target.id ? { ...it, isDelete: true } : it))
+      );
+    }
+    setConfirmOpen(false);
+  };
+
+  // กด "ยกเลิก" หรือแตะ backdrop
+  const handleCancel = () => {
+    setConfirmOpen(false);
+    setIsShowGoBackScreen(false);
+    isShowGoBackScreenRef.current = false;
   };
 
   const RenderDeleteItem = (
     <View style={styles.mainView}>
-      <Text
-        style={styles.label}
-      >{`คุณต้องการลบ "${itemDetail?.docNo}-${itemDetail?.model}" หรือไม่`}</Text>
+      <Text style={styles.label}>
+        {`คุณต้องการลบ "${itemDetailRef.current?.docNo}-${itemDetailRef.current?.model}" หรือไม่`}
+      </Text>
     </View>
   );
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.white }}>
+      {/* ✅ โมดัลยืนยันแบบเดียว ครอบทั้ง “ลบ” และ “ออกจากหน้า” */}
       <ModalComponent
-        isOpen={isOpen}
-        onChange={mainGoBack}
+        isOpen={confirmOpen}
+        onChange={handleConfirm}
         option={optionModalComponent}
-        onBackdropPress={onBackdropPress}
-        onChangeCancel={() => setIsOpen(false)}
+        onBackdropPress={handleCancel}
+        onChangeCancel={handleCancel}
       >
         {isShowGoBackScreen ? RenderGoBackItem : RenderDeleteItem}
       </ModalComponent>
+
       <Header
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
@@ -184,11 +186,7 @@ export default function ScanOutDetailScreen() {
         title={docNo}
         onGoBack={onGoBack}
         IconComponent={[
-          <TouchableOpacity
-            onPress={() => {
-              openFilter();
-            }}
-          >
+          <TouchableOpacity key="filter" onPress={openFilter}>
             <MaterialCommunityIcons
               name={filter?.isFilter ? "filter-check" : "filter"}
               size={30}
@@ -197,6 +195,7 @@ export default function ScanOutDetailScreen() {
           </TouchableOpacity>,
         ]}
       />
+
       <ScrollView contentContainerStyle={styles.content}>
         {productData
           .filter((v) => !v.isDelete)
@@ -208,12 +207,11 @@ export default function ScanOutDetailScreen() {
               onToggle={() => toggleExpand(item.id)}
               textGoTo="ลบ"
               colorButton={theme.red}
-              goTo={() => {
-                onDeleteItem(item);
-              }}
+              goTo={() => onDeleteItem(item)}
             />
           ))}
       </ScrollView>
+
       <View style={{ padding: 16, marginBottom: 16 }}>
         <CustomButton label="บันทึก" />
       </View>

@@ -2,51 +2,32 @@ import { emitter, filterApprove } from "@/common/emitter";
 import CustomButtons from "@/components/CustomButtons";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
+import EmptyState from "@/components/State/EmptyState";
+import ErrorState from "@/components/State/ErrorState";
+import LoadingView from "@/components/State/LoadingView";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React, { Fragment, useEffect, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React, {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import {
+  RefreshControl,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { styles } from "./Styles";
 
-export const RenderViewReject = (
-  <View style={styles.mainView}>
-    <Text
-      style={[
-        styles.label,
-        { ...theme.setFont_Bold },
-        { textAlign: "center", padding: 8, fontSize: 20 },
-      ]}
-    >{`ปฏิเสธรายการ`}</Text>
-    <Text
-      style={[
-        styles.label,
-        { textAlign: "center", padding: 8, marginBottom: 26 },
-      ]}
-    >{`คุณต้องการที่จะปฏิเสธรายการที่เลือกหรือไม่`}</Text>
-  </View>
-);
-
-export const RenderViewApprove = (
-  <View style={styles.mainView}>
-    <Text
-      style={[
-        styles.label,
-        { ...theme.setFont_Bold },
-        { textAlign: "center", padding: 8, fontSize: 20 },
-      ]}
-    >{`อนุมัติรายการ`}</Text>
-    <Text
-      style={[
-        styles.label,
-        { textAlign: "center", padding: 8, marginBottom: 26 },
-      ]}
-    >{`คุณต้องการที่จะอนุมัติรายการที่เลือกหรือไม่`}</Text>
-  </View>
-);
-
-const cardData = [
+type Detail = { label: string; value: string };
+type Card = { id: string; docNo: string; status: string; details: Detail[] };
+const mock: Card[] = [
   {
     id: "1",
     docNo: "TRO2506-079",
@@ -57,105 +38,168 @@ const cardData = [
       { label: "หมายเหตุ", value: "ตัดเบิกโอเปอร์ประชุม ผจก. เดือน มิ.ย.68" },
     ],
   },
-  {
-    id: "2",
-    docNo: "TRO2506-080",
-    status: "Approved",
-    details: [
-      { label: "วันที่ส่งสินค้า", value: "24/06/2025" },
-      { label: "ส่งจากคลัง", value: "00HO - Head Office" },
-      { label: "E-Shop No.", value: "PRE2309024" },
-      { label: "หมายเหตุ", value: "Operation Group สำหรับ AAA" },
-    ],
-  },
-  {
-    id: "3",
-    docNo: "TRO2506-010",
-    status: "Pending Approval",
-    details: [],
-  },
-  {
-    id: "4",
-    docNo: "TRO2506-011",
-    status: "Rejected",
-    details: [],
-  },
+  { id: "2", docNo: "TRO2506-080", status: "Approved", details: [] },
+  { id: "3", docNo: "TRO2506-010", status: "Pending Approval", details: [] },
+  { id: "4", docNo: "TRO2506-011", status: "Rejected", details: [] },
 ];
 
 export default function ApproveScreen() {
+  const navigation = useNavigation<any>();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
-  const [isOpenViewReject, setIsOpenViewReject] = useState<boolean>(false);
-  const [isOpenViewApprove, setIsOpenViewApprove] = useState<boolean>(false);
+  const [isOpenReject, setOpenReject] = useState(false);
+  const [isOpenApprove, setOpenApprove] = useState(false);
   const [filter, setFilter] = useState<any>({});
-  const navigation = useNavigation<any>();
+  const [data, setData] = useState<Card[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
+  const errorColor = (theme as any).error ?? "#ef4444";
 
   useEffect(() => {
-    const onFilterChanged = (data: any) => {
-      console.log(`${filterApprove} =====> `, data);
-      setFilter(data);
-    };
+    const onFilterChanged = (d: any) => setFilter(d);
     emitter.on(filterApprove, onFilterChanged);
-    return () => {
-      emitter.off(filterApprove, onFilterChanged);
-    };
+    return () => emitter.off(filterApprove, onFilterChanged);
   }, []);
 
-  const toggleSelect = (id: string) => {
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await new Promise((r) => setTimeout(r, 250));
+      setData(mock);
+    } catch (e: any) {
+      setError(e?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    setSelectedIds([]);
+    setExpandedIds([]);
+    fetchData();
+  }, [fetchData]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchData();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchData]);
+
+  const total = data.length;
+  const allSelected = useMemo(
+    () => total > 0 && selectedIds.length === total,
+    [selectedIds.length, total]
+  );
+
+  const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
-  };
-
-  const toggleExpand = (id: string) => {
+  }, []);
+  const toggleExpand = useCallback((id: string) => {
     setExpandedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
-  };
+  }, []);
 
-  const handleSelectAll = () => {
-    if (selectedIds.length === cardData.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(cardData.map((item) => item.id));
-    }
-  };
+  const handleSelectAll = useCallback(() => {
+    if (data.length === 0) return;
+    setSelectedIds((prev) =>
+      prev.length === data.length ? [] : data.map((i) => i.id)
+    );
+  }, [data]);
 
-  const openFilter = () => {
+  const openFilter = useCallback(() => {
     setSelectedIds([]);
     navigation.navigate("Filter", { filter, statusName: "ประเภทเอกสาร" });
-  };
+  }, [filter, navigation]);
 
-  const goToDetail = (item: any) => {
-    const { card } = item;
-    navigation.navigate("ApproveDetail", { docNo: card.docNo });
-  };
+  const goToDetail = useCallback(
+    (card: Card) => navigation.navigate("ApproveDetail", { docNo: card.docNo }),
+    [navigation]
+  );
 
   return (
     <Fragment>
+      {/* Reject Modal */}
       <ModalComponent
-        isOpen={isOpenViewReject}
+        isOpen={isOpenReject}
         onChange={() => {}}
-        onBackdropPress={setIsOpenViewReject}
+        onBackdropPress={() => setOpenReject(false)} // ✅ ปิด modal ถูกต้อง
         option={{ change: { label: "ตกลง", color: theme.mainApp } }}
       >
-        {RenderViewReject}
+        <View style={styles.mainView}>
+          <Text
+            style={[
+              styles.label,
+              {
+                ...theme.setFont_Bold,
+                textAlign: "center",
+                padding: 8,
+                fontSize: 20,
+              },
+            ]}
+          >
+            ปฏิเสธรายการ
+          </Text>
+          <Text
+            style={[
+              styles.label,
+              { textAlign: "center", padding: 8, marginBottom: 26 },
+            ]}
+          >
+            คุณต้องการที่จะปฏิเสธรายการที่เลือกหรือไม่
+          </Text>
+        </View>
       </ModalComponent>
+
+      {/* Approve Modal */}
       <ModalComponent
-        isOpen={isOpenViewApprove}
+        isOpen={isOpenApprove}
         onChange={() => {}}
-        onBackdropPress={setIsOpenViewApprove}
+        onBackdropPress={() => setOpenApprove(false)} // ✅ ปิด modal ถูกต้อง
         option={{ change: { label: "ตกลง", color: theme.mainApp } }}
       >
-        {RenderViewApprove}
+        <View style={styles.mainView}>
+          <Text
+            style={[
+              styles.label,
+              {
+                ...theme.setFont_Bold,
+                textAlign: "center",
+                padding: 8,
+                fontSize: 20,
+              },
+            ]}
+          >
+            อนุมัติรายการ
+          </Text>
+          <Text
+            style={[
+              styles.label,
+              { textAlign: "center", padding: 8, marginBottom: 26 },
+            ]}
+          >
+            คุณต้องการที่จะอนุมัติรายการที่เลือกหรือไม่
+          </Text>
+        </View>
       </ModalComponent>
+
       <Header
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
         hideGoback={false}
-        title={"อนุมัติรายการ"}
+        title="อนุมัติรายการ"
         IconComponent={[
-          <TouchableOpacity onPress={openFilter}>
+          <TouchableOpacity key="filter" onPress={openFilter}>
             <MaterialCommunityIcons
               name={filter?.isFilter ? "filter-check" : "filter"}
               size={30}
@@ -164,49 +208,93 @@ export default function ApproveScreen() {
           </TouchableOpacity>,
         ]}
       />
+
       <View style={{ flex: 1, backgroundColor: theme.white }}>
-        <ScrollView contentContainerStyle={styles.content}>
-          <TouchableOpacity onPress={handleSelectAll}>
-            <Text style={styles.selectAllText}>
-              {selectedIds.length === cardData.length
-                ? "ยกเลิก"
-                : "เลือกทั้งหมด"}
-            </Text>
-          </TouchableOpacity>
-          {cardData.map((card) => (
-            <ScanCard
-              status={card.status as StatusType}
-              key={card.id}
-              id={card.id}
-              docNo={card.docNo}
-              details={card.details}
-              selectedIds={selectedIds}
-              isSelected={selectedIds.includes(card.id)}
-              isExpanded={expandedIds.includes(card.id)}
-              onSelect={toggleSelect}
-              onExpand={toggleExpand}
-              goTo={() => goToDetail({ card })}
-            />
-          ))}
-        </ScrollView>
-        <View style={{ padding: 16, marginBottom: 16, flexDirection: "row" }}>
-          <CustomButtons
-            color={theme.red}
-            label="ปฏิเสธ"
-            disabled={selectedIds.length === 0}
-            onPress={() => {
-              setIsOpenViewReject(true);
-            }}
+        {loading && (
+          <LoadingView
+            message="กำลังโหลดข้อมูล…"
+            color={theme.mainApp}
+            textColor={textGray}
           />
-          <CustomButtons
-            color={theme.green}
-            label="อนุมัติรายการ"
-            disabled={selectedIds.length === 0}
-            onPress={() => {
-              setIsOpenViewApprove(true);
-            }}
+        )}
+        {!loading && error && (
+          <ErrorState
+            message={error}
+            onRetry={fetchData}
+            color={errorColor}
+            accentColor={theme.mainApp}
           />
-        </View>
+        )}
+        {!loading && !error && total === 0 && (
+          <EmptyState
+            title="ไม่พบรายการ"
+            subtitle="ปรับตัวกรองหรือกดรีโหลดเพื่อดึงข้อมูลอีกครั้ง"
+            icon="clipboard-check-outline"
+            color={textGray}
+            actionLabel="รีโหลด"
+            onAction={fetchData}
+            buttonBg={theme.mainApp}
+            buttonTextColor={theme.white}
+          />
+        )}
+
+        {!loading && !error && total > 0 && (
+          <>
+            <ScrollView
+              contentContainerStyle={styles.content}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+            >
+              <TouchableOpacity
+                onPress={handleSelectAll}
+                disabled={data.length === 0}
+              >
+                <Text style={styles.selectAllText}>
+                  {allSelected ? "ยกเลิก" : "เลือกทั้งหมด"}
+                </Text>
+              </TouchableOpacity>
+
+              {data.map((card) => (
+                <ScanCard
+                  key={card.id}
+                  id={card.id}
+                  docNo={card.docNo}
+                  status={card.status as StatusType}
+                  details={card.details}
+                  selectedIds={selectedIds}
+                  isSelected={selectedIds.includes(card.id)}
+                  isExpanded={expandedIds.includes(card.id)}
+                  onSelect={toggleSelect}
+                  onExpand={toggleExpand}
+                  goTo={() => goToDetail(card)}
+                />
+              ))}
+            </ScrollView>
+
+            <View
+              style={{
+                padding: 16,
+                marginBottom: 16,
+                flexDirection: "row",
+                gap: 12,
+              }}
+            >
+              <CustomButtons
+                color={theme.red}
+                label="ปฏิเสธ"
+                disabled={selectedIds.length === 0}
+                onPress={() => setOpenReject(true)}
+              />
+              <CustomButtons
+                color={theme.green}
+                label="อนุมัติรายการ"
+                disabled={selectedIds.length === 0}
+                onPress={() => setOpenApprove(true)}
+              />
+            </View>
+          </>
+        )}
       </View>
     </Fragment>
   );

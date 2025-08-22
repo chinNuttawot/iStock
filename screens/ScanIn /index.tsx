@@ -2,6 +2,9 @@ import { emitter, filterScanIn } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
+import EmptyState from "@/components/State/EmptyState";
+import ErrorState from "@/components/State/ErrorState";
+import LoadingView from "@/components/State/LoadingView";
 import { theme } from "@/providers/Theme";
 import { getProfile } from "@/service";
 import { cardListService } from "@/service/cardListService";
@@ -10,7 +13,6 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   RefreshControl,
   ScrollView,
   Text,
@@ -18,7 +20,6 @@ import {
   View,
 } from "react-native";
 import { styles } from "./Styles";
-
 type Nav = ReturnType<typeof useNavigation<any>>;
 
 export default function ScanInScreen() {
@@ -34,6 +35,9 @@ export default function ScanInScreen() {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
+  const errorColor = (theme as any).error ?? "#ef4444";
+
   // โหลดข้อมูลครั้งแรก + เมื่อ menuId เปลี่ยน
   useEffect(() => {
     fetchData();
@@ -47,11 +51,14 @@ export default function ScanInScreen() {
     setError(null);
     try {
       const profile = await getProfile();
+      const menuIdNum = Number(menuId);
+      if (Number.isNaN(menuIdNum)) throw new Error("menuId ไม่ถูกต้อง");
+
       const { data } = await cardListService({
-        menuId,
+        menuId: menuIdNum,
         branchCode: profile?.branchCode as string,
       });
-      setCardData(Array.isArray(data) ? data : []);
+      setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
     } catch (err: any) {
       setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
       setCardData([]);
@@ -72,7 +79,7 @@ export default function ScanInScreen() {
   // รับ filter จากหน้าฟิลเตอร์
   useEffect(() => {
     const onFilterChanged = (data: any) => {
-      console.log(`${filterScanIn} =====> `, data);
+      // console.log(`${filterScanIn} =====> `, data);
       setFilter(data);
     };
     emitter.on(filterScanIn, onFilterChanged);
@@ -82,7 +89,7 @@ export default function ScanInScreen() {
   }, []);
 
   // ป้องกันพังเมื่อ cardData ยังโหลดไม่เสร็จ
-  const totalItems = cardData?.length ?? 0;
+  const totalItems = cardData.length;
   const allSelected = useMemo(
     () => totalItems > 0 && selectedIds.length === totalItems,
     [selectedIds.length, totalItems]
@@ -101,7 +108,7 @@ export default function ScanInScreen() {
   }, []);
 
   const handleSelectAll = useCallback(() => {
-    if (!cardData || cardData.length === 0) return;
+    if (cardData.length === 0) return;
     setSelectedIds((prev) =>
       prev.length === cardData.length ? [] : cardData.map((item) => item.id)
     );
@@ -143,54 +150,36 @@ export default function ScanInScreen() {
       />
 
       <View style={{ flex: 1, backgroundColor: theme.white }}>
-        {/* Loading */}
         {loading && (
-          <View
-            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-          >
-            <ActivityIndicator size="large" color={theme.mainApp} />
-            <Text style={{ marginTop: 8, color: theme.gray }}>
-              กำลังโหลดข้อมูล…
-            </Text>
-          </View>
+          <LoadingView
+            message="กำลังโหลดข้อมูล…"
+            color={theme.mainApp}
+            textColor={textGray}
+          />
         )}
 
-        {/* Error */}
         {!loading && error && (
-          <View
-            style={{
-              flex: 1,
-              alignItems: "center",
-              justifyContent: "center",
-              paddingHorizontal: 16,
-            }}
-          >
-            <Text style={{ color: theme.error, textAlign: "center" }}>
-              {error}
-            </Text>
-            <TouchableOpacity style={{ marginTop: 12 }} onPress={fetchData}>
-              <Text style={{ color: theme.mainApp, fontWeight: "600" }}>
-                ลองใหม่
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <ErrorState
+            message={error}
+            onRetry={fetchData}
+            color={errorColor}
+            accentColor={theme.mainApp}
+          />
         )}
 
-        {/* Empty */}
         {!loading && !error && totalItems === 0 && (
-          <View
-            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-          >
-            <Text style={{ color: theme.gray }}>ไม่พบรายการ</Text>
-            <TouchableOpacity style={{ marginTop: 12 }} onPress={fetchData}>
-              <Text style={{ color: theme.mainApp, fontWeight: "600" }}>
-                รีโหลด
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <EmptyState
+            title="ไม่พบรายการ"
+            subtitle="ลองปรับตัวกรอง หรือแตะปุ่มด้านล่างเพื่อรีโหลดข้อมูล"
+            icon="file-search-outline"
+            color={textGray}
+            actionLabel="รีโหลด"
+            onAction={fetchData}
+            buttonBg={theme.mainApp}
+            buttonTextColor={theme.white}
+          />
         )}
 
-        {/* Content */}
         {!loading && !error && totalItems > 0 && (
           <>
             <ScrollView
@@ -208,12 +197,12 @@ export default function ScanInScreen() {
                 </Text>
               </TouchableOpacity>
 
-              {cardData.map((card: any) => (
+              {cardData.map((card) => (
                 <ScanCard
-                  status={card.status as StatusType}
                   key={card.id}
                   id={card.id}
                   docNo={card.docNo}
+                  status={card.status as StatusType}
                   details={card.details}
                   selectedIds={selectedIds}
                   isSelected={selectedIds.includes(card.id)}
@@ -231,7 +220,7 @@ export default function ScanInScreen() {
                 label="ส่งเอกสาร"
                 disabled={selectedIds.length === 0}
                 onPress={() => {
-                  /* TODO: submit action */
+                  // TODO: submit action
                 }}
               />
             </View>

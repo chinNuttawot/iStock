@@ -2,14 +2,32 @@ import { emitter, filterStockCheck } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
+import EmptyState from "@/components/State/EmptyState";
+import ErrorState from "@/components/State/ErrorState";
+import LoadingView from "@/components/State/LoadingView";
 import { theme } from "@/providers/Theme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React, { useEffect, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  RefreshControl,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { styles } from "./Styles";
 
-const cardData = [
+type StockCardDetail = { label: string; value: string };
+type StockCardModel = {
+  id: string;
+  docNo: string;
+  status: string; // หรือใช้ StatusType ถ้า ScanCard บังคับ enum
+  details: StockCardDetail[];
+};
+
+// === Mock data (สลับเป็น API จริงใน fetchData ได้) ===
+const mockCardData: StockCardModel[] = [
   {
     id: "1",
     docNo: "GRI2506-0742",
@@ -20,76 +38,105 @@ const cardData = [
       { label: "หมายเหตุ", value: "ตัดเบิกโอเปอร์ประชุม ผจก. เดือน มิ.ย.68" },
     ],
   },
-  {
-    id: "2",
-    docNo: "GRI2506-0742",
-    status: "Approved",
-    details: [],
-  },
-  {
-    id: "3",
-    docNo: "GRI2506-0742",
-    status: "Pending Approval",
-    details: [],
-  },
-  {
-    id: "4",
-    docNo: "GRI2506-0742",
-    status: "Rejected",
-    details: [],
-  },
+  { id: "2", docNo: "GRI2506-0742", status: "Approved", details: [] },
+  { id: "3", docNo: "GRI2506-0742", status: "Pending Approval", details: [] },
+  { id: "4", docNo: "GRI2506-0742", status: "Rejected", details: [] },
 ];
 
 export default function StockCheckScreen() {
+  const navigation = useNavigation<any>();
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<any>({});
-  const navigation = useNavigation<any>();
+  const [cardData, setCardData] = useState<StockCardModel[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
+  const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
+  const errorColor = (theme as any).error ?? "#ef4444";
+
+  // รับ filter event
   useEffect(() => {
-    const onFilterChanged = (data: any) => {
-      console.log(`${filterStockCheck} =====> `, data);
-      setFilter(data);
-    };
+    const onFilterChanged = (data: any) => setFilter(data);
     emitter.on(filterStockCheck, onFilterChanged);
-    return () => {
-      emitter.off(filterStockCheck, onFilterChanged);
-    };
+    return () => emitter.off(filterStockCheck, onFilterChanged);
   }, []);
 
-  const toggleSelect = (id: string) => {
+  // โหลดข้อมูล (ตอนนี้ใช้ mock)
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // TODO: เรียก service จริงของ "ตรวจนับ" ที่นี่
+      await new Promise((r) => setTimeout(r, 300)); // จำลองโหลด
+      setCardData(mockCardData);
+    } catch (err: any) {
+      setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
+      setCardData([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    setSelectedIds([]);
+    setExpandedIds([]);
+    fetchData();
+  }, [fetchData]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchData();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchData]);
+
+  const totalItems = cardData.length;
+  const allSelected = useMemo(
+    () => totalItems > 0 && selectedIds.length === totalItems,
+    [selectedIds.length, totalItems]
+  );
+
+  const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
-  };
+  }, []);
 
-  const toggleExpand = (id: string) => {
+  const toggleExpand = useCallback((id: string) => {
     setExpandedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
-  };
+  }, []);
 
-  const handleSelectAll = () => {
-    if (selectedIds.length === cardData.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(cardData.map((item) => item.id));
-    }
-  };
+  const handleSelectAll = useCallback(() => {
+    if (cardData.length === 0) return;
+    setSelectedIds((prev) =>
+      prev.length === cardData.length ? [] : cardData.map((i) => i.id)
+    );
+  }, [cardData]);
 
-  const openFilter = () => {
+  const openFilter = useCallback(() => {
     setSelectedIds([]);
     navigation.navigate("Filter", { filter });
-  };
+  }, [filter, navigation]);
 
-  const goToDetail = (item: any) => {
-    const { card } = item;
-    navigation.navigate("StockCheckDetail", { docNo: card.docNo });
-  };
+  const goToDetail = useCallback(
+    (card: StockCardModel) => {
+      navigation.navigate("StockCheckDetail", { docNo: card.docNo });
+    },
+    [navigation]
+  );
 
-  const goToCreateDocument = () => {
+  const goToCreateDocument = useCallback(() => {
+    // ถ้าต้องการแยก route สำหรับตรวจนับ ควรตั้งเป็น "CreateDocumentStockCheck"
     navigation.navigate("CreateDocumentScanOut");
-  };
+  }, [navigation]);
+
   return (
     <>
       <Header
@@ -98,10 +145,10 @@ export default function StockCheckScreen() {
         hideGoback={false}
         title={"สแกน-ตรวจนับ"}
         IconComponent={[
-          <TouchableOpacity onPress={goToCreateDocument}>
-            <MaterialCommunityIcons name={"plus"} size={30} color="white" />
+          <TouchableOpacity key="plus" onPress={goToCreateDocument}>
+            <MaterialCommunityIcons name="plus" size={30} color="white" />
           </TouchableOpacity>,
-          <TouchableOpacity onPress={openFilter}>
+          <TouchableOpacity key="filter" onPress={openFilter}>
             <MaterialCommunityIcons
               name={filter?.isFilter ? "filter-check" : "filter"}
               size={30}
@@ -110,34 +157,83 @@ export default function StockCheckScreen() {
           </TouchableOpacity>,
         ]}
       />
+
       <View style={{ flex: 1, backgroundColor: theme.white }}>
-        <ScrollView contentContainerStyle={styles.content}>
-          <TouchableOpacity onPress={handleSelectAll}>
-            <Text style={styles.selectAllText}>
-              {selectedIds.length === cardData.length
-                ? "ยกเลิก"
-                : "เลือกทั้งหมด"}
-            </Text>
-          </TouchableOpacity>
-          {cardData.map((card) => (
-            <ScanCard
-              status={card.status as StatusType}
-              key={card.id}
-              id={card.id}
-              docNo={card.docNo}
-              details={card.details}
-              selectedIds={selectedIds}
-              isSelected={selectedIds.includes(card.id)}
-              isExpanded={expandedIds.includes(card.id)}
-              onSelect={toggleSelect}
-              onExpand={toggleExpand}
-              goTo={() => goToDetail({ card })}
-            />
-          ))}
-        </ScrollView>
-        <View style={{ padding: 16, marginBottom: 16 }}>
-          <CustomButton label="ส่งเอกสาร" disabled={selectedIds.length === 0} />
-        </View>
+        {loading && (
+          <LoadingView
+            message="กำลังโหลดข้อมูล…"
+            color={theme.mainApp}
+            textColor={textGray}
+          />
+        )}
+
+        {!loading && error && (
+          <ErrorState
+            message={error}
+            onRetry={fetchData}
+            color={errorColor}
+            accentColor={theme.mainApp}
+          />
+        )}
+
+        {!loading && !error && totalItems === 0 && (
+          <EmptyState
+            title="ไม่พบรายการ"
+            subtitle="ลองปรับตัวกรอง หรือแตะปุ่มด้านล่างเพื่อรีโหลดข้อมูล"
+            icon="clipboard-search-outline"
+            color={textGray}
+            actionLabel="รีโหลด"
+            onAction={fetchData}
+            buttonBg={theme.mainApp}
+            buttonTextColor={theme.white}
+          />
+        )}
+
+        {!loading && !error && totalItems > 0 && (
+          <>
+            <ScrollView
+              contentContainerStyle={styles.content}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+            >
+              <TouchableOpacity
+                onPress={handleSelectAll}
+                disabled={cardData.length === 0}
+              >
+                <Text style={styles.selectAllText}>
+                  {allSelected ? "ยกเลิก" : "เลือกทั้งหมด"}
+                </Text>
+              </TouchableOpacity>
+
+              {cardData.map((card) => (
+                <ScanCard
+                  key={card.id}
+                  id={card.id}
+                  docNo={card.docNo}
+                  status={card.status as StatusType}
+                  details={card.details}
+                  selectedIds={selectedIds}
+                  isSelected={selectedIds.includes(card.id)}
+                  isExpanded={expandedIds.includes(card.id)}
+                  onSelect={toggleSelect}
+                  onExpand={toggleExpand}
+                  goTo={() => goToDetail(card)}
+                />
+              ))}
+            </ScrollView>
+
+            <View style={{ padding: 16, marginBottom: 16 }}>
+              <CustomButton
+                label="ส่งเอกสาร"
+                disabled={selectedIds.length === 0}
+                onPress={() => {
+                  // TODO: ส่ง selectedIds ไป endpoint
+                }}
+              />
+            </View>
+          </>
+        )}
       </View>
     </>
   );

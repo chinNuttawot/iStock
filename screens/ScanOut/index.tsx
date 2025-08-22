@@ -2,6 +2,9 @@ import { emitter, filterScanOut } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
+import EmptyState from "@/components/State/EmptyState";
+import ErrorState from "@/components/State/ErrorState";
+import LoadingView from "@/components/State/LoadingView";
 import { theme } from "@/providers/Theme";
 import { getProfile } from "@/service";
 import { cardListService } from "@/service/cardListService";
@@ -10,7 +13,6 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   RefreshControl,
   ScrollView,
   Text,
@@ -32,6 +34,9 @@ export default function ScanOutScreen() {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
+  const errorColor = (theme as any).error ?? "#ef4444";
+
   // รับ filter event
   useEffect(() => {
     const onFilterChanged = (data: any) => setFilter(data);
@@ -46,13 +51,13 @@ export default function ScanOutScreen() {
     try {
       const profile = await getProfile();
       const menuIdNum = Number(menuId);
-      if (Number.isNaN(menuIdNum)) {
-        throw new Error("menuId ไม่ถูกต้อง");
-      }
+      if (Number.isNaN(menuIdNum)) throw new Error("menuId ไม่ถูกต้อง");
+
       const { data } = await cardListService({
         menuId: menuIdNum,
         branchCode: profile?.branchCode as string,
       });
+
       setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
     } catch (err: any) {
       setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
@@ -69,7 +74,7 @@ export default function ScanOutScreen() {
     fetchData();
   }, [fetchData]);
 
-  // Refresh control
+  // Pull-to-refresh
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -142,54 +147,36 @@ export default function ScanOutScreen() {
       />
 
       <View style={{ flex: 1, backgroundColor: theme.white }}>
-        {/* Loading */}
         {loading && (
-          <View
-            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-          >
-            <ActivityIndicator size="large" color={theme.mainApp} />
-            <Text style={{ marginTop: 8, color: theme.gray }}>
-              กำลังโหลดข้อมูล…
-            </Text>
-          </View>
+          <LoadingView
+            message="กำลังโหลดข้อมูล…"
+            color={theme.mainApp}
+            textColor={textGray}
+          />
         )}
 
-        {/* Error */}
         {!loading && error && (
-          <View
-            style={{
-              flex: 1,
-              alignItems: "center",
-              justifyContent: "center",
-              paddingHorizontal: 16,
-            }}
-          >
-            <Text style={{ color: theme.error, textAlign: "center" }}>
-              {error}
-            </Text>
-            <TouchableOpacity style={{ marginTop: 12 }} onPress={fetchData}>
-              <Text style={{ color: theme.mainApp, fontWeight: "600" }}>
-                ลองใหม่
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <ErrorState
+            message={error}
+            onRetry={fetchData}
+            color={errorColor}
+            accentColor={theme.mainApp}
+          />
         )}
 
-        {/* Empty */}
         {!loading && !error && totalItems === 0 && (
-          <View
-            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-          >
-            <Text style={{ color: theme.gray }}>ไม่พบรายการ</Text>
-            <TouchableOpacity style={{ marginTop: 12 }} onPress={fetchData}>
-              <Text style={{ color: theme.mainApp, fontWeight: "600" }}>
-                รีโหลด
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <EmptyState
+            title="ไม่พบรายการ"
+            subtitle="ลองปรับตัวกรอง หรือแตะปุ่มด้านล่างเพื่อรีโหลดข้อมูล"
+            icon="file-search-outline"
+            color={textGray}
+            actionLabel="รีโหลด"
+            onAction={fetchData}
+            buttonBg={theme.mainApp}
+            buttonTextColor={theme.white}
+          />
         )}
 
-        {/* Content */}
         {!loading && !error && totalItems > 0 && (
           <>
             <ScrollView
@@ -230,7 +217,6 @@ export default function ScanOutScreen() {
                 disabled={selectedIds.length === 0}
                 onPress={() => {
                   // TODO: ส่ง selectedIds ไป endpoint
-                  // console.log("selectedIds:", selectedIds);
                 }}
               />
             </View>

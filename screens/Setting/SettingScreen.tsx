@@ -43,7 +43,7 @@ export default function SettingScreen() {
   useEffect(() => {
     myProfile();
   }, []);
-  
+
   const myProfile = async () => {
     const cached = await getProfile();
     if (cached) {

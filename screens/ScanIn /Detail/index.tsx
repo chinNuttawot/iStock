@@ -2,6 +2,7 @@ import { emitter, filterScanInDetail } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import DetailCard from "@/components/DetailCard";
 import Header from "@/components/Header";
+import QuantitySerialModal from "@/components/Modals/QuantitySerialModal";
 import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
@@ -11,11 +12,11 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { memo, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { styles } from "./styles";
 
@@ -71,10 +72,15 @@ export const productData = [
 ];
 
 export default function ScanInDetailScreen() {
+  const [itemDetail, setItemDetail] = useState<{
+    docNo: string;
+    model: string;
+    receivedQty: number;
+    totalQty: number;
+  } | null>(null);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<any>({});
   const [isOpen, setIsOpen] = useState(false);
-  const [itemDetail, setItemDetail] = useState({});
   const navigation = useNavigation<any>();
   const route = useRoute();
   const scanInDetailForm = useForm();
@@ -107,7 +113,12 @@ export default function ScanInDetailScreen() {
   };
 
   const onShowDetail = (item: ProductItem) => {
-    setItemDetail(item);
+    setItemDetail({
+      docNo: item.docNo,
+      model: item.model,
+      receivedQty: item.receivedQty,
+      totalQty: item.totalQty,
+    });
     setIsOpen(true);
   };
   const onSavedataDetail = (isOpen: boolean) => {
@@ -235,6 +246,14 @@ export default function ScanInDetailScreen() {
           </TouchableOpacity>,
         ]}
       />
+      <QuantitySerialModal
+        isOpen={isOpen}
+        item={itemDetail}
+        onClose={() => setIsOpen(false)}
+        form={scanInDetailForm}
+        labelConfirm="ยืนยัน"
+      />
+      {/* Header + Filter เดิม */}
       <ScrollView contentContainerStyle={styles.content}>
         {productData.map((item) => (
           <DetailCard
@@ -242,9 +261,7 @@ export default function ScanInDetailScreen() {
             data={item}
             isExpanded={expandedIds.includes(item.id)}
             onToggle={() => toggleExpand(item.id)}
-            goTo={() => {
-              onShowDetail(item);
-            }}
+            goTo={() => onShowDetail(item)}
           />
         ))}
       </ScrollView>

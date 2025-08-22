@@ -7,6 +7,7 @@ const theme = {
   gray: "#808080",
   mainInput: "#E4E4E4",
   black: "#000000",
+  text: "#000000",
   iosPrimary: "#007AFF",
   red: "#D41F1F",
   error: "#D41F1F",

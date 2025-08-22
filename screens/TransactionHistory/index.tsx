@@ -1,14 +1,31 @@
 import { emitter, filterTransactionHistory } from "@/common/emitter";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
+import EmptyState from "@/components/State/EmptyState";
+import ErrorState from "@/components/State/ErrorState";
+import LoadingView from "@/components/State/LoadingView";
 import { theme } from "@/providers/Theme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React, { useEffect, useState } from "react";
-import { ScrollView, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  RefreshControl,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { styles } from "./Styles";
 
-const cardData = [
+type THDetail = { label: string; value: string };
+type THCard = {
+  id: string;
+  docNo: string;
+  status: string;
+  details: THDetail[];
+};
+
+// mock — สลับเป็น API ได้ทีหลัง
+const mock: THCard[] = [
   {
     id: "1",
     docNo: "TRO2506-079",
@@ -21,99 +38,96 @@ const cardData = [
       { label: "หมายเหตุ", value: "Operation Group สำหรับ Jubu Jibi" },
     ],
   },
-  {
-    id: "2",
-    docNo: "TRO2506-080",
-    status: "Approved",
-    details: [
-      { label: "วันที่ส่งสินค้า", value: "24/06/2025" },
-      { label: "เลขที่เอกสาร", value: "TRO2506-080" },
-      { label: "ส่งจากคลัง", value: "00HO - Head Office" },
-      { label: "E-Shop No.", value: "PRE2309024" },
-      { label: "หมายเหตุ", value: "Operation Group สำหรับ AAA" },
-    ],
-  },
-  {
-    id: "3",
-    docNo: "TRO2506-010",
-    status: "Pending Approval",
-    details: [
-      { label: "วันที่ส่งสินค้า", value: "24/06/2025" },
-      { label: "เลขที่เอกสาร", value: "TRO2506-010" },
-      { label: "ส่งจากคลัง", value: "00HO - Head Office" },
-      { label: "E-Shop No.", value: "PRE2309025" },
-      { label: "หมายเหตุ", value: "Operation Group สำหรับ BBB" },
-    ],
-  },
-  {
-    id: "4",
-    docNo: "TRO2506-011",
-    status: "Rejected",
-    details: [
-      { label: "วันที่ส่งสินค้า", value: "25/06/2025" },
-      { label: "เลขที่เอกสาร", value: "TRO2506-011" },
-      { label: "ส่งจากคลัง", value: "00HO - Head Office" },
-      { label: "E-Shop No.", value: "PRE2309026" },
-      {
-        label: "หมายเหตุ",
-        value:
-          "Operation Gropdhgjkdhbgjkdfhg;jskdfhg;adfhgkjdfhg;kjsdfhgkj;dfahgljkdfsbkgjsbdfglkjhsdfgkjhdflgkjbsdflkgbdsflkjbgoup สำหรับ CCC",
-      },
-    ],
-  },
+  // ...ตามเดิม
 ];
 
 export default function TransactionHistoryScreen() {
+  const navigation = useNavigation<any>();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<any>({});
-  const navigation = useNavigation<any>();
+  const [data, setData] = useState<THCard[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
+  const errorColor = (theme as any).error ?? "#ef4444";
 
   useEffect(() => {
-    const onFilterChanged = (data: any) => {
-      console.log(`${filterTransactionHistory} =====> `, data);
-      setFilter(data);
-    };
+    const onFilterChanged = (d: any) => setFilter(d);
     emitter.on(filterTransactionHistory, onFilterChanged);
-    return () => {
-      emitter.off(filterTransactionHistory, onFilterChanged);
-    };
+    return () => emitter.off(filterTransactionHistory, onFilterChanged);
   }, []);
 
-  const toggleSelect = (id: string) => {
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // TODO: เรียก service จริง
+      await new Promise((r) => setTimeout(r, 250));
+      setData(mock);
+    } catch (e: any) {
+      setError(e?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    setSelectedIds([]);
+    setExpandedIds([]);
+    fetchData();
+  }, [fetchData]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchData();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchData]);
+
+  const total = data.length;
+  const allSelected = useMemo(
+    () => total > 0 && selectedIds.length === total,
+    [selectedIds.length, total]
+  );
+
+  const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
-  };
-
-  const toggleExpand = (id: string) => {
+  }, []);
+  const toggleExpand = useCallback((id: string) => {
     setExpandedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
-  };
+  }, []);
 
-  const openFilter = () => {
+  const openFilter = useCallback(() => {
     setSelectedIds([]);
     navigation.navigate("Filter", { filter, statusName: "ประเภทเอกสาร" });
-  };
+  }, [filter, navigation]);
 
-  const goToDetail = (item: any) => {
-    const { card } = item;
-    navigation.navigate("TransactionHistoryDetail", { docNo: card.docNo });
-  };
+  const goToDetail = useCallback(
+    (card: THCard) => {
+      navigation.navigate("TransactionHistoryDetail", { docNo: card.docNo });
+    },
+    [navigation]
+  );
+
   return (
     <>
       <Header
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
         hideGoback={false}
-        title={"ประวัติการทำรายการ"}
+        title="ประวัติการทำรายการ"
         IconComponent={[
-          <TouchableOpacity
-            onPress={() => {
-              openFilter();
-            }}
-          >
+          <TouchableOpacity key="filter" onPress={openFilter}>
             <MaterialCommunityIcons
               name={filter?.isFilter ? "filter-check" : "filter"}
               size={30}
@@ -123,24 +137,59 @@ export default function TransactionHistoryScreen() {
         ]}
       />
       <View style={{ flex: 1, backgroundColor: theme.white }}>
-        <ScrollView contentContainerStyle={styles.content}>
-          {cardData.map((card) => (
-            <ScanCard
-              status={card.status as StatusType}
-              key={card.id}
-              id={card.id}
-              docNo={card.docNo}
-              details={card.details}
-              hideSelectedIds
-              selectedIds={selectedIds}
-              isSelected={selectedIds.includes(card.id)}
-              isExpanded={expandedIds.includes(card.id)}
-              onSelect={toggleSelect}
-              onExpand={toggleExpand}
-              goTo={() => goToDetail({ card })}
-            />
-          ))}
-        </ScrollView>
+        {loading && (
+          <LoadingView
+            message="กำลังโหลดข้อมูล…"
+            color={theme.mainApp}
+            textColor={textGray}
+          />
+        )}
+        {!loading && error && (
+          <ErrorState
+            message={error}
+            onRetry={fetchData}
+            color={errorColor}
+            accentColor={theme.mainApp}
+          />
+        )}
+        {!loading && !error && total === 0 && (
+          <EmptyState
+            title="ไม่พบรายการ"
+            subtitle="ปรับตัวกรองหรือกดรีโหลดเพื่อดึงข้อมูลอีกครั้ง"
+            icon="history"
+            color={textGray}
+            actionLabel="รีโหลด"
+            onAction={fetchData}
+            buttonBg={theme.mainApp}
+            buttonTextColor={theme.white}
+          />
+        )}
+        {!loading && !error && total > 0 && (
+          <ScrollView
+            contentContainerStyle={styles.content}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          >
+            {/* หน้า History ไม่ต้องเลือกทั้งหมด เลยไม่ใส่ปุ่ม select-all */}
+            {data.map((card) => (
+              <ScanCard
+                key={card.id}
+                id={card.id}
+                docNo={card.docNo}
+                status={card.status as StatusType}
+                details={card.details}
+                hideSelectedIds
+                selectedIds={selectedIds}
+                isSelected={selectedIds.includes(card.id)}
+                isExpanded={expandedIds.includes(card.id)}
+                onSelect={toggleSelect}
+                onExpand={toggleExpand}
+                goTo={() => goToDetail(card)}
+              />
+            ))}
+          </ScrollView>
+        )}
       </View>
     </>
   );
