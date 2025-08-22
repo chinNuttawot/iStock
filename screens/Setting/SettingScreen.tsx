@@ -6,37 +6,66 @@ import {
   MenuItem,
   RootStackParamList,
 } from "@/dataModel/Setting";
-import { authToken } from "@/providers/keyStorageUtilliy";
+import {
+  authToken,
+  rememberMeKey,
+  savedPasswordKey,
+  savedUsernameKey,
+} from "@/providers/keyStorageUtilliy";
 import ModalComponent from "@/providers/Modal";
 import DeleteAccount from "@/providers/Modal/DeleteAccount";
 import ModalLogout from "@/providers/Modal/Logout";
 import { Modeloption } from "@/providers/Modal/Model";
 import { StorageUtility } from "@/providers/storageUtility";
 import { theme } from "@/providers/Theme";
+import { delProfile, getProfile } from "@/service";
+import { ProfileApiModel } from "@/service/myInterface";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Constants from "expo-constants";
-import React, { useState } from "react";
+import * as SecureStore from "expo-secure-store";
+import React, { useEffect, useMemo, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./Styles";
 
-export const optionModalComponent: Modeloption = {
-  change: { label: "ยืนยัน", color: theme.red },
-  changeCancel: {
-    label: "ยกเลิก",
-    color: theme.cancel,
-    colorText: theme.black,
-  },
-};
+type ModalMode = "logout" | "delete" | "";
 
 export default function SettingScreen() {
   const { logout } = useAuth();
-  const [myMenuData, setMyMenuData] = useState(menuData);
+  const [myMenuData] = useState(menuData);
   const [isOpen, setIsOpen] = useState(false);
-  const [modeMyModal, setModeMyModal] = useState("");
+  const [profile, setProfile] = useState<ProfileApiModel>();
+  const [modeMyModal, setModeMyModal] = useState<ModalMode>("");
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  useEffect(() => {
+    myProfile();
+  }, []);
+  
+  const myProfile = async () => {
+    const cached = await getProfile();
+    if (cached) {
+      setProfile(cached);
+    }
+  };
+
+  // ป้องกัน side‑effect: คำนวณ option สำหรับแต่ละโหมดด้วย useMemo
+  const optionModalComponent: Modeloption = useMemo(
+    () => ({
+      change:
+        modeMyModal === "delete"
+          ? { label: "ยืนยันการลบบัญชี", color: theme.red }
+          : { label: "ยืนยัน", color: theme.red },
+      changeCancel: {
+        label: "ยกเลิก",
+        color: theme.cancel,
+        colorText: theme.black,
+      },
+    }),
+    [modeMyModal]
+  );
 
   const onPress = (item: MenuItem) => {
     switch (item.label) {
@@ -44,26 +73,38 @@ export default function SettingScreen() {
         navigation.navigate("Profile");
         break;
       case menuDataText.Logout:
-        optionModalComponent.change.label = "ยืนยัน";
-        setModeMyModal(item.label);
+        setModeMyModal("logout");
         setIsOpen(true);
         break;
       case menuDataText.DeleteAccount:
-        optionModalComponent.change.label = "ยืนยันการลบบัญชี";
-        setModeMyModal(item.label);
+        setModeMyModal("delete");
         setIsOpen(true);
+        break;
+      default:
         break;
     }
   };
 
-  const _onLogout = async (isOpen: boolean) => {
+  // กดปุ่มยืนยันในโมดอล
+  const onConfirmModal = async () => {
     setIsOpen(false);
-    if (modeMyModal === menuDataText.Logout) {
+    if (modeMyModal === "logout") {
       await StorageUtility.remove(authToken);
+      await SecureStore.deleteItemAsync(savedPasswordKey);
+      await StorageUtility.remove(rememberMeKey);
+      await StorageUtility.remove(savedUsernameKey);
+      await delProfile();
       logout();
-    } else {
+    } else if (modeMyModal === "delete") {
       navigation.navigate("DeleteAccount");
     }
+    setModeMyModal("");
+  };
+
+  // กดปุ่มยกเลิกในโมดอล
+  const onCancelModal = () => {
+    setIsOpen(false);
+    setModeMyModal("");
   };
 
   return (
@@ -71,15 +112,11 @@ export default function SettingScreen() {
       <Header />
       <ModalComponent
         isOpen={isOpen}
-        onChange={_onLogout}
-        onChangeCancel={() => setIsOpen(false)}
+        onChange={onConfirmModal}
+        onChangeCancel={onCancelModal}
         option={optionModalComponent}
       >
-        {modeMyModal === menuDataText.Logout ? (
-          <ModalLogout />
-        ) : (
-          <DeleteAccount />
-        )}
+        {modeMyModal === "logout" ? <ModalLogout /> : <DeleteAccount />}
       </ModalComponent>
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
@@ -90,8 +127,7 @@ export default function SettingScreen() {
           />
         </View>
         <View style={styles.textname}>
-          <Text style={styles.headerTitle}>iStock Mobile</Text>
-          <Text style={styles.headerSubTitle}>501049448</Text>
+          <Text style={styles.headerTitle}>{profile?.fullName}</Text>
         </View>
       </View>
       <View style={styles.menuContainer}>

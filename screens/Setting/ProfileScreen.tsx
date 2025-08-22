@@ -1,15 +1,29 @@
 import { Assets } from "@/assets/Assets";
 import Header from "@/components/Header";
 import { theme } from "@/providers/Theme";
+import { getProfile } from "@/service";
+import { ProfileApiModel } from "@/service/myInterface";
 import {
   Entypo,
   Feather,
   Ionicons,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
-import React, { JSX } from "react";
+import React, { JSX, useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 export default function ProfileScreen() {
+  const [profile, setProfile] = useState<ProfileApiModel>();
+
+  useEffect(() => {
+    myProfile();
+  }, []);
+
+  const myProfile = async () => {
+    const cached = await getProfile();
+    if (cached) {
+      setProfile(cached);
+    }
+  };
   return (
     <View style={{ backgroundColor: theme.white, flex: 1 }}>
       <Header
@@ -30,11 +44,7 @@ export default function ProfileScreen() {
           />
           <FormItem
             icon={<Ionicons name="person-outline" size={20} />}
-            label="First Name"
-          />
-          <FormItem
-            icon={<Ionicons name="person-outline" size={20} />}
-            label="Last Name"
+            label={profile?.fullName as string}
           />
           <FormItem
             icon={
