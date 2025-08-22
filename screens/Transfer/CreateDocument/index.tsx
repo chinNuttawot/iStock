@@ -26,7 +26,7 @@ import { RenderGoBackItem } from "../Detail";
 
 export default function CreateDocumentTransferScreen() {
   const navigation = useNavigation<any>();
-  const [documentNo, setDocumentNo] = useState("");
+  const [docNo, setDocumentNo] = useState("");
   const [documentDate, setDocumentDate] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [mainWarehouseFrom, setMainWarehouseFrom] = useState("");
@@ -43,7 +43,7 @@ export default function CreateDocumentTransferScreen() {
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const stockQty = 99;
   const isValid =
-    documentNo !== "" &&
+    docNo !== "" &&
     documentDate !== "" &&
     mainWarehouseFrom !== "" &&
     subWarehouseFrom !== "" &&
@@ -72,7 +72,7 @@ export default function CreateDocumentTransferScreen() {
 
   const handleSave = () => {
     console.log("📄 Saved:", {
-      documentNo,
+      docNo,
       documentDate,
       mainWarehouseFrom,
       subWarehouseFrom,
@@ -258,7 +258,7 @@ export default function CreateDocumentTransferScreen() {
             <Text style={styles.label}>เลขที่เอกสาร</Text>
             <TextInput
               style={styles.input}
-              value={documentNo}
+              value={docNo}
               onChangeText={setDocumentNo}
               placeholder=""
               placeholderTextColor={theme.border}

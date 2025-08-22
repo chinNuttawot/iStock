@@ -72,7 +72,7 @@ export default function ScanInScreen() {
   // รับ filter จากหน้าฟิลเตอร์
   useEffect(() => {
     const onFilterChanged = (data: any) => {
-      // console.log(`${filterScanIn} =====> `, data);
+      console.log(`${filterScanIn} =====> `, data);
       setFilter(data);
     };
     emitter.on(filterScanIn, onFilterChanged);

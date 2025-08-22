@@ -13,12 +13,12 @@ import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
 import { Divider } from "react-native-elements";
@@ -26,7 +26,7 @@ import { RenderGoBackItem } from "../Detail";
 
 export default function CreateDocumentStockCheckScreen() {
   const navigation = useNavigation<any>();
-  const [documentNo, setDocumentNo] = useState("");
+  const [docNo, setDocumentNo] = useState("");
   const [documentDate, setDocumentDate] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [mainWarehouse, setMainWarehouse] = useState("");
@@ -41,7 +41,7 @@ export default function CreateDocumentStockCheckScreen() {
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const stockQty = 99;
   const isValid =
-    documentNo !== "" &&
+    docNo !== "" &&
     documentDate !== "" &&
     mainWarehouse !== "" &&
     subWarehouse !== "" &&
@@ -68,7 +68,7 @@ export default function CreateDocumentStockCheckScreen() {
 
   const handleSave = () => {
     console.log("📄 Saved:", {
-      documentNo,
+      docNo,
       documentDate,
       mainWarehouse,
       subWarehouse,
@@ -184,7 +184,7 @@ export default function CreateDocumentStockCheckScreen() {
             <Text style={styles.label}>เลขที่เอกสาร</Text>
             <TextInput
               style={styles.input}
-              value={documentNo}
+              value={docNo}
               onChangeText={setDocumentNo}
               placeholder=""
               placeholderTextColor={theme.border}

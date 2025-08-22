@@ -41,7 +41,7 @@ const statusOptions = [
 ];
 
 export default function FilterScreen() {
-  const [documentNo, setDocumentNo] = useState("");
+  const [docNo, setDocumentNo] = useState("");
   const [documentDate, setDocumentDate] = useState("");
   const [status, setStatus] = useState("All");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -72,7 +72,7 @@ export default function FilterScreen() {
     if (filter) {
       setStatus(filter?.status || status);
       setDocumentDate(filter?.documentDate || documentDate);
-      setDocumentNo(filter?.documentNo || documentNo);
+      setDocumentNo(filter?.docNo || docNo);
     }
   }, []);
 
@@ -81,7 +81,7 @@ export default function FilterScreen() {
     const parmas = {
       status: "All",
       documentDate: "",
-      documentNo: "",
+      docNo: "",
       isFilter: false,
       isReset: true,
     };
@@ -138,7 +138,7 @@ export default function FilterScreen() {
     const parmas = {
       status,
       documentDate,
-      documentNo,
+      docNo,
       isFilter: true,
       isReset: false,
     };
@@ -169,7 +169,7 @@ export default function FilterScreen() {
             <Text style={styles.label}>{ScanName}</Text>
             <View style={styles.inputWrapper}>
               <TextInput
-                value={documentNo}
+                value={docNo}
                 onChangeText={setDocumentNo}
                 style={styles.input}
                 placeholder=""

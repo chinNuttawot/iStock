@@ -2,14 +2,14 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 type FilterState = {
-    documentNo: string;
+    docNo: string;
     documentDate: string;
     status: string;
     isFilter: boolean;
 };
 
 const initialState: FilterState = {
-    documentNo: "",
+    docNo: "",
     documentDate: "",
     status: "All",
     isFilter: false
