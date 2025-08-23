@@ -55,7 +55,7 @@ export default function DetailCard({
                   },
                 ]}
               >
-                {item.value || `${data.receivedQty} / ${data.totalQty}`}
+                {item.value || `${data.qtyReceived} / ${data.qtyShipped}`}
               </Text>
             </View>
           ))}

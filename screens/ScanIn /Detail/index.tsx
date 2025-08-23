@@ -25,8 +25,8 @@ export const productData = [
     id: "1",
     docNo: "5OTH01475",
     model: "VR001",
-    receivedQty: 1,
-    totalQty: 5,
+    qtyReceived: 1,
+    qtyShipped: 5,
     details: [
       { label: "รุ่น", value: "VR000" },
       {
@@ -41,8 +41,8 @@ export const productData = [
     id: "2",
     docNo: "5OTH01475",
     model: "VR001",
-    receivedQty: 0,
-    totalQty: 4,
+    qtyReceived: 0,
+    qtyShipped: 4,
     details: [
       { label: "รุ่น", value: "VR001" },
       {
@@ -57,8 +57,8 @@ export const productData = [
     id: "3",
     docNo: "5OTH01475",
     model: "VR002",
-    receivedQty: 2,
-    totalQty: 5,
+    qtyReceived: 2,
+    qtyShipped: 5,
     details: [
       { label: "รุ่น", value: "VR002" },
       {
@@ -75,8 +75,8 @@ export default function ScanInDetailScreen() {
   const [itemDetail, setItemDetail] = useState<{
     docNo: string;
     model: string;
-    receivedQty: number;
-    totalQty: number;
+    qtyReceived: number;
+    qtyShipped: number;
   } | null>(null);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<any>({});
@@ -116,8 +116,8 @@ export default function ScanInDetailScreen() {
     setItemDetail({
       docNo: item.docNo,
       model: item.model,
-      receivedQty: item.receivedQty,
-      totalQty: item.totalQty,
+      qtyReceived: item.qtyReceived,
+      qtyShipped: item.qtyShipped,
     });
     setIsOpen(true);
   };
@@ -133,8 +133,8 @@ export default function ScanInDetailScreen() {
     const [qty, setQty] = useState("");
     const [serialNo, setSerialNo] = useState("");
     const {
-      receivedQty,
-      totalQty,
+      qtyReceived,
+      qtyShipped,
       docNo: myDocId,
       model: myModel,
     } = props.itemDetail;
@@ -168,7 +168,7 @@ export default function ScanInDetailScreen() {
         <View style={styles.inputGroup}>
           <Text style={styles.label}>
             {`จำนวนที่เพิ่มได้ไม่เกิน `}
-            <Text style={styles.Sublabel}>{`${totalQty - receivedQty}`}</Text>
+            <Text style={styles.Sublabel}>{`${qtyShipped - qtyReceived}`}</Text>
           </Text>
           <View style={styles.inputWrapper}>
             <TextInput
@@ -176,7 +176,7 @@ export default function ScanInDetailScreen() {
               keyboardType={keyboardTypeNumber}
               onChangeText={(text) => {
                 const num = Number(text);
-                if (!isNaN(num) && num <= totalQty - receivedQty) {
+                if (!isNaN(num) && num <= qtyShipped - qtyReceived) {
                   setQty(text);
                 }
               }}

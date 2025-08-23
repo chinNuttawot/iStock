@@ -91,8 +91,8 @@ export default function CreateDocumentScreen() {
       id: list.uuid,
       docNo: list.productCode,
       model: list.selectedModel,
-      receivedQty: null,
-      totalQty: null,
+      qtyReceived: null,
+      qtyShipped: null,
       isDelete: false,
       details: [
         { label: "รหัสแบบ", value: list.selectedModel || "-" },

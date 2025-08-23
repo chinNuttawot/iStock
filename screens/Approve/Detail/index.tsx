@@ -24,8 +24,8 @@ export const _productData: ProductItem[] = [
     id: "1",
     docNo: "5OTH01475",
     model: "VR001",
-    receivedQty: null,
-    totalQty: null,
+    qtyReceived: null,
+    qtyShipped: null,
     isDelete: false,
     details: [
       { label: "รุ่น", value: "VR000" },
@@ -38,8 +38,8 @@ export const _productData: ProductItem[] = [
     id: "2",
     docNo: "5OTH01475",
     model: "VR001",
-    receivedQty: null,
-    totalQty: null,
+    qtyReceived: null,
+    qtyShipped: null,
     isDelete: false,
     details: [
       { label: "รุ่น", value: "VR001" },
@@ -52,8 +52,8 @@ export const _productData: ProductItem[] = [
     id: "3",
     docNo: "5OTH01475",
     model: "VR002",
-    receivedQty: null,
-    totalQty: null,
+    qtyReceived: null,
+    qtyShipped: null,
     isDelete: false,
     details: [
       { label: "รุ่น", value: "VR002" },

@@ -25,8 +25,8 @@ export const _productData = [
     id: "1",
     docNo: "5OTH01475",
     model: "VR001",
-    receivedQty: 2,
-    totalQty: 99,
+    qtyReceived: 2,
+    qtyShipped: 99,
     isDelete: false,
     details: [
       { label: "รุ่น", value: "VR000" },

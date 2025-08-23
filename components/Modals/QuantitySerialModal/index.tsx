@@ -9,8 +9,8 @@ import { Text, TextInput, View } from "react-native";
 type ItemKey = {
   docNo: string;
   model: string;
-  receivedQty: number;
-  totalQty: number;
+  qtyReceived: number;
+  qtyShipped: number;
 };
 type Props = {
   isOpen: boolean;
@@ -32,7 +32,7 @@ export default function QuantitySerialModal({
 
   const maxCanAdd = Math.max(
     0,
-    (item?.totalQty ?? 0) - (item?.receivedQty ?? 0)
+    (item?.qtyShipped ?? 0) - (item?.qtyReceived ?? 0)
   );
   const qtyKey = item
     ? `newReceivedQty-docNo-${item.docNo}-model-${item.model}`
