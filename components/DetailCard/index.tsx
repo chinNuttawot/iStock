@@ -59,11 +59,13 @@ export default function DetailCard({
               </Text>
             </View>
           ))}
-          <Image
-            source={{ uri: data.image }}
-            style={styles.imageItem}
-            resizeMode="cover"
-          />
+          {data.image && (
+            <Image
+              source={{ uri: data.image }}
+              style={styles.imageItem}
+              resizeMode="cover"
+            />
+          )}
           {customButton && (
             <View style={{ marginTop: 32 }}>{customButton}</View>
           )}

@@ -7,9 +7,11 @@ import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
 import { keyboardTypeNumber } from "@/screens/Register/register";
+import { cardDetailListService } from "@/service";
+import { CardListModel } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   ScrollView,
@@ -19,57 +21,6 @@ import {
   View,
 } from "react-native";
 import { styles } from "./styles";
-
-export const productData = [
-  {
-    id: "1",
-    docNo: "5OTH01475",
-    model: "VR001",
-    qtyReceived: 1,
-    qtyShipped: 5,
-    details: [
-      { label: "รุ่น", value: "VR000" },
-      {
-        label: "หมายเหตุ",
-        value: "ของเล่น ลาโพงน้องหมา M10",
-      },
-      { label: "จำนวนที่รับ", value: null },
-    ],
-    image: "https://picsum.photos/seed/shirt/100/100",
-  },
-  {
-    id: "2",
-    docNo: "5OTH01475",
-    model: "VR001",
-    qtyReceived: 0,
-    qtyShipped: 4,
-    details: [
-      { label: "รุ่น", value: "VR001" },
-      {
-        label: "หมายเหตุ",
-        value: "ของเล่น น้องแมว M20",
-      },
-      { label: "จำนวนที่รับ", value: null },
-    ],
-    image: "https://picsum.photos/seed/shirt/100/100",
-  },
-  {
-    id: "3",
-    docNo: "5OTH01475",
-    model: "VR002",
-    qtyReceived: 2,
-    qtyShipped: 5,
-    details: [
-      { label: "รุ่น", value: "VR002" },
-      {
-        label: "หมายเหตุ",
-        value: "ของเล่น น้องกระต่าย M30",
-      },
-      { label: "จำนวนที่รับ", value: null },
-    ],
-    image: "https://picsum.photos/seed/shirt/100/100",
-  },
-];
 
 export default function ScanInDetailScreen() {
   const [itemDetail, setItemDetail] = useState<{
@@ -84,6 +35,10 @@ export default function ScanInDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute();
   const scanInDetailForm = useForm();
+  const [loading, setLoading] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [cardDetailData, setCardDetailData] = useState<CardListModel[]>([]);
   const { docNo } = route.params as { docNo: string };
 
   useEffect(() => {
@@ -96,6 +51,29 @@ export default function ScanInDetailScreen() {
       emitter.off(filterScanInDetail, onFilterChanged);
     };
   }, []);
+
+  useEffect(() => {
+    fetchData();
+    // reset selection เมื่อ list เปลี่ยน context
+    setExpandedIds([]);
+  }, [docNo]);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await cardDetailListService({
+        menuId: 0,
+        docNo: docNo,
+      });
+      setCardDetailData(Array.isArray(data) ? (data as CardListModel[]) : []);
+    } catch (err: any) {
+      setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
+      setCardDetailData([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [docNo]);
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) =>
@@ -255,7 +233,7 @@ export default function ScanInDetailScreen() {
       />
       {/* Header + Filter เดิม */}
       <ScrollView contentContainerStyle={styles.content}>
-        {productData.map((item) => (
+        {cardDetailData.map((item) => (
           <DetailCard
             key={item.id}
             data={item}
