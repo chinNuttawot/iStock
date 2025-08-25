@@ -3,6 +3,7 @@ import { cardListService } from "./cardListService";
 import { loginService } from "./loginService";
 import { menuService } from "./menuService";
 import { delProfile, getProfile, Profile } from "./profileService";
+import { uploadMultiFetch } from "./upload";
 
 export {
     cardDetailListService,
@@ -11,6 +12,7 @@ export {
     getProfile,
     loginService,
     menuService,
-    Profile
+    Profile,
+    uploadMultiFetch
 };
 

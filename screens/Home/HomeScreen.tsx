@@ -1,9 +1,8 @@
 import Header from "@/components/Header";
+import UploadPicker from "@/components/UploadPicker";
 import { DashboardGroup } from "@/dataModel/Dashboard";
-import { theme } from "@/providers/Theme";
-import { Ionicons } from "@expo/vector-icons";
 import React, { Fragment, useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { dashboardData } from "./MockupData";
 import { styles } from "./Styles";
 
@@ -19,7 +18,14 @@ export default function HomeScreen() {
       <Header hideGoback={true} />
       <View style={styles.container}>
         <ScrollView contentContainerStyle={{ flexGrow: 1, paddingTop: 16 }}>
-          {dashboard.map((group, index) => (
+          <UploadPicker
+            keyRef1={"test"}
+            insideScrollView
+            fieldName="file"
+            allowsMultiple
+            onAllUploaded={(items) => {}}
+          />
+          {/* {dashboard.map((group, index) => (
             <View key={index} style={styles.groupContainer}>
               <Text style={styles.groupTitle}>{group.groupName}</Text>
               <View style={styles.cardRow}>
@@ -36,7 +42,7 @@ export default function HomeScreen() {
                 ))}
               </View>
             </View>
-          ))}
+          ))} */}
         </ScrollView>
       </View>
     </Fragment>
