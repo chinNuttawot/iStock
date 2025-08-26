@@ -97,10 +97,21 @@ export async function uploadMultiFetch(
     // axios จะ parse JSON ให้อยู่แล้วเมื่อ Content-Type เป็น application/json
     return res.data ?? ({ ok: true, count: files.length } as UploadMultiResult);
   } catch (err: any) {
-    const status = err?.response?.status;
-    const body = err?.response?.data;
-    const msg = body?.message || err?.message || "Upload failed";
-    throw new Error(`Upload failed${status ? ` [${status}]` : ""}: ${msg}`);
+    if (err?.response) {
+      console.log("response error:", {
+        status: err.response.status,
+        data: err.response.data,
+      });
+    } else if (err?.request) {
+      console.log("no response from server:", {
+        url: err.config?.baseURL + err.config?.url,
+        method: err.config?.method,
+        timeout: err.config?.timeout,
+      });
+    } else {
+      console.log("setup error:", err?.message);
+    }
+    throw err;
   } finally {
     clearTimeout(timeoutId);
   }

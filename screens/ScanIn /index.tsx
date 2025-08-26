@@ -1,3 +1,4 @@
+// screens/ScanInScreen.tsx
 import { emitter, filterScanIn } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
@@ -5,12 +6,19 @@ import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
 import EmptyState from "@/components/State/EmptyState";
 import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
+import type { UploadPickerHandle } from "@/components/UploadPicker"; // <<— ใช้ชนิด handle จาก UploadPicker
 import { theme } from "@/providers/Theme";
 import { cardListService, getProfile } from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   RefreshControl,
   ScrollView,
@@ -19,12 +27,16 @@ import {
   View,
 } from "react-native";
 import { styles } from "./Styles";
+
 type Nav = ReturnType<typeof useNavigation<any>>;
 
 export default function ScanInScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<any>();
   const { menuId }: RouteParams = route.params || {};
+
+  // ✅ ใช้ “แผนที่ของ refs” อ้างอิง UploadPicker ของแต่ละการ์ดตาม id
+  const uploadRefs = useRef<Record<string, UploadPickerHandle | null>>({});
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
@@ -43,6 +55,8 @@ export default function ScanInScreen() {
     // reset selection เมื่อ list เปลี่ยน context
     setSelectedIds([]);
     setExpandedIds([]);
+    // ล้าง refs เก่า (กรณีรายการเปลี่ยน)
+    uploadRefs.current = {};
   }, [menuId]);
 
   const fetchData = useCallback(async () => {
@@ -78,7 +92,6 @@ export default function ScanInScreen() {
   // รับ filter จากหน้าฟิลเตอร์
   useEffect(() => {
     const onFilterChanged = (data: any) => {
-      // console.log(`${filterScanIn} =====> `, data);
       setFilter(data);
     };
     emitter.on(filterScanIn, onFilterChanged);
@@ -124,6 +137,17 @@ export default function ScanInScreen() {
     },
     [navigation]
   );
+
+  // เรียกอัปโหลดเฉพาะรายการที่ “ถูกเลือก”
+  const submitSelected = useCallback(async () => {
+    if (selectedIds.length === 0) return;
+
+    // ตัวอย่าง: เรียก UploadPicker ของแต่ละการ์ดที่เลือก
+    for (const id of selectedIds) {
+      const handle = uploadRefs.current[id];
+      await handle?.uploadAllInOneRequests?.();
+    }
+  }, [selectedIds]);
 
   return (
     <>
@@ -199,13 +223,21 @@ export default function ScanInScreen() {
               {cardData.map((card) => (
                 <ScanCard
                   key={card.id}
+                  // ✅ ผูก ref ของแต่ละการ์ดให้เก็บไว้ใน uploadRefs.current[card.id]
+                  ref={(h) => {
+                    uploadRefs.current[card.docNo] = h;
+                  }}
                   id={card.id}
+                  keyRef1={card.docNo}
+                  keyRef2={null}
+                  keyRef3={null}
+                  remark={null}
                   docNo={card.docNo}
                   status={card.status as StatusType}
                   details={card.details}
                   selectedIds={selectedIds}
-                  isSelected={selectedIds.includes(card.id)}
-                  isExpanded={expandedIds.includes(card.id)}
+                  isSelected={selectedIds.includes(card.docNo)}
+                  isExpanded={expandedIds.includes(card.docNo)}
                   onSelect={toggleSelect}
                   onExpand={toggleExpand}
                   goTo={() => goToDetail(card)}
@@ -218,9 +250,7 @@ export default function ScanInScreen() {
               <CustomButton
                 label="ส่งเอกสาร"
                 disabled={selectedIds.length === 0}
-                onPress={() => {
-                  // TODO: submit action
-                }}
+                onPress={submitSelected}
               />
             </View>
           </>

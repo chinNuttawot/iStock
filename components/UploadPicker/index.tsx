@@ -1,21 +1,58 @@
 // components/UploadPicker.tsx
+import { theme } from "@/providers/Theme";
 import { uploadMultiFetch } from "@/service"; // หรือ "@/service/apiCore/uploadService"
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useState,
+} from "react";
 import {
-    Alert,
-    FlatList,
-    Image,
-    Pressable,
-    StyleSheet,
-    Text,
-    View
+  Alert,
+  FlatList,
+  Image,
+  Linking,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
 } from "react-native";
 
-type PickedItem = {
+// ====== (optional) ใช้ WebView ถ้ามีติดตั้งแพ็กเกจ react-native-webview ======
+let WebViewComp: any = null;
+try {
+  WebViewComp = require("react-native-webview").WebView;
+} catch {}
+
+// ====== helpers สำหรับการพรีวิว / อัปโหลด ======
+const isRemoteHttp = (uri?: string) => !!uri && /^https?:\/\//i.test(uri || "");
+
+// ใช้สำหรับ "ดูไฟล์": ถ้าเป็น http/https ส่งกลับเลย, ถ้าเป็น content:// ให้ copy ไป cache -> file://
+const ensurePreviewableUri = async (uri: string, name: string) => {
+  if (isRemoteHttp(uri)) return uri;
+  if (uri.startsWith("file://")) return uri;
+  const baseName = name || "tmp";
+  const dest =
+    (FileSystem.cacheDirectory || "") +
+    (/\.[a-z0-9]+$/i.test(baseName) ? baseName : baseName + ".bin");
+  try {
+    await FileSystem.copyAsync({ from: uri, to: dest });
+    return dest;
+  } catch {
+    return uri;
+  }
+};
+
+export type PickedItem = {
   id: string;
   uri: string;
   name: string;
@@ -27,46 +64,96 @@ type PickedItem = {
   errorMsg?: string;
 };
 
+export type UploadPickerHandle = {
+  /** เรียกอัปโหลดไฟล์ทั้งหมดที่อยู่ในคิว (โหมด multi) */
+  uploadAllInOneRequests: () => Promise<void>;
+};
+
 type Props = {
-  /** URL ปลายทาง (ใช้สำหรับ derive baseUrl ให้ uploadMultiFetch และใช้กับ upload ทีละไฟล์) */
-  fieldName?: string; // สำหรับโหมดทีละไฟล์
+  fieldName?: string;
   extraHeaders?: Record<string, string>;
   allowsMultiple?: boolean;
   onAllUploaded?: (items: PickedItem[]) => void;
   insideScrollView?: boolean;
-  /** ค่าเริ่มต้นของช่องข้อมูลที่แนบไปกับ multi */
   keyRef1?: any;
   keyRef2?: any;
   keyRef3?: any;
   remark?: any;
 };
 
-export default function UploadPicker({
-  fieldName = "file",
-  extraHeaders,
-  allowsMultiple = true,
-  onAllUploaded,
-  insideScrollView = false,
-  keyRef1 = null,
-  keyRef2 = null,
-  keyRef3 = null,
-  remark = null,
-}: Props) {
+function UploadPicker(props: Props, ref: React.Ref<UploadPickerHandle>) {
+  const {
+    fieldName = "file",
+    extraHeaders,
+    allowsMultiple = true,
+    onAllUploaded,
+    insideScrollView = false,
+    keyRef1 = null,
+    keyRef2 = null,
+    keyRef3 = null,
+    remark = null,
+  }: Props = props;
+
   const [items, setItems] = useState<PickedItem[]>([]);
-  const uploadingRef = useRef(false);
+  const { width: SCREEN_W, height: SCREEN_H } = useWindowDimensions();
 
-  const MAX_IMAGE_BYTES = 20 * 1024 * 1024; // 20MB
+  // ====== preview รูปภาพ (ทีละรูป) ======
+  const imageItems = useMemo(
+    () => items.filter((x) => x.type === "image"),
+    [items]
+  );
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
 
-  // ===== utilities =====
-  const deriveBaseUrl = useCallback((full: string) => {
+  const openPreviewById = useCallback(
+    (id: string) => {
+      const idx = imageItems.findIndex((x) => x.id === id);
+      if (idx >= 0) {
+        setPreviewIndex(idx);
+        setPreviewVisible(true);
+      }
+    },
+    [imageItems]
+  );
+
+  const closePreview = useCallback(() => {
+    setPreviewVisible(false);
+  }, []);
+
+  const goPrev = useCallback(() => {
+    setPreviewIndex((i) => Math.max(0, i - 1));
+  }, []);
+  const goNext = useCallback(() => {
+    setPreviewIndex((i) => Math.min(imageItems.length - 1, i + 1));
+  }, [imageItems.length]);
+
+  // ====== preview PDF ======
+  const [pdfVisible, setPdfVisible] = useState(false);
+  const [pdfUri, setPdfUri] = useState<string | null>(null);
+  const [pdfName, setPdfName] = useState<string>("");
+
+  const openPdf = useCallback(async (fileItem: PickedItem) => {
     try {
-      const u = new URL(full);
-      return `${u.protocol}//${u.host}`; // origin
+      const safe = await ensurePreviewableUri(fileItem.uri, fileItem.name);
+      setPdfUri(safe);
+      setPdfName(fileItem.name);
+      setPdfVisible(true);
     } catch {
-      // fallback: ตัดท้าย '/api/upload/multi' ถ้ามี
-      return full.replace(/\/api\/upload\/multi.*$/i, "");
+      try {
+        await Linking.openURL(fileItem.uri);
+      } catch {
+        Alert.alert("เปิดไฟล์ไม่ได้", "ไม่สามารถเปิดไฟล์ PDF ได้");
+      }
     }
   }, []);
+
+  const closePdf = useCallback(() => {
+    setPdfVisible(false);
+    setPdfUri(null);
+    setPdfName("");
+  }, []);
+
+  const MAX_IMAGE_BYTES = 20 * 1024 * 1024; // 20MB
 
   const toStr = (v: unknown) =>
     v === null || v === undefined ? "" : typeof v === "string" ? v : String(v);
@@ -96,11 +183,15 @@ export default function UploadPicker({
     return Number(info.size || 0);
   }, []);
 
-  // แปลง content:// ให้เป็น file:// โดย copy ไป cache
+  // ใช้สำหรับ "อัปโหลด": ไม่แปลง http/https (ให้เป็น URL ไปตามเดิม)
   const ensureFileUriForFormData = useCallback(
     async (uri: string, name: string): Promise<string> => {
+      if (isRemoteHttp(uri)) return uri; // ถ้าเป็น URL ระยะไกล ให้คงไว้
       if (uri.startsWith("file://")) return uri;
-      const dest = `${FileSystem.cacheDirectory}${name || "tmp"}`;
+      const baseName = name || "tmp";
+      const dest =
+        (FileSystem.cacheDirectory || "") +
+        (/\.[a-z0-9]+$/i.test(baseName) ? baseName : baseName + ".bin");
       try {
         await FileSystem.copyAsync({ from: uri, to: dest });
         return dest;
@@ -111,12 +202,11 @@ export default function UploadPicker({
     []
   );
 
-  // ย่อ/บีบอัดรูปให้ <= 20MB
+  // ย่อ/บีบอัดรูปให้ <= 20MB (ข้ามถ้าเป็น URL ระยะไกล)
   const downsizeToLimit = useCallback(
     async (uri: string, name: string, maxBytes = MAX_IMAGE_BYTES) => {
       let currentUri = uri;
 
-      // ขั้น 0: แปลงเป็น JPEG 0.9
       try {
         const first = await ImageManipulator.manipulateAsync(currentUri, [], {
           compress: 0.9,
@@ -127,7 +217,6 @@ export default function UploadPicker({
 
       const trySize = async () => await getFileSize(currentUri);
 
-      // ขั้น 1: ลดคุณภาพ
       const qualities = [0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25];
       for (const q of qualities) {
         if ((await trySize()) <= maxBytes) break;
@@ -138,7 +227,6 @@ export default function UploadPicker({
         currentUri = r.uri;
       }
 
-      // ขั้น 2: ลดความกว้าง
       if ((await trySize()) > maxBytes) {
         const widths = [3000, 2400, 2000, 1600, 1280, 1024];
         for (const w of widths) {
@@ -250,13 +338,9 @@ export default function UploadPicker({
   // ---------- upload: รวม (multi via uploadMultiFetch) ----------
   const uploadAllInOneRequest = useCallback(async () => {
     const queued = items.filter((x) => x.status === "queued" || !x.status);
-    if (queued.length === 0) {
-      Alert.alert("ไม่มีไฟล์ในคิว");
-      return;
-    }
+    if (queued.length === 0) return;
 
     try {
-      // เตรียม parts (ensure file:// + ย่อภาพ ≤20MB)
       const parts = await Promise.all(
         queued.map(async (f) => {
           let safeUri = await ensureFileUriForFormData(f.uri, f.name);
@@ -281,19 +365,6 @@ export default function UploadPicker({
       );
 
       await uploadMultiFetch(parts, toStr(keyRef1), keyRef2, keyRef3, remark);
-
-      // อัปเดตสถานะ success ทั้งชุด
-      setItems((prev) =>
-        prev.map((p) =>
-          queued.some((q) => q.id === p.id)
-            ? { ...p, status: "success", progress: 1 }
-            : p
-        )
-      );
-      onAllUploaded?.(
-        queued.map((x) => ({ ...x, status: "success", progress: 1 }))
-      );
-      Alert.alert("สำเร็จ", `อัปโหลดไฟล์ ${queued.length} รายการ`);
     } catch (e: any) {
       setItems((prev) =>
         prev.map((p) =>
@@ -302,7 +373,8 @@ export default function UploadPicker({
             : p
         )
       );
-      Alert.alert("ผิดพลาด", String(e?.message || e));
+    } finally {
+      setItems([]);
     }
   }, [
     items,
@@ -313,56 +385,63 @@ export default function UploadPicker({
     onAllUploaded,
     ensureFileUriForFormData,
     downsizeToLimit,
-    deriveBaseUrl,
   ]);
 
-  // ---------- UI ----------
-  const successCount = useMemo(
-    () => items.filter((x) => x.status === "success").length,
-    [items]
+  // ---------- imperative handle ----------
+  useImperativeHandle(
+    ref,
+    () => ({
+      uploadAllInOneRequests: () => uploadAllInOneRequest(),
+    }),
+    [uploadAllInOneRequest]
   );
 
+  // ---------- UI ----------
   const renderItem = ({ item }: { item: PickedItem }) => {
+    const isImage = item.type === "image";
+    const isPdf =
+      (item.mime && item.mime.includes("pdf")) ||
+      /\.pdf$/i.test(item.name || "");
+
     return (
       <View style={styles.card}>
         <View style={{ flexDirection: "row", gap: 10 }}>
-          {item.type === "image" ? (
-            <Image
-              source={{ uri: item.uri }}
-              style={{ width: 64, height: 64, borderRadius: 8 }}
-            />
+          {isImage ? (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => openPreviewById(item.id)}
+            >
+              <Image
+                source={{ uri: item.uri }}
+                style={{ width: 64, height: 64, borderRadius: 8 }}
+              />
+            </TouchableOpacity>
           ) : (
-            <View style={styles.fileIcon}>
-              <Text style={{ fontWeight: "700" }}>FILE</Text>
-            </View>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() =>
+                isPdf
+                  ? openPdf(item)
+                  : Linking.openURL(item.uri).catch(() =>
+                      Alert.alert("เปิดไฟล์ไม่ได้", "ไม่รองรับการแสดงไฟล์นี้")
+                    )
+              }
+            >
+              <View style={styles.fileIcon}>
+                <Text style={{ fontWeight: "700" }}>
+                  {isPdf ? "PDF" : "FILE"}
+                </Text>
+              </View>
+            </TouchableOpacity>
           )}
 
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, justifyContent: "center" }}>
             <Text numberOfLines={1} style={styles.name}>
               {item.name}
             </Text>
             <Text style={styles.meta}>
               {item.mime || "unknown"}{" "}
               {item.size ? `• ${(item.size / 1024).toFixed(1)} KB` : ""}
-            </Text>
-
-            <View style={styles.progressBar}>
-              <View
-                style={[
-                  styles.progressFill,
-                  { width: `${Math.round((item.progress ?? 0) * 100)}%` },
-                ]}
-              />
-            </View>
-
-            <Text style={styles.statusText}>
-              {item.status ?? "queued"}{" "}
-              {typeof item.progress === "number"
-                ? `(${Math.round((item.progress ?? 0) * 100)}%)`
-                : ""}
-              {item.status === "error" && item.errorMsg
-                ? ` • ${item.errorMsg}`
-                : ""}
             </Text>
           </View>
 
@@ -381,15 +460,15 @@ export default function UploadPicker({
     <View style={styles.container}>
       {/* Controls */}
       <View style={styles.row}>
-        <Pressable style={styles.btn} onPress={pickImages}>
+        <TouchableOpacity style={styles.btn} onPress={pickImages}>
           <Text style={styles.btnText}>เลือกจากคลังรูป</Text>
-        </Pressable>
-        <Pressable style={styles.btn} onPress={takePhoto}>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.btn} onPress={takePhoto}>
           <Text style={styles.btnText}>ถ่ายรูป</Text>
-        </Pressable>
-        <Pressable style={styles.btn} onPress={pickDocuments}>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.btn} onPress={pickDocuments}>
           <Text style={styles.btnText}>เลือกไฟล์</Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       <FlatList
@@ -399,38 +478,190 @@ export default function UploadPicker({
         renderItem={renderItem}
         scrollEnabled={!insideScrollView}
         ListEmptyComponent={
-          <Text style={{ textAlign: "center", color: "#777" }}>
-            ยังไม่มีไฟล์ในคิว
-          </Text>
+          <Text style={{ textAlign: "center", color: "#777" }}></Text>
         }
       />
 
-      <View style={[styles.row, { marginTop: 8 }]}>
-        <Pressable
-          style={[styles.btn, { backgroundColor: "#6366f1" }]}
-          onPress={uploadAllInOneRequest}
-        >
-          <Text style={styles.btnText}>อัปโหลดรวม (multi like Postman)</Text>
-        </Pressable>
-        <Text style={{ marginLeft: 8, color: "#333" }}>
-          สำเร็จ: {successCount}/{items.length}
-        </Text>
-      </View>
+      {/* ====== Image Preview Modal (ทีละรูป) ====== */}
+      <Modal
+        visible={previewVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={closePreview}
+      >
+        <View style={styles.previewBackdrop}>
+          <View style={styles.previewContent}>
+            <View style={styles.previewHeader}>
+              <Text style={styles.previewCounter}>
+                {imageItems.length > 0
+                  ? `${previewIndex + 1}/${imageItems.length}`
+                  : ""}
+              </Text>
+              <TouchableOpacity
+                onPress={closePreview}
+                style={styles.previewClose}
+              >
+                <Text
+                  style={{ color: "#fff", fontWeight: "800", fontSize: 18 }}
+                >
+                  X
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.singleImageWrap}>
+              {imageItems[previewIndex] ? (
+                <Image
+                  source={{ uri: imageItems[previewIndex].uri }}
+                  style={{ width: "100%", height: "100%" }}
+                  resizeMode="contain"
+                />
+              ) : null}
+            </View>
+
+            {imageItems.length > 1 && (
+              <>
+                <TouchableOpacity
+                  onPress={goPrev}
+                  disabled={previewIndex === 0}
+                  style={[
+                    styles.navBtn,
+                    styles.navLeft,
+                    previewIndex === 0 && styles.navBtnDisabled,
+                  ]}
+                >
+                  <Text style={styles.navBtnText}>‹</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={goNext}
+                  disabled={previewIndex >= imageItems.length - 1}
+                  style={[
+                    styles.navBtn,
+                    styles.navRight,
+                    previewIndex >= imageItems.length - 1 &&
+                      styles.navBtnDisabled,
+                  ]}
+                >
+                  <Text style={styles.navBtnText}>›</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* ====== PDF Preview Modal ====== */}
+      <Modal
+        visible={pdfVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={closePdf}
+      >
+        <View style={styles.previewBackdrop}>
+          <View style={styles.previewContent}>
+            <View style={styles.previewHeader}>
+              <Text style={styles.previewCounter} numberOfLines={1}>
+                {pdfName || ""}
+              </Text>
+              <TouchableOpacity onPress={closePdf} style={styles.previewClose}>
+                <Text
+                  style={{ color: "#fff", fontWeight: "800", fontSize: 18 }}
+                >
+                  ✕
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ flex: 1 }}>
+              {WebViewComp && pdfUri ? (
+                <WebViewComp
+                  source={
+                    isRemoteHttp(pdfUri)
+                      ? { uri: pdfUri } // http/https
+                      : Platform.OS === "android"
+                      ? { uri: `file://${pdfUri.replace(/^file:\/\//, "")}` }
+                      : { uri: pdfUri }
+                  }
+                  style={{ flex: 1 }}
+                  originWhitelist={["*"]}
+                  allowFileAccess
+                  allowUniversalAccessFromFileURLs
+                  mixedContentMode="always" // ให้ Android โหลด http ได้
+                />
+              ) : pdfUri ? (
+                <View
+                  style={{
+                    flex: 1,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: 24,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#fff",
+                      textAlign: "center",
+                      marginBottom: 12,
+                    }}
+                  >
+                    โปรเจกต์ยังไม่ได้ติดตั้ง react-native-webview{"\n"}
+                    จะเปิดภายนอกแทน
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() =>
+                      Linking.openURL(pdfUri!).catch(() =>
+                        Alert.alert(
+                          "เปิดไฟล์ไม่ได้",
+                          "ไม่สามารถเปิดด้วยแอปภายนอก"
+                        )
+                      )
+                    }
+                    style={[
+                      styles.previewClose,
+                      { backgroundColor: "rgba(255,255,255,0.15)" },
+                    ]}
+                  >
+                    <Text style={{ color: "#fff" }}>เปิดภายนอก</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View
+                  style={{
+                    flex: 1,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text style={{ color: "#fff" }}>ไม่มีไฟล์ PDF</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { gap: 12 },
-  row: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 16,
+  },
   btn: {
-    backgroundColor: "#0ea5e9",
+    backgroundColor: theme.mainApp,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    borderRadius: 10,
+    borderRadius: 8,
   },
   uploadBtn: { backgroundColor: "#16a34a" },
-  btnText: { color: "#fff", fontWeight: "700" },
+
+  btnText: { color: "#fff", fontWeight: "700", ...theme.setFont, fontSize: 12 },
 
   card: {
     padding: 10,
@@ -479,4 +710,73 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     minWidth: 160,
   },
+
+  // preview styles
+  previewBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.85)",
+  },
+  previewContent: {
+    flex: 1,
+    paddingTop: 40,
+    paddingBottom: 32,
+  },
+  previewHeader: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    height: 56 + 24,
+  },
+  previewCounter: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+  previewClose: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255, 0, 0, 1)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 12,
+  },
+
+  // single image + nav
+  singleImageWrap: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 56 + 24, // เผื่อหัว
+    marginBottom: 16,
+  },
+  navBtn: {
+    position: "absolute",
+    top: "50%",
+    marginTop: -24,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "rgba(0, 0, 0, 0.21)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  navLeft: { left: 12 },
+  navRight: { right: 12 },
+  navBtnText: { color: "#fff", fontSize: 28, fontWeight: "700" },
+  navBtnDisabled: { opacity: 0.4 },
+
+  previewName: {
+    color: "#ddd",
+    fontSize: 12,
+    textAlign: "center",
+  },
 });
+
+export default forwardRef<UploadPickerHandle, Props>(UploadPicker);
