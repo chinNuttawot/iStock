@@ -13,12 +13,12 @@ import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
 import { Divider } from "react-native-elements";
@@ -96,14 +96,14 @@ export default function CreateDocumentTransferScreen() {
     const dataView = {
       id: list.uuid,
       docNo: list.productCode,
-      model: list.selectedModel,
+      model: list.model,
       qtyReceived: null,
       qtyShipped: null,
       isDelete: false,
       details: [
-        { label: "รหัสแบบ", value: list.selectedModel || "-" },
+        { label: "รหัสแบบ", value: list.model || "-" },
         { label: "คงเหลือ", value: stockQty.toString() || "-" },
-        { label: "จำนวนสินค้า", value: list.orderQty || "-" },
+        { label: "จำนวนสินค้า", value: list.quantity || "-" },
         { label: "Serial No", value: list.serialNo || "-" },
         { label: "หมายเหตุ", value: list.remark || "-" },
       ],

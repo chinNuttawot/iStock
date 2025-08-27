@@ -9,43 +9,60 @@ import { AddItemProduct } from "@/providers/Modal/AddItemProduct/indx";
 import { Modeloption } from "@/providers/Modal/Model";
 import { theme } from "@/providers/Theme";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 
+import { emitter, filterCreateDocumentScanOut } from "@/common/emitter";
 import {
+  binCodesByLocationService,
+  createDocumentSaveService,
+  createDocumentService,
+  getProfile,
+} from "@/service";
+import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
 import { Divider } from "react-native-elements";
 import { RenderGoBackItem } from "../Detail";
 
+export function formatThaiDate(date: Date): string {
+  const d = date.getDate().toString().padStart(2, "0");
+  const m = (date.getMonth() + 1).toString().padStart(2, "0");
+  const y = (date.getFullYear() + 543).toString(); // ✅ แปลงเป็น พ.ศ.
+  return `${d}/${m}/${y}`;
+}
+
 export default function CreateDocumentScreen() {
   const navigation = useNavigation<any>();
   const [docNo, setDocumentNo] = useState("");
-  const [documentDate, setDocumentDate] = useState("");
+  const [stockOutDate, setStockOutDate] = useState(formatThaiDate(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [mainWarehouse, setMainWarehouse] = useState("");
-  const [subWarehouse, setSubWarehouse] = useState("");
+  const [locationCode, setLocationCode] = useState("");
+  const [binCode, setBinCode] = useState("");
+  const [dataBinCodes, setDataBinCodes] = useState([]);
   const [remark, setRemark] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isload, setIsload] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [editProducts, setEditProducts] = useState<any>({});
   const [viewMode, setViewMode] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
+  const [modelOptions, setModelOptions] = useState<any[]>([]);
+  const [initData, setInitData] = useState({});
+  const [productCode, setProductCode] = useState("");
+  const route = useRoute();
+  const { menuId } = route.params as { menuId: number };
   const stockQty = 99;
-  const isValid =
-    docNo !== "" &&
-    documentDate !== "" &&
-    mainWarehouse !== "" &&
-    subWarehouse !== "" &&
-    products.length > 0;
+  const isValid = products.length > 0;
 
   const optionModalComponent: Modeloption = {
     change: { label: "ลบ", color: theme.red },
@@ -56,6 +73,42 @@ export default function CreateDocumentScreen() {
   };
 
   useEffect(() => {
+    getCreateDocument();
+  }, []);
+
+  useEffect(() => {
+    const onFilterChanged = ({ docNo: itemNo }: any) => {
+      if (!itemNo) {
+        Alert.alert("เกิดขอผิดพลาด", "ไม่มีรหัสสินค้า");
+        return;
+      }
+      setProductCode(itemNo);
+      setModelOptions([{ key: "VR000", value: "VR000" }]);
+      setShowAddModal(true);
+    };
+    emitter.on(filterCreateDocumentScanOut, onFilterChanged);
+    return () => emitter.off(filterCreateDocumentScanOut, onFilterChanged);
+  }, []);
+
+  const getCreateDocument = async () => {
+    try {
+      const profile = (await getProfile()) as any;
+      const menuIdNum = Number(menuId);
+      const { data } = await createDocumentService({
+        menuId: menuIdNum,
+      });
+      setInitData(data);
+      setDocumentNo(data.docNo);
+      setLocationCode(profile.branchCode);
+      const { data: dataBinCodesByLocationService } =
+        await binCodesByLocationService({
+          locationCode: profile.branchCode,
+        });
+      setDataBinCodes(dataBinCodesByLocationService);
+    } catch (err) {}
+  };
+
+  useEffect(() => {
     const isEmptyObject = Object.keys(editProducts).length === 0;
     if (!isEmptyObject) {
       setShowAddModal(true);
@@ -63,19 +116,36 @@ export default function CreateDocumentScreen() {
   }, [editProducts]);
 
   const handleAddProduct = () => {
-    setShowAddModal(true);
+    navigation.navigate("Filter", {
+      ScanName: "รหัสสินค้า",
+      showFilterDate: false,
+      showFilterStatus: false,
+      showFilterReset: false,
+      textSearch: "ถัดไป",
+    });
   };
 
-  const handleSave = () => {
-    console.log("📄 Saved:", {
-      docNo,
-      documentDate,
-      mainWarehouse,
-      subWarehouse,
-      remark,
-      products,
-    });
-    navigation.goBack();
+  const handleSave = async () => {
+    try {
+      setIsload(true);
+      const profile = (await getProfile()) as any;
+      const param = {
+        ...initData,
+        docNo,
+        stockOutDate,
+        createdBy: profile.userName,
+        locationCode,
+        binCode,
+        remark,
+        products,
+      };
+      await createDocumentSaveService(param);
+      navigation.goBack();
+    } catch (err) {
+      Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
+    } finally {
+      setIsload(false);
+    }
   };
   const mainGoBack = (_open: boolean) => {
     setIsOpen(false);
@@ -90,14 +160,14 @@ export default function CreateDocumentScreen() {
     const dataView = {
       id: list.uuid,
       docNo: list.productCode,
-      model: list.selectedModel,
+      model: list.model,
       qtyReceived: null,
       qtyShipped: null,
       isDelete: false,
       details: [
-        { label: "รหัสแบบ", value: list.selectedModel || "-" },
+        { label: "รหัสแบบ", value: list.model || "-" },
         { label: "คงเหลือ", value: stockQty.toString() || "-" },
-        { label: "จำนวนสินค้า", value: list.orderQty || "-" },
+        { label: "จำนวนสินค้า", value: list.quantity || "-" },
         { label: "Serial No", value: list.serialNo || "-" },
         { label: "หมายเหตุ", value: list.remark || "-" },
       ],
@@ -108,8 +178,11 @@ export default function CreateDocumentScreen() {
       : [...viewMode, dataView];
     setViewMode(updatedViewMode);
     const updatedProducts = products.some((item) => item.uuid === list.uuid)
-      ? products.map((item) => (item.uuid === list.uuid ? list : item))
-      : [...products, list];
+      ? products.map((item) =>
+          item.uuid === list.uuid ? { ...list, docNo: docNo } : item
+        )
+      : [...products, { ...list, docNo: docNo }];
+
     setProducts(updatedProducts);
   };
 
@@ -149,8 +222,8 @@ export default function CreateDocumentScreen() {
           setShowAddModal(false);
         }}
         onSave={onSaveList}
-        productCode="50TH01475"
-        modelOptions={[{ key: "VR000", value: "VR000" }]}
+        productCode={productCode}
+        modelOptions={modelOptions}
         stockQty={stockQty}
         value={editProducts}
       />
@@ -159,7 +232,7 @@ export default function CreateDocumentScreen() {
           value={selectedDate}
           onConfirm={(date) => {
             setSelectedDate(date);
-            setDocumentDate(
+            setStockOutDate(
               date.toLocaleDateString("th-TH", {
                 year: "numeric",
                 month: "2-digit",
@@ -183,6 +256,7 @@ export default function CreateDocumentScreen() {
           <View style={[styles.flex1, { marginRight: 16 }]}>
             <Text style={styles.label}>เลขที่เอกสาร</Text>
             <TextInput
+              editable={false}
               style={styles.input}
               value={docNo}
               onChangeText={setDocumentNo}
@@ -195,7 +269,7 @@ export default function CreateDocumentScreen() {
             <View style={styles.inputWrapper}>
               <TextInput
                 style={[styles.input, { flex: 1 }]}
-                value={documentDate}
+                value={stockOutDate}
                 editable={false}
                 placeholder=""
                 placeholderTextColor={theme.border}
@@ -214,9 +288,10 @@ export default function CreateDocumentScreen() {
           <View style={[styles.flex1, { marginRight: 16 }]}>
             <Text style={styles.label}>รหัสคลังหลัก</Text>
             <TextInput
+              editable={false}
               style={styles.input}
-              value={mainWarehouse}
-              onChangeText={setMainWarehouse}
+              value={locationCode}
+              onChangeText={setLocationCode}
               placeholder=""
               placeholderTextColor={theme.border}
             />
@@ -224,14 +299,14 @@ export default function CreateDocumentScreen() {
           <View style={styles.flex1}>
             <Text style={styles.label}>รหัสคลังย่อย</Text>
             <SelectList
-              setSelected={setSubWarehouse}
-              data={[{ key: "ABC-123", value: "ABC-123" }]}
+              setSelected={setBinCode}
+              data={dataBinCodes}
               boxStyles={styles.selectBox}
               dropdownStyles={{ borderColor: theme.gray }}
               search={false}
               placeholder="Select"
               save="key"
-              defaultOption={{ key: subWarehouse, value: subWarehouse }}
+              defaultOption={{ key: binCode, value: binCode }}
             />
           </View>
         </View>
@@ -283,7 +358,12 @@ export default function CreateDocumentScreen() {
           ))}
       </ScrollView>
       <View style={{ padding: 16, marginBottom: 16 }}>
-        <CustomButton label="บันทึก" onPress={handleSave} disabled={!isValid} />
+        <CustomButton
+          label="บันทึก"
+          onPress={handleSave}
+          disabled={!isValid}
+          isload={isload}
+        />
       </View>
     </View>
   );

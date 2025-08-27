@@ -1,8 +1,8 @@
 export interface AddItemProduct {
-  orderQty: string;
+  quantity: string;
   productCode: string;
   remark: string;
-  selectedModel: string;
+  model: string;
   serialNo: string;
   uuid: string;
 }

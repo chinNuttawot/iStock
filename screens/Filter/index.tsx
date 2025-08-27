@@ -2,6 +2,7 @@ import {
   emitter,
   filterApprove,
   filterApproveDetail,
+  filterCreateDocumentScanOut,
   filterScanIn,
   filterScanInDetail,
   filterScanOut,
@@ -57,15 +58,19 @@ export default function FilterScreen() {
     showFilterDoc = true,
     showFilterDate = true,
     showFilterStatus = true,
+    showFilterReset = true,
     ScanName = "เลขที่เอกสาร",
     statusName = "สถานะเอกสาร",
+    textSearch = "ค้นหา",
   } = route.params as {
     filter: any;
     showFilterDoc: boolean;
     showFilterDate: boolean;
     showFilterStatus: boolean;
+    showFilterReset: boolean;
     ScanName?: string;
     statusName?: string;
+    textSearch?: string;
   };
 
   useEffect(() => {
@@ -129,6 +134,9 @@ export default function FilterScreen() {
         break;
       case "ScanOutDetail":
         dataToscreen = filterScanOutDetail;
+        break;
+      case "CreateDocumentScanOut":
+        dataToscreen = filterCreateDocumentScanOut;
         break;
     }
     emitter.emit(dataToscreen, item);
@@ -221,13 +229,18 @@ export default function FilterScreen() {
           </View>
         )}
 
-        <TouchableOpacity style={styles.resetButton} onPress={resetFilterForm}>
-          <Ionicons name="refresh-outline" size={20} color={theme.black} />
-          <Text style={{ marginLeft: 4 }}>reset</Text>
-        </TouchableOpacity>
+        {showFilterReset && (
+          <TouchableOpacity
+            style={styles.resetButton}
+            onPress={resetFilterForm}
+          >
+            <Ionicons name="refresh-outline" size={20} color={theme.black} />
+            <Text style={{ marginLeft: 4 }}>reset</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
       <View style={{ padding: 16, marginBottom: 16 }}>
-        <CustomButton label="ค้นหา" onPress={onSearch} />
+        <CustomButton label={textSearch} onPress={onSearch} />
       </View>
       {showDatePicker && (
         <CustomDatePicker

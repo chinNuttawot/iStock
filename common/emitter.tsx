@@ -26,3 +26,5 @@ export const filterTransactionHistoryDetail =
 //Approve
 export const filterApprove = "on-filter-Approve";
 export const filterApproveDetail = "on-filter-Approve-detail";
+
+export const filterCreateDocumentScanOut = "on-Create-Document-ScanOut";

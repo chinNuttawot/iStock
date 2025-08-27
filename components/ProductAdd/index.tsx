@@ -32,16 +32,16 @@ const ProductAddModalComponent = ({
   stockQty,
   value,
 }: Props) => {
-  const [selectedModel, setSelectedModel] = useState("");
-  const [orderQty, setOrderQty] = useState("");
+  const [model, setModel] = useState("");
+  const [quantity, setQuantity] = useState("");
   const [serialNo, setSerialNo] = useState("");
   const [remark, setRemark] = useState("");
 
   useEffect(() => {
     const isEmptyObject = Object.keys(value).length === 0;
     if (!isEmptyObject) {
-      setOrderQty(value.orderQty);
-      setSelectedModel(value.selectedModel);
+      setQuantity(value.quantity);
+      setModel(value.model);
       setSerialNo(value.serialNo);
       setRemark(value.remark);
     }
@@ -52,8 +52,8 @@ const ProductAddModalComponent = ({
     if (isEmptyObject) {
       onSave({
         productCode,
-        selectedModel,
-        orderQty,
+        model,
+        quantity,
         serialNo,
         remark,
         uuid: uuid.v4(),
@@ -61,8 +61,8 @@ const ProductAddModalComponent = ({
     } else {
       onSave({
         productCode,
-        selectedModel,
-        orderQty,
+        model,
+        quantity,
         serialNo,
         remark,
         uuid: value?.uuid,
@@ -78,8 +78,8 @@ const ProductAddModalComponent = ({
   };
 
   const resetState = () => {
-    setSelectedModel("");
-    setOrderQty("");
+    setModel("");
+    setQuantity("");
     setSerialNo("");
     setRemark("");
   };
@@ -103,7 +103,7 @@ const ProductAddModalComponent = ({
             <Text style={styles.label}>รหัสแบบ</Text>
             <View style={{ flex: 1 }}>
               <SelectList
-                setSelected={setSelectedModel}
+                setSelected={setModel}
                 data={modelOptions}
                 boxStyles={styles.selectBox}
                 dropdownStyles={{ borderColor: theme.gray }}
@@ -124,8 +124,8 @@ const ProductAddModalComponent = ({
           <Text style={styles.textLink}>จำนวนสินค้า</Text>
           <TextInput
             style={styles.input}
-            value={orderQty}
-            onChangeText={setOrderQty}
+            value={quantity}
+            onChangeText={setQuantity}
             keyboardType="numeric"
           />
 
@@ -151,7 +151,7 @@ const ProductAddModalComponent = ({
             label="บันทึก"
             onPress={handleSave}
             disabled={
-              selectedModel === "" || orderQty === "" || serialNo === ""
+              model === "" || quantity === "" || serialNo === ""
             }
           />
         </View>

@@ -57,7 +57,6 @@ export default function ScanOutScreen() {
         menuId: menuIdNum,
         branchCode: profile?.branchCode as string,
       });
-
       setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
     } catch (err: any) {
       setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
@@ -122,7 +121,7 @@ export default function ScanOutScreen() {
   );
 
   const goToCreateDocument = useCallback(() => {
-    navigation.navigate("CreateDocumentScanOut");
+    navigation.navigate("CreateDocumentScanOut", { menuId: 1 });
   }, [navigation]);
 
   return (
@@ -197,13 +196,13 @@ export default function ScanOutScreen() {
               {cardData.map((card) => (
                 <ScanCard
                   key={card.id}
-                  id={card.id}
+                  id={card.docNo}
                   docNo={card.docNo}
                   status={card.status as StatusType}
                   details={card.details}
                   selectedIds={selectedIds}
-                  isSelected={selectedIds.includes(card.id)}
-                  isExpanded={expandedIds.includes(card.id)}
+                  isSelected={selectedIds.includes(card.docNo)}
+                  isExpanded={expandedIds.includes(card.docNo)}
                   onSelect={toggleSelect}
                   onExpand={toggleExpand}
                   goTo={() => goToDetail(card)}
