@@ -6,10 +6,10 @@ import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { Modeloption } from "@/providers/Modal/Model";
 import { theme } from "@/providers/Theme";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { cardDetailIStockListService } from "@/service";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useRef, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { styles } from "./styles";
 
 export const RenderGoBackItem = (
@@ -19,51 +19,6 @@ export const RenderGoBackItem = (
     </Text>
   </View>
 );
-
-export const _productData: ProductItem[] = [
-  {
-    id: "1",
-    docNo: "5OTH01475",
-    model: "VR001",
-    qtyReceived: null,
-    qtyShipped: null,
-    isDelete: false,
-    details: [
-      { label: "รุ่น", value: "VR000" },
-      { label: "หมายเหตุ", value: "ของเล่น ลาโพงน้องหมา M10" },
-      { label: "คงเหลือ", value: "10" },
-    ],
-    image: "https://picsum.photos/seed/shirt/100/100",
-  },
-  {
-    id: "2",
-    docNo: "5OTH01475",
-    model: "VR001",
-    qtyReceived: null,
-    qtyShipped: null,
-    isDelete: false,
-    details: [
-      { label: "รุ่น", value: "VR001" },
-      { label: "หมายเหตุ", value: "ของเล่น น้องแมว M20" },
-      { label: "คงเหลือ", value: "10" },
-    ],
-    image: "https://picsum.photos/seed/shirt/100/100",
-  },
-  {
-    id: "3",
-    docNo: "5OTH01475",
-    model: "VR002",
-    qtyReceived: null,
-    qtyShipped: null,
-    isDelete: false,
-    details: [
-      { label: "รุ่น", value: "VR002" },
-      { label: "หมายเหตุ", value: "ของเล่น น้องกระต่าย M30" },
-      { label: "คงเหลือ", value: "10" },
-    ],
-    image: "https://picsum.photos/seed/shirt/100/100",
-  },
-];
 
 export default function ScanOutDetailScreen() {
   const optionModalComponent: Modeloption = {
@@ -79,7 +34,7 @@ export default function ScanOutDetailScreen() {
   const { docNo } = route.params as { docNo: string };
 
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
-  const [productData, setProductData] = useState<ProductItem[]>(_productData);
+  const [productData, setProductData] = useState<ProductItem[]>([]);
   const [filter, setFilter] = useState<any>({});
 
   // ✅ ใช้ Confirm modal เดียว
@@ -96,6 +51,16 @@ export default function ScanOutDetailScreen() {
     return () => emitter.off(filterScanOutDetail, onFilterChanged);
   }, []);
 
+  useEffect(() => {
+    getDataDetail();
+  }, []);
+
+  const getDataDetail = async () => {
+    try {
+      const { data } = await cardDetailIStockListService({ docNo, menuId: 1 });
+      setProductData(data);
+    } catch (err) {}
+  };
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
@@ -185,15 +150,15 @@ export default function ScanOutDetailScreen() {
         hideGoback={false}
         title={docNo}
         onGoBack={onGoBack}
-        IconComponent={[
-          <TouchableOpacity key="filter" onPress={openFilter}>
-            <MaterialCommunityIcons
-              name={filter?.isFilter ? "filter-check" : "filter"}
-              size={30}
-              color="white"
-            />
-          </TouchableOpacity>,
-        ]}
+        // IconComponent={[
+        //   <TouchableOpacity key="filter" onPress={openFilter}>
+        //     <MaterialCommunityIcons
+        //       name={filter?.isFilter ? "filter-check" : "filter"}
+        //       size={30}
+        //       color="white"
+        //     />
+        //   </TouchableOpacity>,
+        // ]}
       />
 
       <ScrollView contentContainerStyle={styles.content}>

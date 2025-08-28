@@ -1,4 +1,4 @@
-import { emitter, filterTransfer } from "@/common/emitter";
+import { emitter, filterTransfer, getDataTransfer } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
@@ -6,8 +6,10 @@ import EmptyState from "@/components/State/EmptyState";
 import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
 import { theme } from "@/providers/Theme";
+import { cardListIStockService } from "@/service";
+import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   RefreshControl,
@@ -47,7 +49,8 @@ const mockCardData: TransferCardModel[] = [
 
 export default function TransferScreen() {
   const navigation = useNavigation<any>();
-
+  const route = useRoute<any>();
+  const { menuId }: RouteParams = route.params || {};
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<any>({});
@@ -66,21 +69,32 @@ export default function TransferScreen() {
     return () => emitter.off(filterTransfer, onFilterChanged);
   }, []);
 
+  useEffect(() => {
+    const onFilterChanged = (data: any) => {
+      fetchData();
+    };
+    emitter.on(getDataTransfer, onFilterChanged);
+    return () => emitter.off(getDataTransfer, onFilterChanged);
+  }, []);
+
   // โหลดข้อมูล (ตอนนี้ดึง mock; ภายหลังสลับเป็น service ได้)
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      // TODO: เรียก service จริง
-      await new Promise((r) => setTimeout(r, 300)); // จำลองโหลด
-      setCardData(mockCardData);
+      const menuIdNum = Number(menuId);
+      if (Number.isNaN(menuIdNum)) throw new Error("menuId ไม่ถูกต้อง");
+      const { data } = await cardListIStockService({
+        menuId: menuIdNum,
+      });
+      setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
     } catch (err: any) {
       setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
       setCardData([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [menuId]);
 
   useEffect(() => {
     setSelectedIds([]);
@@ -118,7 +132,11 @@ export default function TransferScreen() {
   const handleSelectAll = useCallback(() => {
     if (cardData.length === 0) return;
     setSelectedIds((prev) =>
-      prev.length === cardData.length ? [] : cardData.map((i) => i.id)
+      prev.length === cardData.length
+        ? []
+        : cardData
+            .filter((item) => item.status === "Open")
+            .map((item) => item.docNo)
     );
   }, [cardData]);
 
@@ -129,13 +147,13 @@ export default function TransferScreen() {
 
   const goToDetail = useCallback(
     (card: TransferCardModel) => {
-      navigation.navigate("TransferDetail", { docNo: card.docNo });
+      navigation.navigate("TransferDetail", { docNo: card.docNo, menuId: 2 });
     },
     [navigation]
   );
 
   const goToCreateDocument = useCallback(() => {
-    navigation.navigate("CreateDocumentTransfer");
+    navigation.navigate("CreateDocumentTransfer", { menuId: 2 });
   }, [navigation]);
 
   return (
@@ -181,7 +199,7 @@ export default function TransferScreen() {
           <EmptyState
             title="ไม่พบรายการ"
             subtitle="ลองปรับตัวกรอง หรือแตะปุ่มด้านล่างเพื่อรีโหลดข้อมูล"
-            icon="file-transfer-outline"
+            icon="file-search-outline"
             color={textGray}
             actionLabel="รีโหลด"
             onAction={fetchData}
@@ -215,8 +233,8 @@ export default function TransferScreen() {
                   status={card.status as StatusType}
                   details={card.details}
                   selectedIds={selectedIds}
-                  isSelected={selectedIds.includes(card.id)}
-                  isExpanded={expandedIds.includes(card.id)}
+                  isSelected={selectedIds.includes(card.docNo)}
+                  isExpanded={expandedIds.includes(card.docNo)}
                   onSelect={toggleSelect}
                   onExpand={toggleExpand}
                   goTo={() => goToDetail(card)}

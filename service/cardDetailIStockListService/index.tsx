@@ -3,21 +3,20 @@ import { StorageUtility } from "@/providers/storageUtility";
 import api from "../apiCore";
 
 interface paramsModel {
-  locationCodeFrom: string;
+  menuId: number;
+  docNo: string;
 }
 
-export const binCodesByLocationService = async (params: paramsModel) => {
+export const cardDetailIStockListService = async (params: paramsModel) => {
   try {
     const token = await StorageUtility.get(authToken);
-    const { locationCodeFrom } = params;
-    const response = await api.get(
-      `api/BinCodesByLocation?locationCodeFrom=${locationCodeFrom}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const { docNo, ...newParmas } = params;
+    const response = await api.get(`api/documents/${docNo}/products`, {
+      params: newParmas,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     return response.data;
   } catch (error: any) {

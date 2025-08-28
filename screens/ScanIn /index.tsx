@@ -1,5 +1,5 @@
 // screens/ScanInScreen.tsx
-import { emitter, filterScanIn } from "@/common/emitter";
+import { emitter, filterScanIn, getDataScanIn } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
@@ -100,6 +100,14 @@ export default function ScanInScreen() {
     };
   }, []);
 
+  useEffect(() => {
+    const onFilterChanged = (data: any) => {
+      fetchData();
+    };
+    emitter.on(getDataScanIn, onFilterChanged);
+    return () => emitter.off(getDataScanIn, onFilterChanged);
+  }, []);
+
   // ป้องกันพังเมื่อ cardData ยังโหลดไม่เสร็จ
   const totalItems = cardData.length;
   const allSelected = useMemo(
@@ -122,7 +130,11 @@ export default function ScanInScreen() {
   const handleSelectAll = useCallback(() => {
     if (cardData.length === 0) return;
     setSelectedIds((prev) =>
-      prev.length === cardData.length ? [] : cardData.map((item) => item.id)
+      prev.length === cardData.length
+        ? []
+        : cardData
+            .filter((item) => item.status === "Open")
+            .map((item) => item.docNo)
     );
   }, [cardData]);
 
@@ -133,7 +145,7 @@ export default function ScanInScreen() {
 
   const goToDetail = useCallback(
     (item: CardListModel) => {
-      navigation.navigate("ScanInDetail", { docNo: item.docNo });
+      navigation.navigate("ScanInDetail", { docNo: item.docNo, menuId: 0 });
     },
     [navigation]
   );
@@ -234,6 +246,7 @@ export default function ScanInScreen() {
                   remark={null}
                   docNo={card.docNo}
                   status={card.status as StatusType}
+                  hideSelectedIds={card.status !== "Open"}
                   details={card.details}
                   selectedIds={selectedIds}
                   isSelected={selectedIds.includes(card.docNo)}

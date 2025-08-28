@@ -12,7 +12,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 
-import { emitter, filterCreateDocumentScanOut } from "@/common/emitter";
+import {
+  emitter,
+  filterCreateDocumentScanOut,
+  getDataScanOut,
+} from "@/common/emitter";
 import {
   binCodesByLocationService,
   createDocumentSaveService,
@@ -44,8 +48,8 @@ export default function CreateDocumentScreen() {
   const [docNo, setDocumentNo] = useState("");
   const [stockOutDate, setStockOutDate] = useState(formatThaiDate(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [locationCode, setLocationCode] = useState("");
-  const [binCode, setBinCode] = useState("");
+  const [locationCodeFrom, setLocationCodeFrom] = useState("");
+  const [binCodeFrom, setBinCodeFrom] = useState("");
   const [dataBinCodes, setDataBinCodes] = useState([]);
   const [remark, setRemark] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -99,10 +103,10 @@ export default function CreateDocumentScreen() {
       });
       setInitData(data);
       setDocumentNo(data.docNo);
-      setLocationCode(profile.branchCode);
+      setLocationCodeFrom(profile.branchCode);
       const { data: dataBinCodesByLocationService } =
         await binCodesByLocationService({
-          locationCode: profile.branchCode,
+          locationCodeFrom: profile.branchCode,
         });
       setDataBinCodes(dataBinCodesByLocationService);
     } catch (err) {}
@@ -134,13 +138,14 @@ export default function CreateDocumentScreen() {
         docNo,
         stockOutDate,
         createdBy: profile.userName,
-        locationCode,
-        binCode,
+        locationCodeFrom,
+        binCodeFrom,
         remark,
         products,
       };
       await createDocumentSaveService(param);
       navigation.goBack();
+      emitter.emit(getDataScanOut, menuId);
     } catch (err) {
       Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {
@@ -290,8 +295,8 @@ export default function CreateDocumentScreen() {
             <TextInput
               editable={false}
               style={styles.input}
-              value={locationCode}
-              onChangeText={setLocationCode}
+              value={locationCodeFrom}
+              onChangeText={setLocationCodeFrom}
               placeholder=""
               placeholderTextColor={theme.border}
             />
@@ -299,14 +304,14 @@ export default function CreateDocumentScreen() {
           <View style={styles.flex1}>
             <Text style={styles.label}>รหัสคลังย่อย</Text>
             <SelectList
-              setSelected={setBinCode}
+              setSelected={setBinCodeFrom}
               data={dataBinCodes}
               boxStyles={styles.selectBox}
               dropdownStyles={{ borderColor: theme.gray }}
-              search={false}
+              search={true}
               placeholder="Select"
               save="key"
-              defaultOption={{ key: binCode, value: binCode }}
+              defaultOption={{ key: binCodeFrom, value: binCodeFrom }}
             />
           </View>
         </View>

@@ -107,7 +107,7 @@ const ProductAddModalComponent = ({
                 data={modelOptions}
                 boxStyles={styles.selectBox}
                 dropdownStyles={{ borderColor: theme.gray }}
-                search={false}
+                search={true}
                 save="key"
                 placeholder="เลือก"
               />

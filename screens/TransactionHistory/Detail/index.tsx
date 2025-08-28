@@ -6,70 +6,12 @@ import QuantitySerialModal from "@/components/Modals/QuantitySerialModal";
 import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
-import { keyboardTypeNumber } from "@/screens/Register/register";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { cardDetailIStockListService } from "@/service";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { memo, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { styles } from "./styles";
-
-export const productData = [
-  {
-    id: "1",
-    docNo: "5OTH01475",
-    model: "VR001",
-    qtyReceived: 1,
-    qtyShipped: 5,
-    details: [
-      { label: "รุ่น", value: "VR000" },
-      {
-        label: "หมายเหตุ",
-        value: "ของเล่น ลาโพงน้องหมา M10",
-      },
-      { label: "จำนวนที่รับ", value: null },
-    ],
-    image: "https://picsum.photos/seed/shirt/100/100",
-  },
-  {
-    id: "2",
-    docNo: "5OTH01475",
-    model: "VR001",
-    qtyReceived: 0,
-    qtyShipped: 4,
-    details: [
-      { label: "รุ่น", value: "VR001" },
-      {
-        label: "หมายเหตุ",
-        value: "ของเล่น น้องแมว M20",
-      },
-      { label: "จำนวนที่รับ", value: null },
-    ],
-    image: "https://picsum.photos/seed/shirt/100/100",
-  },
-  {
-    id: "3",
-    docNo: "5OTH01475",
-    model: "VR002",
-    qtyReceived: 2,
-    qtyShipped: 5,
-    details: [
-      { label: "รุ่น", value: "VR002" },
-      {
-        label: "หมายเหตุ",
-        value: "ของเล่น น้องกระต่าย M30",
-      },
-      { label: "จำนวนที่รับ", value: null },
-    ],
-    image: "https://picsum.photos/seed/shirt/100/100",
-  },
-];
 
 export default function TransactionHistoryDetailScreen() {
   const [itemDetail, setItemDetail] = useState<{
@@ -84,7 +26,8 @@ export default function TransactionHistoryDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute();
   const scanInDetailForm = useForm();
-  const { docNo } = route.params as { docNo: string };
+  const { docNo, menuId } = route.params as { docNo: string; menuId: number };
+  const [productData, setProductData] = useState<ProductItem[]>([]);
 
   useEffect(() => {
     const onFilterChanged = (data: any) => {
@@ -96,6 +39,20 @@ export default function TransactionHistoryDetailScreen() {
       emitter.off(filterTransactionHistoryDetail, onFilterChanged);
     };
   }, []);
+
+  useEffect(() => {
+    getDataDetail();
+  }, []);
+
+  const getDataDetail = async () => {
+    try {
+      const { data } = await cardDetailIStockListService({
+        docNo,
+        menuId: menuId,
+      });
+      setProductData(data);
+    } catch (err) {}
+  };
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) =>
@@ -232,19 +189,15 @@ export default function TransactionHistoryDetailScreen() {
         colorIcon={theme.white}
         hideGoback={false}
         title={docNo}
-        IconComponent={[
-          <TouchableOpacity
-            onPress={() => {
-              openFilter();
-            }}
-          >
-            <MaterialCommunityIcons
-              name={filter?.isFilter ? "filter-check" : "filter"}
-              size={30}
-              color="white"
-            />
-          </TouchableOpacity>,
-        ]}
+        // IconComponent={[
+        //   <TouchableOpacity key="filter" onPress={openFilter}>
+        //     <MaterialCommunityIcons
+        //       name={filter?.isFilter ? "filter-check" : "filter"}
+        //       size={30}
+        //       color="white"
+        //     />
+        //   </TouchableOpacity>,
+        // ]}
       />
       <QuantitySerialModal
         isOpen={isOpen}
@@ -253,18 +206,21 @@ export default function TransactionHistoryDetailScreen() {
         form={scanInDetailForm}
         labelConfirm="ยืนยัน"
       />
-      {/* Header + Filter เดิม */}
       <ScrollView contentContainerStyle={styles.content}>
-        {productData.map((item) => (
-          <DetailCard
-            key={item.id}
-            data={item}
-            viewMode
-            isExpanded={expandedIds.includes(item.id)}
-            onToggle={() => toggleExpand(item.id)}
-            goTo={() => onShowDetail(item)}
-          />
-        ))}
+        {productData
+          .filter((v) => !v.isDelete)
+          .map((item) => (
+            <DetailCard
+              key={item.id}
+              data={item}
+              viewMode
+              isExpanded={expandedIds.includes(item.id)}
+              onToggle={() => toggleExpand(item.id)}
+              textGoTo="ลบ"
+              colorButton={theme.red}
+              goTo={() => onShowDetail(item)}
+            />
+          ))}
       </ScrollView>
     </View>
   );

@@ -1,4 +1,4 @@
-import { emitter, filterScanOut } from "@/common/emitter";
+import { emitter, filterScanOut, getDataScanOut } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
@@ -6,8 +6,7 @@ import EmptyState from "@/components/State/EmptyState";
 import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
 import { theme } from "@/providers/Theme";
-import { getProfile } from "@/service";
-import { cardListService } from "@/service/cardListService";
+import { cardListIStockService } from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -44,18 +43,23 @@ export default function ScanOutScreen() {
     return () => emitter.off(filterScanOut, onFilterChanged);
   }, []);
 
+  useEffect(() => {
+    const onFilterChanged = (data: any) => {
+      fetchData();
+    };
+    emitter.on(getDataScanOut, onFilterChanged);
+    return () => emitter.off(getDataScanOut, onFilterChanged);
+  }, []);
+
   // โหลดข้อมูล
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const profile = await getProfile();
       const menuIdNum = Number(menuId);
       if (Number.isNaN(menuIdNum)) throw new Error("menuId ไม่ถูกต้อง");
-
-      const { data } = await cardListService({
+      const { data } = await cardListIStockService({
         menuId: menuIdNum,
-        branchCode: profile?.branchCode as string,
       });
       setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
     } catch (err: any) {
@@ -104,7 +108,11 @@ export default function ScanOutScreen() {
   const handleSelectAll = useCallback(() => {
     if (cardData.length === 0) return;
     setSelectedIds((prev) =>
-      prev.length === cardData.length ? [] : cardData.map((i) => i.id)
+      prev.length === cardData.length
+        ? []
+        : cardData
+            .filter((item) => item.status === "Open")
+            .map((item) => item.docNo)
     );
   }, [cardData]);
 
@@ -115,7 +123,7 @@ export default function ScanOutScreen() {
 
   const goToDetail = useCallback(
     (card: CardListModel) => {
-      navigation.navigate("ScanOutDetail", { docNo: card.docNo });
+      navigation.navigate("ScanOutDetail", { docNo: card.docNo, menuId: 1 });
     },
     [navigation]
   );
@@ -198,6 +206,7 @@ export default function ScanOutScreen() {
                   key={card.id}
                   id={card.docNo}
                   docNo={card.docNo}
+                  hideSelectedIds={card.status !== "Open"}
                   status={card.status as StatusType}
                   details={card.details}
                   selectedIds={selectedIds}

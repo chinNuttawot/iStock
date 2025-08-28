@@ -1,3 +1,4 @@
+import { emitter, getDataTransfer } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import CustomButtons from "@/components/CustomButtons";
 import CustomDatePicker from "@/components/CustomDatePicker";
@@ -8,31 +9,50 @@ import ModalComponent from "@/providers/Modal";
 import { AddItemProduct } from "@/providers/Modal/AddItemProduct/indx";
 import { Modeloption } from "@/providers/Modal/Model";
 import { theme } from "@/providers/Theme";
-import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import React, { useEffect, useState } from "react";
-
+import { formatThaiDate } from "@/screens/ScanOut/CreateDocument";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  binCodesByLocationService,
+  createDocumentSaveService,
+  createDocumentService,
+  getProfile,
+  locationService,
+} from "@/service";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
 import { Divider } from "react-native-elements";
 import { RenderGoBackItem } from "../Detail";
 
+type CreateDocRes = { docNo: string };
+type OptionKV = { key: string; value: string };
+
 export default function CreateDocumentTransferScreen() {
   const navigation = useNavigation<any>();
+  const route = useRoute();
+  const { menuId } = route.params as { menuId: number };
   const [docNo, setDocumentNo] = useState("");
-  const [documentDate, setDocumentDate] = useState("");
+  const [stockOutDate, setStockOutDate] = useState(formatThaiDate(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [mainWarehouseFrom, setMainWarehouseFrom] = useState("");
-  const [subWarehouseFrom, setSubWarehouseFrom] = useState("");
-  const [mainWarehouseTo, setMainWarehouseTo] = useState("");
-  const [subWarehouseTo, setSubWarehouseTo] = useState("");
+  const [locationCodeFrom, setLocationCodeFrom] = useState("");
+  const [binCodeFrom, setBinCodeFrom] = useState("");
+  const [locationCodeTo, setLocationCodeTo] = useState("");
+  const [binCodeTo, setBinCodeTo] = useState("");
   const [remark, setRemark] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -41,56 +61,136 @@ export default function CreateDocumentTransferScreen() {
   const [viewMode, setViewMode] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
+  const [initData, setInitData] = useState<CreateDocRes | {}>({});
+  const [binCodesFrom, setBinCodesFrom] = useState<OptionKV[]>([]);
+  const [binCodesTo, setBinCodesTo] = useState<OptionKV[]>([]);
+  const [locationsTo, setLocationsTo] = useState<OptionKV[]>([]);
+  const [isload, setIsload] = useState(false);
   const stockQty = 99;
   const isValid =
-    docNo !== "" &&
-    documentDate !== "" &&
-    mainWarehouseFrom !== "" &&
-    subWarehouseFrom !== "" &&
-    mainWarehouseTo !== "" &&
-    subWarehouseTo !== "" &&
+    !!docNo &&
+    !!stockOutDate &&
+    !!locationCodeFrom &&
+    !!binCodeFrom &&
+    !!locationCodeTo &&
+    !!binCodeTo &&
     products.length > 0;
 
   const optionModalComponent: Modeloption = {
     change: { label: "ลบ", color: theme.red },
-    changeCancel: {
-      label: "แก้ไข",
-      color: theme.mainApp,
-    },
+    changeCancel: { label: "แก้ไข", color: theme.mainApp },
   };
+
+  // defaultOption ต้อง memo (อย่าสร้าง object สดใน JSX)
+  const defaultBinFrom = useMemo(
+    () => (binCodeFrom ? { key: binCodeFrom, value: binCodeFrom } : undefined),
+    [binCodeFrom]
+  );
+  const defaultLocTo = useMemo(
+    () =>
+      locationCodeTo
+        ? { key: locationCodeTo, value: locationCodeTo }
+        : undefined,
+    [locationCodeTo]
+  );
+  const defaultBinTo = useMemo(
+    () => (binCodeTo ? { key: binCodeTo, value: binCodeTo } : undefined),
+    [binCodeTo]
+  );
 
   useEffect(() => {
     const isEmptyObject = Object.keys(editProducts).length === 0;
-    if (!isEmptyObject) {
-      setShowAddModal(true);
-    }
+    if (!isEmptyObject) setShowAddModal(true);
   }, [editProducts]);
 
-  const handleAddProduct = () => {
-    setShowAddModal(true);
+  useLayoutEffect(() => {
+    if (locationCodeTo) {
+      getBinCode(locationCodeTo);
+    } else {
+      setBinCodeTo("");
+      setBinCodesTo([]);
+    }
+  }, [locationCodeTo]);
+
+  const getBinCode = async (locationCodeFrom: string) => {
+    try {
+      const { data } = await binCodesByLocationService({ locationCodeFrom });
+      setBinCodeTo("");
+      setBinCodesTo((data as OptionKV[]) || []);
+    } catch {}
   };
 
-  const handleSave = () => {
-    console.log("📄 Saved:", {
-      docNo,
-      documentDate,
-      mainWarehouseFrom,
-      subWarehouseFrom,
-      mainWarehouseTo,
-      subWarehouseTo,
-      remark,
-      products,
-    });
-    navigation.goBack();
+  const getCreateDocument = useCallback(async () => {
+    try {
+      const menuIdNum = Number(menuId);
+      if (!Number.isFinite(menuIdNum)) throw new Error("menuId is invalid");
+
+      const createDocPromise = createDocumentService({ menuId: menuIdNum });
+      const profilePromise = getProfile();
+
+      const profile: any = await profilePromise;
+      setLocationCodeFrom(profile?.branchCode || "");
+
+      const binCodesPromise = profile?.branchCode
+        ? binCodesByLocationService({ locationCodeFrom: profile.branchCode })
+        : Promise.resolve({ data: [] as OptionKV[] });
+
+      const locationPromise = locationService();
+
+      const [{ data: doc }, binRes, locRes] = await Promise.all([
+        createDocPromise,
+        binCodesPromise,
+        locationPromise,
+      ]);
+
+      setInitData(doc as CreateDocRes);
+      setDocumentNo((doc as CreateDocRes)?.docNo ?? "");
+
+      setBinCodesFrom((binRes?.data as OptionKV[]) ?? []);
+      setLocationsTo((locRes?.data as OptionKV[]) ?? []);
+    } catch (err: any) {
+      console.error("getCreateDocument error:", err?.message || err);
+    }
+  }, [menuId]);
+
+  useEffect(() => {
+    getCreateDocument();
+  }, [getCreateDocument]);
+
+  const handleAddProduct = () => setShowAddModal(true);
+
+  const handleSave = async () => {
+    try {
+      setIsload(true);
+      const profile = (await getProfile()) as any;
+      const param = {
+        ...initData,
+        docNo,
+        stockOutDate,
+        createdBy: profile.userName,
+        locationCodeFrom,
+        binCodeFrom,
+        locationCodeTo,
+        binCodeTo,
+        remark,
+        products,
+      };
+      await createDocumentSaveService(param);
+      navigation.goBack();
+      emitter.emit(getDataTransfer, menuId);
+    } catch (err) {
+      Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
+    } finally {
+      setIsload(false);
+    }
   };
+
   const mainGoBack = (_open: boolean) => {
     setIsOpen(false);
     navigation.goBack();
   };
 
-  const onBackdropPress = (isOpen: boolean) => {
-    setIsOpen(isOpen);
-  };
+  const onBackdropPress = (isOpen: boolean) => setIsOpen(isOpen);
 
   const onSaveList = (list: AddItemProduct) => {
     const dataView = {
@@ -109,14 +209,18 @@ export default function CreateDocumentTransferScreen() {
       ],
       image: "https://picsum.photos/seed/shirt/100/100",
     };
-    const updatedViewMode = viewMode.some((item) => item.id === dataView.id)
-      ? viewMode.map((item) => (item.id === dataView.id ? dataView : item))
-      : [...viewMode, dataView];
-    setViewMode(updatedViewMode);
-    const updatedProducts = products.some((item) => item.uuid === list.uuid)
-      ? products.map((item) => (item.uuid === list.uuid ? list : item))
-      : [...products, list];
-    setProducts(updatedProducts);
+
+    setViewMode((prev) =>
+      prev.some((item) => item.id === dataView.id)
+        ? prev.map((item) => (item.id === dataView.id ? dataView : item))
+        : [...prev, dataView]
+    );
+
+    setProducts((prev) =>
+      prev.some((item) => item.uuid === list.uuid)
+        ? prev.map((item) => (item.uuid === list.uuid ? list : item))
+        : [...prev, list]
+    );
   };
 
   const toggleExpand = (id: string) => {
@@ -126,84 +230,82 @@ export default function CreateDocumentTransferScreen() {
   };
 
   const onEditList = (id: string) => {
-    const editlist = products.filter((v) => v.uuid === id)[0];
-    setEditProducts(editlist);
+    const editlist = products.find((v) => v.uuid === id);
+    if (editlist) setEditProducts(editlist);
   };
 
   const onDeleteList = (id: string) => {
-    const updatedProducts = products.filter((item) => item.uuid !== id);
-    setProducts(updatedProducts);
-    const updatedViewMode = viewMode.filter((item) => item.id !== id);
-    setViewMode(updatedViewMode);
+    setProducts((prev) => prev.filter((item) => item.uuid !== id));
+    setViewMode((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const RenderFrom = () => {
-    return (
-      <View style={styles.mainInput}>
-        <Text style={styles.labelMainInput}>คลังต้นทาง</Text>
-        <View style={styles.rowWrapper}>
-          <View style={[styles.flex1, { marginRight: 16 }]}>
-            <Text style={styles.label}>รหัสคลังหลัก</Text>
-            <TextInput
-              style={styles.input}
-              value={mainWarehouseFrom}
-              onChangeText={setMainWarehouseFrom}
-              placeholder=""
-              placeholderTextColor={theme.border}
-            />
-          </View>
-          <View style={styles.flex1}>
-            <Text style={styles.label}>รหัสคลังย่อย</Text>
-            <SelectList
-              setSelected={setSubWarehouseFrom}
-              data={[{ key: "ABC-123", value: "ABC-123" }]}
-              boxStyles={styles.selectBox}
-              dropdownStyles={{ borderColor: theme.gray }}
-              search={false}
-              placeholder="Select"
-              save="key"
-              defaultOption={{ key: subWarehouseFrom, value: subWarehouseFrom }}
-            />
-          </View>
+  const RenderFrom = () => (
+    <View style={styles.mainInput}>
+      <Text style={styles.labelMainInput}>คลังต้นทาง</Text>
+      <View style={styles.rowWrapper}>
+        <View style={[styles.flex1, { marginRight: 16 }]}>
+          <Text style={styles.label}>รหัสคลังหลัก</Text>
+          <TextInput
+            editable={false}
+            style={styles.input}
+            value={locationCodeFrom}
+            onChangeText={setLocationCodeFrom}
+            placeholder=""
+            placeholderTextColor={theme.border}
+          />
+        </View>
+        <View style={styles.flex1}>
+          <Text style={styles.label}>รหัสคลังย่อย</Text>
+          <SelectList
+            setSelected={setBinCodeFrom}
+            data={binCodesFrom} // ✅ ใช้ตรง ๆ {key,value}
+            boxStyles={styles.selectBox}
+            dropdownStyles={{ borderColor: theme.gray }}
+            search={true}
+            placeholder="Select"
+            save="key"
+            defaultOption={defaultBinFrom} // ✅ memo แล้ว
+          />
         </View>
       </View>
-    );
-  };
+    </View>
+  );
 
-  const RenderTo = () => {
-    return (
-      <View style={styles.mainInput}>
-        <Text style={[styles.labelMainInput, { color: theme.error }]}>
-          คลังปลายทาง
-        </Text>
-        <View style={styles.rowWrapper}>
-          <View style={[styles.flex1, { marginRight: 16 }]}>
-            <Text style={styles.label}>รหัสคลังหลัก</Text>
-            <TextInput
-              style={styles.input}
-              value={mainWarehouseTo}
-              onChangeText={setMainWarehouseTo}
-              placeholder=""
-              placeholderTextColor={theme.border}
-            />
-          </View>
-          <View style={styles.flex1}>
-            <Text style={styles.label}>รหัสคลังย่อย</Text>
-            <SelectList
-              setSelected={setSubWarehouseTo}
-              data={[{ key: "ABC-123", value: "ABC-123" }]}
-              boxStyles={styles.selectBox}
-              dropdownStyles={{ borderColor: theme.gray }}
-              search={false}
-              placeholder="Select"
-              save="key"
-              defaultOption={{ key: subWarehouseTo, value: subWarehouseTo }}
-            />
-          </View>
+  const RenderTo = () => (
+    <View style={styles.mainInput}>
+      <Text style={[styles.labelMainInput, { color: theme.error }]}>
+        คลังปลายทาง
+      </Text>
+      <View style={styles.rowWrapper}>
+        <View style={[styles.flex1, { marginRight: 16 }]}>
+          <Text style={styles.label}>รหัสคลังหลัก</Text>
+          <SelectList
+            setSelected={setLocationCodeTo}
+            data={locationsTo} // ✅ ใช้ตรง ๆ {key,value}
+            boxStyles={styles.selectBox}
+            dropdownStyles={{ borderColor: theme.gray }}
+            search={true}
+            placeholder="Select"
+            save="key"
+            defaultOption={defaultLocTo} // ✅ memo แล้ว
+          />
+        </View>
+        <View style={styles.flex1}>
+          <Text style={styles.label}>รหัสคลังย่อย</Text>
+          <SelectList
+            setSelected={setBinCodeTo}
+            data={binCodesTo} // ✅ ใช้ตรง ๆ {key,value}
+            boxStyles={styles.selectBox}
+            dropdownStyles={{ borderColor: theme.gray }}
+            search={true}
+            placeholder="Select"
+            save="key"
+            defaultOption={defaultBinTo} // ✅ memo แล้ว
+          />
         </View>
       </View>
-    );
-  };
+    </View>
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.white }}>
@@ -233,7 +335,7 @@ export default function CreateDocumentTransferScreen() {
           value={selectedDate}
           onConfirm={(date) => {
             setSelectedDate(date);
-            setDocumentDate(
+            setStockOutDate(
               date.toLocaleDateString("th-TH", {
                 year: "numeric",
                 month: "2-digit",
@@ -265,11 +367,11 @@ export default function CreateDocumentTransferScreen() {
             />
           </View>
           <View style={styles.flex1}>
-            <Text style={styles.label}>วันที่ตัดสินค้า</Text>
+            <Text style={styles.label}>วันที่โอนย้าย</Text>
             <View style={styles.inputWrapper}>
               <TextInput
                 style={[styles.input, { flex: 1 }]}
-                value={documentDate}
+                value={stockOutDate}
                 editable={false}
                 placeholder=""
                 placeholderTextColor={theme.border}
@@ -318,15 +420,11 @@ export default function CreateDocumentTransferScreen() {
                 <View style={{ flexDirection: "row" }}>
                   <CustomButtons
                     {...optionModalComponent.changeCancel}
-                    onPress={() => {
-                      onEditList(item.id);
-                    }}
+                    onPress={() => onEditList(item.id)}
                   />
                   <CustomButtons
                     {...optionModalComponent.change}
-                    onPress={() => {
-                      onDeleteList(item.id);
-                    }}
+                    onPress={() => onDeleteList(item.id)}
                   />
                 </View>
               }
@@ -334,7 +432,12 @@ export default function CreateDocumentTransferScreen() {
           ))}
       </ScrollView>
       <View style={{ padding: 16, marginBottom: 16 }}>
-        <CustomButton label="บันทึก" onPress={handleSave} disabled={!isValid} />
+        <CustomButton
+          label="บันทึก"
+          onPress={handleSave}
+          disabled={!isValid}
+          isload={isload}
+        />
       </View>
     </View>
   );
@@ -356,12 +459,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 16,
   },
-  flex1: {
-    flex: 1,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
+  flex1: { flex: 1 },
+  inputGroup: { marginBottom: 16 },
   label: {
     ...theme.setFont,
     color: theme.mainApp,

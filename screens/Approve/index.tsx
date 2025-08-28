@@ -50,7 +50,7 @@ export default function ApproveScreen() {
   const [isOpenReject, setOpenReject] = useState(false);
   const [isOpenApprove, setOpenApprove] = useState(false);
   const [filter, setFilter] = useState<any>({});
-  const [data, setData] = useState<Card[]>([]);
+  const [cardData, setData] = useState<Card[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +93,7 @@ export default function ApproveScreen() {
     }
   }, [fetchData]);
 
-  const total = data.length;
+  const total = cardData.length;
   const allSelected = useMemo(
     () => total > 0 && selectedIds.length === total,
     [selectedIds.length, total]
@@ -111,11 +111,15 @@ export default function ApproveScreen() {
   }, []);
 
   const handleSelectAll = useCallback(() => {
-    if (data.length === 0) return;
+    if (cardData.length === 0) return;
     setSelectedIds((prev) =>
-      prev.length === data.length ? [] : data.map((i) => i.id)
+      prev.length === cardData.length
+        ? []
+        : cardData
+            .filter((item) => item.status === "Open")
+            .map((item) => item.docNo)
     );
-  }, [data]);
+  }, [cardData]);
 
   const openFilter = useCallback(() => {
     setSelectedIds([]);
@@ -248,14 +252,14 @@ export default function ApproveScreen() {
             >
               <TouchableOpacity
                 onPress={handleSelectAll}
-                disabled={data.length === 0}
+                disabled={cardData.length === 0}
               >
                 <Text style={styles.selectAllText}>
                   {allSelected ? "ยกเลิก" : "เลือกทั้งหมด"}
                 </Text>
               </TouchableOpacity>
 
-              {data.map((card) => (
+              {cardData.map((card) => (
                 <ScanCard
                   key={card.id}
                   id={card.id}

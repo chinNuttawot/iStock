@@ -9,7 +9,6 @@ import { theme } from "@/providers/Theme";
 import { keyboardTypeNumber } from "@/screens/Register/register";
 import { cardDetailListService } from "@/service";
 import { CardListModel } from "@/service/myInterface";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -17,8 +16,7 @@ import {
   ScrollView,
   Text,
   TextInput,
-  TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { styles } from "./styles";
 
@@ -210,19 +208,19 @@ export default function ScanInDetailScreen() {
         colorIcon={theme.white}
         hideGoback={false}
         title={docNo}
-        IconComponent={[
-          <TouchableOpacity
-            onPress={() => {
-              openFilter();
-            }}
-          >
-            <MaterialCommunityIcons
-              name={filter?.isFilter ? "filter-check" : "filter"}
-              size={30}
-              color="white"
-            />
-          </TouchableOpacity>,
-        ]}
+        // IconComponent={[
+        //   <TouchableOpacity
+        //     onPress={() => {
+        //       openFilter();
+        //     }}
+        //   >
+        //     <MaterialCommunityIcons
+        //       name={filter?.isFilter ? "filter-check" : "filter"}
+        //       size={30}
+        //       color="white"
+        //     />
+        //   </TouchableOpacity>,
+        // ]}
       />
       <QuantitySerialModal
         isOpen={isOpen}

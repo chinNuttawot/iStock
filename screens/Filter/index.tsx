@@ -3,6 +3,7 @@ import {
   filterApprove,
   filterApproveDetail,
   filterCreateDocumentScanOut,
+  filterCreateDocumentStockCheck,
   filterScanIn,
   filterScanInDetail,
   filterScanOut,
@@ -138,6 +139,9 @@ export default function FilterScreen() {
       case "CreateDocumentScanOut":
         dataToscreen = filterCreateDocumentScanOut;
         break;
+      case "CreateDocumentStockCheck":
+        dataToscreen = filterCreateDocumentStockCheck;
+        break;
     }
     emitter.emit(dataToscreen, item);
   };
@@ -221,7 +225,7 @@ export default function FilterScreen() {
                 backgroundColor: theme.background,
               }}
               dropdownStyles={{ borderColor: theme.gray }}
-              search={false}
+              search={true}
               placeholder="Select Status"
               save="key"
               defaultOption={statusOptions.find((s) => s.key === status)}

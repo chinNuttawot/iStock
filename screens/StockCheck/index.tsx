@@ -1,4 +1,4 @@
-import { emitter, filterStockCheck } from "@/common/emitter";
+import { emitter, filterStockCheck, getDataStockCheck } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
@@ -6,8 +6,10 @@ import EmptyState from "@/components/State/EmptyState";
 import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
 import { theme } from "@/providers/Theme";
+import { cardListIStockService } from "@/service";
+import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   RefreshControl,
@@ -26,26 +28,10 @@ type StockCardModel = {
   details: StockCardDetail[];
 };
 
-// === Mock data (สลับเป็น API จริงใน fetchData ได้) ===
-const mockCardData: StockCardModel[] = [
-  {
-    id: "1",
-    docNo: "GRI2506-0742",
-    status: "Open",
-    details: [
-      { label: "วันที่ส่งสินค้า", value: "23/06/2025" },
-      { label: "จัดทำโดย", value: "CHY" },
-      { label: "หมายเหตุ", value: "ตัดเบิกโอเปอร์ประชุม ผจก. เดือน มิ.ย.68" },
-    ],
-  },
-  { id: "2", docNo: "GRI2506-0742", status: "Approved", details: [] },
-  { id: "3", docNo: "GRI2506-0742", status: "Pending Approval", details: [] },
-  { id: "4", docNo: "GRI2506-0742", status: "Rejected", details: [] },
-];
-
 export default function StockCheckScreen() {
   const navigation = useNavigation<any>();
-
+  const route = useRoute<any>();
+  const { menuId }: RouteParams = route.params || {};
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<any>({});
@@ -64,21 +50,32 @@ export default function StockCheckScreen() {
     return () => emitter.off(filterStockCheck, onFilterChanged);
   }, []);
 
+  useEffect(() => {
+    const onFilterChanged = (data: any) => {
+      fetchData();
+    };
+    emitter.on(getDataStockCheck, onFilterChanged);
+    return () => emitter.off(getDataStockCheck, onFilterChanged);
+  }, []);
+
   // โหลดข้อมูล (ตอนนี้ใช้ mock)
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      // TODO: เรียก service จริงของ "ตรวจนับ" ที่นี่
-      await new Promise((r) => setTimeout(r, 300)); // จำลองโหลด
-      setCardData(mockCardData);
+      const menuIdNum = Number(menuId);
+      if (Number.isNaN(menuIdNum)) throw new Error("menuId ไม่ถูกต้อง");
+      const { data } = await cardListIStockService({
+        menuId: menuIdNum,
+      });
+      setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
     } catch (err: any) {
       setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
       setCardData([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [menuId]);
 
   useEffect(() => {
     setSelectedIds([]);
@@ -116,7 +113,11 @@ export default function StockCheckScreen() {
   const handleSelectAll = useCallback(() => {
     if (cardData.length === 0) return;
     setSelectedIds((prev) =>
-      prev.length === cardData.length ? [] : cardData.map((i) => i.id)
+      prev.length === cardData.length
+        ? []
+        : cardData
+            .filter((item) => item.status === "Open")
+            .map((item) => item.docNo)
     );
   }, [cardData]);
 
@@ -127,14 +128,14 @@ export default function StockCheckScreen() {
 
   const goToDetail = useCallback(
     (card: StockCardModel) => {
-      navigation.navigate("StockCheckDetail", { docNo: card.docNo });
+      navigation.navigate("StockCheckDetail", { docNo: card.docNo, menuId: 3 });
     },
     [navigation]
   );
 
   const goToCreateDocument = useCallback(() => {
     // ถ้าต้องการแยก route สำหรับตรวจนับ ควรตั้งเป็น "CreateDocumentStockCheck"
-    navigation.navigate("CreateDocumentScanOut");
+    navigation.navigate("CreateDocumentStockCheck", { menuId: 3 });
   }, [navigation]);
 
   return (
@@ -214,8 +215,8 @@ export default function StockCheckScreen() {
                   status={card.status as StatusType}
                   details={card.details}
                   selectedIds={selectedIds}
-                  isSelected={selectedIds.includes(card.id)}
-                  isExpanded={expandedIds.includes(card.id)}
+                  isSelected={selectedIds.includes(card.docNo)}
+                  isExpanded={expandedIds.includes(card.docNo)}
                   onSelect={toggleSelect}
                   onExpand={toggleExpand}
                   goTo={() => goToDetail(card)}

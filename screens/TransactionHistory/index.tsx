@@ -5,6 +5,8 @@ import EmptyState from "@/components/State/EmptyState";
 import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
 import { theme } from "@/providers/Theme";
+import { cardListIStockService } from "@/service";
+import { CardListModel } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -19,34 +21,18 @@ import { styles } from "./Styles";
 type THDetail = { label: string; value: string };
 type THCard = {
   id: string;
+  menuId: number;
   docNo: string;
   status: string;
   details: THDetail[];
 };
-
-// mock — สลับเป็น API ได้ทีหลัง
-const mock: THCard[] = [
-  {
-    id: "1",
-    docNo: "TRO2506-079",
-    status: "Open",
-    details: [
-      { label: "วันที่ส่งสินค้า", value: "23/06/2025" },
-      { label: "เลขที่เอกสาร", value: "TRO2506-079" },
-      { label: "ส่งจากคลัง", value: "00HO - Head Office" },
-      { label: "E-Shop No.", value: "PRE2309023" },
-      { label: "หมายเหตุ", value: "Operation Group สำหรับ Jubu Jibi" },
-    ],
-  },
-  // ...ตามเดิม
-];
 
 export default function TransactionHistoryScreen() {
   const navigation = useNavigation<any>();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<any>({});
-  const [data, setData] = useState<THCard[]>([]);
+  const [cardData, setCardData] = useState<THCard[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,16 +46,15 @@ export default function TransactionHistoryScreen() {
     return () => emitter.off(filterTransactionHistory, onFilterChanged);
   }, []);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (option = {}) => {
     setLoading(true);
     setError(null);
     try {
-      // TODO: เรียก service จริง
-      await new Promise((r) => setTimeout(r, 250));
-      setData(mock);
-    } catch (e: any) {
-      setError(e?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
-      setData([]);
+      const { data } = await cardListIStockService(option);
+      setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
+    } catch (err: any) {
+      setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
+      setCardData([]);
     } finally {
       setLoading(false);
     }
@@ -90,7 +75,7 @@ export default function TransactionHistoryScreen() {
     }
   }, [fetchData]);
 
-  const total = data.length;
+  const total = cardData.length;
   const allSelected = useMemo(
     () => total > 0 && selectedIds.length === total,
     [selectedIds.length, total]
@@ -114,7 +99,10 @@ export default function TransactionHistoryScreen() {
 
   const goToDetail = useCallback(
     (card: THCard) => {
-      navigation.navigate("TransactionHistoryDetail", { docNo: card.docNo });
+      navigation.navigate("TransactionHistoryDetail", {
+        docNo: card.docNo,
+        menuId: card.menuId,
+      });
     },
     [navigation]
   );
@@ -172,7 +160,7 @@ export default function TransactionHistoryScreen() {
             }
           >
             {/* หน้า History ไม่ต้องเลือกทั้งหมด เลยไม่ใส่ปุ่ม select-all */}
-            {data.map((card) => (
+            {cardData.map((card) => (
               <ScanCard
                 key={card.id}
                 id={card.id}
@@ -181,8 +169,8 @@ export default function TransactionHistoryScreen() {
                 details={card.details}
                 hideSelectedIds
                 selectedIds={selectedIds}
-                isSelected={selectedIds.includes(card.id)}
-                isExpanded={expandedIds.includes(card.id)}
+                isSelected={selectedIds.includes(card.docNo)}
+                isExpanded={expandedIds.includes(card.docNo)}
                 onSelect={toggleSelect}
                 onExpand={toggleExpand}
                 goTo={() => goToDetail(card)}

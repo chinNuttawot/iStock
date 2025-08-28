@@ -6,10 +6,10 @@ import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { Modeloption } from "@/providers/Modal/Model";
 import { theme } from "@/providers/Theme";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { cardDetailIStockListService } from "@/service";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useRef, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { styles } from "./styles";
 
 export const RenderGoBackItem = (
@@ -95,6 +95,17 @@ export default function StockCheckDetailScreen() {
     emitter.on(filterStockCheckDetail, onFilterChanged);
     return () => emitter.off(filterStockCheckDetail, onFilterChanged);
   }, []);
+
+  useEffect(() => {
+    getDataDetail();
+  }, []);
+
+  const getDataDetail = async () => {
+    try {
+      const { data } = await cardDetailIStockListService({ docNo, menuId: 2 });
+      setProductData(data);
+    } catch (err) {}
+  };
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) =>
@@ -183,15 +194,15 @@ export default function StockCheckDetailScreen() {
         hideGoback={false}
         title={docNo}
         onGoBack={onGoBack}
-        IconComponent={[
-          <TouchableOpacity key="filter" onPress={openFilter}>
-            <MaterialCommunityIcons
-              name={filter?.isFilter ? "filter-check" : "filter"}
-              size={30}
-              color="white"
-            />
-          </TouchableOpacity>,
-        ]}
+        // IconComponent={[
+        //   <TouchableOpacity key="filter" onPress={openFilter}>
+        //     <MaterialCommunityIcons
+        //       name={filter?.isFilter ? "filter-check" : "filter"}
+        //       size={30}
+        //       color="white"
+        //     />
+        //   </TouchableOpacity>,
+        // ]}
       />
       <ScrollView contentContainerStyle={styles.content}>
         {productData
