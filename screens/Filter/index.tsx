@@ -4,6 +4,7 @@ import {
   filterApproveDetail,
   filterCreateDocumentScanOut,
   filterCreateDocumentStockCheck,
+  filterCreateDocumentTransfer,
   filterScanIn,
   filterScanInDetail,
   filterScanOut,
@@ -141,6 +142,9 @@ export default function FilterScreen() {
         break;
       case "CreateDocumentStockCheck":
         dataToscreen = filterCreateDocumentStockCheck;
+        break;
+      case "CreateDocumentTransfer":
+        dataToscreen = filterCreateDocumentTransfer;
         break;
     }
     emitter.emit(dataToscreen, item);

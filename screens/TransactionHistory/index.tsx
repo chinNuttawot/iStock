@@ -42,14 +42,13 @@ export default function TransactionHistoryScreen() {
   const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
   const errorColor = (theme as any).error ?? "#ef4444";
 
-  // รับฟิลเตอร์จากหน้า Filter
   useEffect(() => {
     const onFilterChanged = (d: any) => setFilter(d);
     emitter.on(filterTransactionHistory, onFilterChanged);
     return () => emitter.off(filterTransactionHistory, onFilterChanged);
   }, []);
 
-  const fetchData = useCallback(async (option = {}) => {
+  const fetchData = useCallback(async (option: Record<string, any> = {}) => {
     setLoading(true);
     setError(null);
     try {
@@ -86,13 +85,13 @@ export default function TransactionHistoryScreen() {
     }
   }, [fetchData]);
 
-  // (History ไม่ต้องมีเลือกทั้งหมด/ส่งเอกสาร)
   const total = cardData.length;
   const allSelected = useMemo(
     () => total > 0 && selectedIds.length === total,
     [selectedIds.length, total]
   );
 
+  // ==== Handlers: ไม่ให้ event หลุดเข้ามา ====
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
@@ -104,6 +103,32 @@ export default function TransactionHistoryScreen() {
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   }, []);
+
+  const onSelectSafe = useCallback(
+    (...args: any[]) => {
+      const id =
+        typeof args[0] === "string"
+          ? args[0]
+          : typeof args[1] === "string"
+          ? args[1]
+          : "";
+      if (id) toggleSelect(String(id));
+    },
+    [toggleSelect]
+  );
+
+  const onExpandSafe = useCallback(
+    (...args: any[]) => {
+      const id =
+        typeof args[0] === "string"
+          ? args[0]
+          : typeof args[1] === "string"
+          ? args[1]
+          : "";
+      if (id) toggleExpand(String(id));
+    },
+    [toggleExpand]
+  );
 
   const openFilter = useCallback(() => {
     setSelectedIds([]);
@@ -119,6 +144,9 @@ export default function TransactionHistoryScreen() {
     },
     [navigation]
   );
+
+  const handleRetry = useCallback(() => fetchData(), [fetchData]);
+  const handleReload = useCallback(() => fetchData(), [fetchData]);
 
   return (
     <>
@@ -150,7 +178,7 @@ export default function TransactionHistoryScreen() {
         {!loading && error && (
           <ErrorState
             message={error}
-            onRetry={fetchData}
+            onRetry={handleRetry}
             color={errorColor}
             accentColor={theme.mainApp}
           />
@@ -163,7 +191,7 @@ export default function TransactionHistoryScreen() {
             icon="history"
             color={textGray}
             actionLabel="รีโหลด"
-            onAction={fetchData}
+            onAction={handleReload}
             buttonBg={theme.mainApp}
             buttonTextColor={theme.white}
           />
@@ -180,7 +208,6 @@ export default function TransactionHistoryScreen() {
               <ScanCard
                 key={card.id}
                 id={card.id}
-                // ✅ ส่ง keyRef1 เพื่อให้ UploadPicker ภายในการ์ดโหลดรูป/ไฟล์เดิมสำหรับเอกสารนี้
                 keyRef1={card.docNo}
                 keyRef2={null}
                 keyRef3={null}
@@ -193,8 +220,8 @@ export default function TransactionHistoryScreen() {
                 selectedIds={selectedIds}
                 isSelected={selectedIds.includes(card.docNo)}
                 isExpanded={expandedIds.includes(card.docNo)}
-                onSelect={toggleSelect}
-                onExpand={toggleExpand}
+                onSelect={onSelectSafe}
+                onExpand={onExpandSafe}
                 goTo={() => goToDetail(card)}
               />
             ))}

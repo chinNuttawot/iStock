@@ -16,6 +16,7 @@ export const getDataScanOut = "on-get-Data-ScanOut";
 //Transfer
 export const filterTransfer = "on-filter-Transfer";
 export const filterTransferDetail = "on-filter-Transfer-detail";
+export const filterCreateDocumentTransfer = "on-Create-Document-Transfer";
 export const getDataTransfer = "on-get-Data-Transfer";
 
 //StockCheck

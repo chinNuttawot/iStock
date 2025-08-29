@@ -1,4 +1,4 @@
-import { emitter, getDataTransfer } from "@/common/emitter";
+import { emitter, filterCreateDocumentTransfer, getDataTransfer } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import CustomButtons from "@/components/CustomButtons";
 import CustomDatePicker from "@/components/CustomDatePicker";
@@ -66,6 +66,8 @@ export default function CreateDocumentTransferScreen() {
   const [binCodesTo, setBinCodesTo] = useState<OptionKV[]>([]);
   const [locationsTo, setLocationsTo] = useState<OptionKV[]>([]);
   const [isload, setIsload] = useState(false);
+  const [productCode, setProductCode] = useState("");
+  const [modelOptions, setModelOptions] = useState<any[]>([]);
   const stockQty = 99;
   const isValid =
     !!docNo &&
@@ -81,7 +83,6 @@ export default function CreateDocumentTransferScreen() {
     changeCancel: { label: "แก้ไข", color: theme.mainApp },
   };
 
-  // defaultOption ต้อง memo (อย่าสร้าง object สดใน JSX)
   const defaultBinFrom = useMemo(
     () => (binCodeFrom ? { key: binCodeFrom, value: binCodeFrom } : undefined),
     [binCodeFrom]
@@ -102,6 +103,20 @@ export default function CreateDocumentTransferScreen() {
     const isEmptyObject = Object.keys(editProducts).length === 0;
     if (!isEmptyObject) setShowAddModal(true);
   }, [editProducts]);
+
+  useEffect(() => {
+    const onFilterChanged = ({ docNo: itemNo }: any) => {
+      if (!itemNo) {
+        Alert.alert("เกิดขอผิดพลาด", "ไม่มีรหัสสินค้า");
+        return;
+      }
+      setProductCode(itemNo);
+      setModelOptions([{ key: "VR000", value: "VR000" }]);
+      setShowAddModal(true);
+    };
+    emitter.on(filterCreateDocumentTransfer, onFilterChanged);
+    return () => emitter.off(filterCreateDocumentTransfer, onFilterChanged);
+  }, []);
 
   useLayoutEffect(() => {
     if (locationCodeTo) {
@@ -157,7 +172,15 @@ export default function CreateDocumentTransferScreen() {
     getCreateDocument();
   }, [getCreateDocument]);
 
-  const handleAddProduct = () => setShowAddModal(true);
+  const handleAddProduct = () => {
+    navigation.navigate("Filter", {
+      ScanName: "รหัสสินค้า",
+      showFilterDate: false,
+      showFilterStatus: false,
+      showFilterReset: false,
+      textSearch: "ถัดไป",
+    });
+  };
 
   const handleSave = async () => {
     try {
@@ -258,13 +281,13 @@ export default function CreateDocumentTransferScreen() {
           <Text style={styles.label}>รหัสคลังย่อย</Text>
           <SelectList
             setSelected={setBinCodeFrom}
-            data={binCodesFrom} // ✅ ใช้ตรง ๆ {key,value}
+            data={binCodesFrom}
             boxStyles={styles.selectBox}
             dropdownStyles={{ borderColor: theme.gray }}
             search={true}
             placeholder="Select"
             save="key"
-            defaultOption={defaultBinFrom} // ✅ memo แล้ว
+            defaultOption={defaultBinFrom}
           />
         </View>
       </View>
@@ -281,26 +304,26 @@ export default function CreateDocumentTransferScreen() {
           <Text style={styles.label}>รหัสคลังหลัก</Text>
           <SelectList
             setSelected={setLocationCodeTo}
-            data={locationsTo} // ✅ ใช้ตรง ๆ {key,value}
+            data={locationsTo}
             boxStyles={styles.selectBox}
             dropdownStyles={{ borderColor: theme.gray }}
             search={true}
             placeholder="Select"
             save="key"
-            defaultOption={defaultLocTo} // ✅ memo แล้ว
+            defaultOption={defaultLocTo}
           />
         </View>
         <View style={styles.flex1}>
           <Text style={styles.label}>รหัสคลังย่อย</Text>
           <SelectList
             setSelected={setBinCodeTo}
-            data={binCodesTo} // ✅ ใช้ตรง ๆ {key,value}
+            data={binCodesTo}
             boxStyles={styles.selectBox}
             dropdownStyles={{ borderColor: theme.gray }}
             search={true}
             placeholder="Select"
             save="key"
-            defaultOption={defaultBinTo} // ✅ memo แล้ว
+            defaultOption={defaultBinTo}
           />
         </View>
       </View>
@@ -325,8 +348,8 @@ export default function CreateDocumentTransferScreen() {
           setShowAddModal(false);
         }}
         onSave={onSaveList}
-        productCode="50TH01475"
-        modelOptions={[{ key: "VR000", value: "VR000" }]}
+        productCode={productCode}
+        modelOptions={modelOptions}
         stockQty={stockQty}
         value={editProducts}
       />
@@ -451,9 +474,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 16,
   },
-  content: {
-    padding: 16,
-  },
+  content: { padding: 16 },
   rowWrapper: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -461,11 +482,7 @@ const styles = StyleSheet.create({
   },
   flex1: { flex: 1 },
   inputGroup: { marginBottom: 16 },
-  label: {
-    ...theme.setFont,
-    color: theme.mainApp,
-    marginBottom: 4,
-  },
+  label: { ...theme.setFont, color: theme.mainApp, marginBottom: 4 },
   labelMainInput: {
     ...theme.setFont,
     color: theme.green2,
@@ -486,10 +503,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 12,
   },
-  selectBox: {
-    borderWidth: 0,
-    backgroundColor: theme.background,
-  },
+  selectBox: { borderWidth: 0, backgroundColor: theme.background },
   addProductText: {
     ...theme.setFont,
     color: theme.mainApp,
