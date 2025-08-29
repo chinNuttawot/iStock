@@ -1,15 +1,20 @@
-import { emitter, filterStockCheckDetail } from "@/common/emitter";
+import {
+  emitter,
+  filterStockCheckDetail,
+  getDataStockCheck,
+} from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import DetailCard from "@/components/DetailCard";
 import Header from "@/components/Header";
+import EmptyState from "@/components/State/EmptyState";
 import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { Modeloption } from "@/providers/Modal/Model";
 import { theme } from "@/providers/Theme";
-import { cardDetailIStockListService } from "@/service";
+import { cardDetailIStockListService, deleteDocumentProducts } from "@/service";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useRef, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
 import { styles } from "./styles";
 
 export const RenderGoBackItem = (
@@ -76,7 +81,7 @@ export default function StockCheckDetailScreen() {
   };
   const navigation = useNavigation<any>();
   const route = useRoute();
-  const { docNo } = route.params as { docNo: string };
+  const { docNo, menuId } = route.params as { docNo: string; menuId: number };
 
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [productData, setProductData] = useState<ProductItem[]>(_productData);
@@ -89,6 +94,7 @@ export default function StockCheckDetailScreen() {
   // refs สำหรับ flow
   const itemDetailRef = useRef<ProductItem | undefined>(undefined);
   const isShowGoBackScreenRef = useRef<boolean>(false);
+  const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
 
   useEffect(() => {
     const onFilterChanged = (data: any) => setFilter(data);
@@ -102,7 +108,10 @@ export default function StockCheckDetailScreen() {
 
   const getDataDetail = async () => {
     try {
-      const { data } = await cardDetailIStockListService({ docNo, menuId: 2 });
+      const { data } = await cardDetailIStockListService({
+        docNo,
+        menuId: menuId,
+      });
       setProductData(data);
     } catch (err) {}
   };
@@ -177,6 +186,24 @@ export default function StockCheckDetailScreen() {
     </View>
   );
 
+  const onSave = async () => {
+    try {
+      const hasDeleted = productData.some((v) => v.isDelete);
+      if (hasDeleted) {
+        const delItem = productData
+          .filter((v) => v.isDelete)
+          .map((v: any) => ({ uuid: v.uuid, docNo: v.docNo }));
+        await deleteDocumentProducts({ items: delItem });
+        emitter.emit(getDataStockCheck, menuId);
+        navigation.goBack();
+      } else {
+        navigation.goBack();
+      }
+    } catch (err) {
+      Alert.alert("เกิดขอผิดพลาด", "");
+    }
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.white }}>
       <ModalComponent
@@ -204,23 +231,46 @@ export default function StockCheckDetailScreen() {
         //   </TouchableOpacity>,
         // ]}
       />
-      <ScrollView contentContainerStyle={styles.content}>
-        {productData
-          .filter((v) => !v.isDelete)
-          .map((item) => (
-            <DetailCard
-              key={item.id}
-              data={item}
-              isExpanded={expandedIds.includes(item.id)}
-              onToggle={() => toggleExpand(item.id)}
-              textGoTo="ลบ"
-              colorButton={theme.red}
-              goTo={() => onDeleteItem(item)}
-            />
-          ))}
-      </ScrollView>
+      {productData.length === 0 && (
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <EmptyState
+            title="ไม่พบรายการ"
+            subtitle=""
+            icon="file-search-outline"
+            color={textGray}
+            actionLabel="รีโหลด"
+            // onAction={fetchData}
+            buttonBg={theme.mainApp}
+            buttonTextColor={theme.white}
+          />
+        </View>
+      )}
+      {productData.length !== 0 && (
+        <ScrollView contentContainerStyle={styles.content}>
+          {productData
+            .filter((v) => !v.isDelete)
+            .map((item) => (
+              <DetailCard
+                key={item.id}
+                data={item}
+                isExpanded={expandedIds.includes(item.id)}
+                onToggle={() => toggleExpand(item.id)}
+                textGoTo="ลบ"
+                colorButton={theme.red}
+                goTo={() => onDeleteItem(item)}
+              />
+            ))}
+        </ScrollView>
+      )}
+
       <View style={{ padding: 16, marginBottom: 16 }}>
-        <CustomButton label="บันทึก" />
+        <CustomButton label="บันทึก" onPress={onSave} />
       </View>
     </View>
   );

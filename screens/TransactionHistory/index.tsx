@@ -1,3 +1,4 @@
+// screens/TransactionHistoryScreen.tsx
 import { emitter, filterTransactionHistory } from "@/common/emitter";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
@@ -29,6 +30,7 @@ type THCard = {
 
 export default function TransactionHistoryScreen() {
   const navigation = useNavigation<any>();
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<any>({});
@@ -40,6 +42,7 @@ export default function TransactionHistoryScreen() {
   const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
   const errorColor = (theme as any).error ?? "#ef4444";
 
+  // รับฟิลเตอร์จากหน้า Filter
   useEffect(() => {
     const onFilterChanged = (d: any) => setFilter(d);
     emitter.on(filterTransactionHistory, onFilterChanged);
@@ -53,7 +56,15 @@ export default function TransactionHistoryScreen() {
       const { data } = await cardListIStockService(option);
       setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
     } catch (err: any) {
-      setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "เกิดข้อผิดพลาดในการดึงข้อมูล";
+      console.log(
+        "TransactionHistory fetchData error:",
+        err?.response?.data || err
+      );
+      setError(msg);
       setCardData([]);
     } finally {
       setLoading(false);
@@ -75,6 +86,7 @@ export default function TransactionHistoryScreen() {
     }
   }, [fetchData]);
 
+  // (History ไม่ต้องมีเลือกทั้งหมด/ส่งเอกสาร)
   const total = cardData.length;
   const allSelected = useMemo(
     () => total > 0 && selectedIds.length === total,
@@ -86,6 +98,7 @@ export default function TransactionHistoryScreen() {
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   }, []);
+
   const toggleExpand = useCallback((id: string) => {
     setExpandedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
@@ -124,6 +137,7 @@ export default function TransactionHistoryScreen() {
           </TouchableOpacity>,
         ]}
       />
+
       <View style={{ flex: 1, backgroundColor: theme.white }}>
         {loading && (
           <LoadingView
@@ -132,6 +146,7 @@ export default function TransactionHistoryScreen() {
             textColor={textGray}
           />
         )}
+
         {!loading && error && (
           <ErrorState
             message={error}
@@ -140,6 +155,7 @@ export default function TransactionHistoryScreen() {
             accentColor={theme.mainApp}
           />
         )}
+
         {!loading && !error && total === 0 && (
           <EmptyState
             title="ไม่พบรายการ"
@@ -152,6 +168,7 @@ export default function TransactionHistoryScreen() {
             buttonTextColor={theme.white}
           />
         )}
+
         {!loading && !error && total > 0 && (
           <ScrollView
             contentContainerStyle={styles.content}
@@ -159,11 +176,16 @@ export default function TransactionHistoryScreen() {
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
           >
-            {/* หน้า History ไม่ต้องเลือกทั้งหมด เลยไม่ใส่ปุ่ม select-all */}
             {cardData.map((card) => (
               <ScanCard
                 key={card.id}
                 id={card.id}
+                // ✅ ส่ง keyRef1 เพื่อให้ UploadPicker ภายในการ์ดโหลดรูป/ไฟล์เดิมสำหรับเอกสารนี้
+                keyRef1={card.docNo}
+                keyRef2={null}
+                keyRef3={null}
+                remark={null}
+                hideAddFile={true}
                 docNo={card.docNo}
                 status={card.status as StatusType}
                 details={card.details}

@@ -25,6 +25,7 @@ type ScanCardProps = {
   keyRef2?: any;
   keyRef3?: any;
   remark?: any;
+  hideAddFile: boolean;
 };
 
 // ✅ ref = UploadPickerHandle (ไม่ใช่ View)
@@ -46,6 +47,7 @@ const ScanCard = React.forwardRef<any, ScanCardProps>(
       onExpand,
       goTo,
       hideSelectedIds = false,
+      hideAddFile = false,
     },
     ref
   ) => {
@@ -102,6 +104,7 @@ const ScanCard = React.forwardRef<any, ScanCardProps>(
           />
         </TouchableOpacity>
         <UploadPicker
+          hideAddFile={hideAddFile}
           ref={ref}
           keyRef1={keyRef1}
           keyRef2={keyRef2}

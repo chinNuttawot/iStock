@@ -3,14 +3,16 @@ import CustomButton from "@/components/CustomButton";
 import DetailCard from "@/components/DetailCard";
 import Header from "@/components/Header";
 import QuantitySerialModal from "@/components/Modals/QuantitySerialModal";
+import EmptyState from "@/components/State/EmptyState";
 import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
+import { keyboardTypeNumber } from "@/screens/Register/register";
 import { cardDetailIStockListService } from "@/service";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { memo, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, TextInput, View } from "react-native";
 import { styles } from "./styles";
 
 export default function TransactionHistoryDetailScreen() {
@@ -28,7 +30,7 @@ export default function TransactionHistoryDetailScreen() {
   const scanInDetailForm = useForm();
   const { docNo, menuId } = route.params as { docNo: string; menuId: number };
   const [productData, setProductData] = useState<ProductItem[]>([]);
-
+  const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
   useEffect(() => {
     const onFilterChanged = (data: any) => {
       console.log(`${filterTransactionHistoryDetail} =====> `, data);
@@ -206,22 +208,44 @@ export default function TransactionHistoryDetailScreen() {
         form={scanInDetailForm}
         labelConfirm="ยืนยัน"
       />
-      <ScrollView contentContainerStyle={styles.content}>
-        {productData
-          .filter((v) => !v.isDelete)
-          .map((item) => (
-            <DetailCard
-              key={item.id}
-              data={item}
-              viewMode
-              isExpanded={expandedIds.includes(item.id)}
-              onToggle={() => toggleExpand(item.id)}
-              textGoTo="ลบ"
-              colorButton={theme.red}
-              goTo={() => onShowDetail(item)}
-            />
-          ))}
-      </ScrollView>
+      {productData.length === 0 && (
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <EmptyState
+            title="ไม่พบรายการ"
+            subtitle=""
+            icon="file-search-outline"
+            color={textGray}
+            actionLabel="รีโหลด"
+            // onAction={fetchData}
+            buttonBg={theme.mainApp}
+            buttonTextColor={theme.white}
+          />
+        </View>
+      )}
+      {productData.length !== 0 && (
+        <ScrollView contentContainerStyle={styles.content}>
+          {productData
+            .filter((v) => !v.isDelete)
+            .map((item) => (
+              <DetailCard
+                key={item.id}
+                data={item}
+                viewMode
+                isExpanded={expandedIds.includes(item.id)}
+                onToggle={() => toggleExpand(item.id)}
+                textGoTo="ลบ"
+                colorButton={theme.red}
+                goTo={() => onShowDetail(item)}
+              />
+            ))}
+        </ScrollView>
+      )}
     </View>
   );
 }

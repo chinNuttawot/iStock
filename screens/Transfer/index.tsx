@@ -1,3 +1,4 @@
+// screens/TransferScreen.tsx
 import { emitter, filterTransfer, getDataTransfer } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
@@ -5,12 +6,19 @@ import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
 import EmptyState from "@/components/State/EmptyState";
 import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
+import type { UploadPickerHandle } from "@/components/UploadPicker";
 import { theme } from "@/providers/Theme";
 import { cardListIStockService } from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   RefreshControl,
   ScrollView,
@@ -20,41 +28,20 @@ import {
 } from "react-native";
 import { styles } from "./Styles";
 
-type TransferCardDetail = { label: string; value: string };
-type TransferCardModel = {
-  id: string;
-  docNo: string;
-  status: string;
-  details: TransferCardDetail[];
-};
-
-// === Mock data (สลับเป็น API ทีหลังได้) ===
-const mockCardData: TransferCardModel[] = [
-  {
-    id: "1",
-    docNo: "GRI2506-0742",
-    status: "Open",
-    details: [
-      { label: "วันที่ส่งสินค้า", value: "23/06/2025" },
-      { label: "คลังต้นทาง", value: "10CCB - สาขาเซ็นทรัลชลบุรี" },
-      { label: "คลังปลายทาง", value: "00HQ - คลังสำนักงานใหญ่" },
-      { label: "จัดทำโดย", value: "CCB" },
-      { label: "หมายเหตุ", value: "ตัดเบิกโอเปอร์ประชุม ผจก. เดือน มิ.ย.68" },
-    ],
-  },
-  { id: "2", docNo: "TRO2506-080", status: "Approved", details: [] },
-  { id: "3", docNo: "GRI2506-0742", status: "Pending Approval", details: [] },
-  { id: "4", docNo: "GRI2506-0742", status: "Rejected", details: [] },
-];
+type Nav = ReturnType<typeof useNavigation<any>>;
 
 export default function TransferScreen() {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<Nav>();
   const route = useRoute<any>();
-  const { menuId }: RouteParams = route.params || {};
+  const { menuId }: RouteParams = route.params || {}; // ควรเป็น 2 สำหรับโอนย้าย
+
+  // ✅ อ้างอิง UploadPicker ต่อการ์ดผ่าน docNo
+  const uploadRefs = useRef<Record<string, UploadPickerHandle | null>>({});
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<any>({});
-  const [cardData, setCardData] = useState<TransferCardModel[]>([]);
+  const [cardData, setCardData] = useState<CardListModel[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +49,7 @@ export default function TransferScreen() {
   const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
   const errorColor = (theme as any).error ?? "#ef4444";
 
-  // รับ filter event
+  // ====== รับค่า filter ======
   useEffect(() => {
     const onFilterChanged = (data: any) => setFilter(data);
     emitter.on(filterTransfer, onFilterChanged);
@@ -70,27 +57,29 @@ export default function TransferScreen() {
   }, []);
 
   useEffect(() => {
-    const onFilterChanged = (data: any) => {
-      fetchData();
-    };
-    emitter.on(getDataTransfer, onFilterChanged);
-    return () => emitter.off(getDataTransfer, onFilterChanged);
+    const onAskReload = () => fetchData();
+    emitter.on(getDataTransfer, onAskReload);
+    return () => emitter.off(getDataTransfer, onAskReload);
   }, []);
 
-  // โหลดข้อมูล (ตอนนี้ดึง mock; ภายหลังสลับเป็น service ได้)
+  // ====== โหลดข้อมูล ======
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const menuIdNum = Number(menuId);
       if (Number.isNaN(menuIdNum)) throw new Error("menuId ไม่ถูกต้อง");
-      const { data } = await cardListIStockService({
-        menuId: menuIdNum,
-      });
+
+      const { data } = await cardListIStockService({ menuId: menuIdNum });
       setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
     } catch (err: any) {
-      setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "เกิดข้อผิดพลาดในการดึงข้อมูล";
+      console.log("Transfer fetchData error:", err?.response?.data || err);
       setCardData([]);
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -99,9 +88,11 @@ export default function TransferScreen() {
   useEffect(() => {
     setSelectedIds([]);
     setExpandedIds([]);
+    uploadRefs.current = {}; // ล้าง ref เก่าเมื่อ context เปลี่ยน
     fetchData();
   }, [fetchData]);
 
+  // Pull-to-refresh
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -111,10 +102,15 @@ export default function TransferScreen() {
     }
   }, [fetchData]);
 
-  const totalItems = cardData.length;
+  // ====== เลือกทั้งหมดเฉพาะที่ Open ======
+  const selectableIds = useMemo(
+    () => cardData.filter((i) => i.status === "Open").map((i) => i.docNo),
+    [cardData]
+  );
   const allSelected = useMemo(
-    () => totalItems > 0 && selectedIds.length === totalItems,
-    [selectedIds.length, totalItems]
+    () =>
+      selectableIds.length > 0 && selectedIds.length === selectableIds.length,
+    [selectedIds, selectableIds]
   );
 
   const toggleSelect = useCallback((id: string) => {
@@ -130,15 +126,10 @@ export default function TransferScreen() {
   }, []);
 
   const handleSelectAll = useCallback(() => {
-    if (cardData.length === 0) return;
     setSelectedIds((prev) =>
-      prev.length === cardData.length
-        ? []
-        : cardData
-            .filter((item) => item.status === "Open")
-            .map((item) => item.docNo)
+      prev.length === selectableIds.length ? [] : selectableIds
     );
-  }, [cardData]);
+  }, [selectableIds]);
 
   const openFilter = useCallback(() => {
     setSelectedIds([]);
@@ -146,11 +137,25 @@ export default function TransferScreen() {
   }, [filter, navigation]);
 
   const goToDetail = useCallback(
-    (card: TransferCardModel) => {
+    (card: CardListModel) => {
       navigation.navigate("TransferDetail", { docNo: card.docNo, menuId: 2 });
     },
     [navigation]
   );
+
+  // ====== ส่งเอกสาร: เรียกอัปโหลดจากการ์ดที่เลือก ======
+  const submitSelected = useCallback(async () => {
+    try {
+      if (selectedIds.length === 0) return;
+
+      for (const docNo of selectedIds) {
+        const handle = uploadRefs.current[docNo];
+        await handle?.uploadAllInOneRequests?.();
+      }
+    } finally {
+      emitter.emit(getDataTransfer); // ให้รีเฟรชสถานะหลังส่ง
+    }
+  }, [selectedIds]);
 
   const goToCreateDocument = useCallback(() => {
     navigation.navigate("CreateDocumentTransfer", { menuId: 2 });
@@ -165,13 +170,13 @@ export default function TransferScreen() {
         title={"สแกน-โอนย้าย"}
         IconComponent={[
           <TouchableOpacity key="plus" onPress={goToCreateDocument}>
-            <MaterialCommunityIcons name="plus" size={30} color="white" />
+            <MaterialCommunityIcons name="plus" size={30} color={theme.white} />
           </TouchableOpacity>,
           <TouchableOpacity key="filter" onPress={openFilter}>
             <MaterialCommunityIcons
               name={filter?.isFilter ? "filter-check" : "filter"}
               size={30}
-              color="white"
+              color={theme.white}
             />
           </TouchableOpacity>,
         ]}
@@ -195,7 +200,7 @@ export default function TransferScreen() {
           />
         )}
 
-        {!loading && !error && totalItems === 0 && (
+        {!loading && !error && cardData.length === 0 && (
           <EmptyState
             title="ไม่พบรายการ"
             subtitle="ลองปรับตัวกรอง หรือแตะปุ่มด้านล่างเพื่อรีโหลดข้อมูล"
@@ -208,7 +213,7 @@ export default function TransferScreen() {
           />
         )}
 
-        {!loading && !error && totalItems > 0 && (
+        {!loading && !error && cardData.length > 0 && (
           <>
             <ScrollView
               contentContainerStyle={styles.content}
@@ -218,7 +223,7 @@ export default function TransferScreen() {
             >
               <TouchableOpacity
                 onPress={handleSelectAll}
-                disabled={cardData.length === 0}
+                disabled={selectableIds.length === 0}
               >
                 <Text style={styles.selectAllText}>
                   {allSelected ? "ยกเลิก" : "เลือกทั้งหมด"}
@@ -228,9 +233,20 @@ export default function TransferScreen() {
               {cardData.map((card) => (
                 <ScanCard
                   key={card.id}
+                  // ✅ ผูก ref ตัวอัปโหลดกับ docNo
+                  ref={(h) => {
+                    uploadRefs.current[card.docNo] = h;
+                  }}
                   id={card.id}
+                  // ✅ ส่ง keyRef ให้ UploadPicker ภายในการ์ดใช้ดึง/แสดงไฟล์เดิม
+                  keyRef1={card.docNo}
+                  hideAddFile={card.status !== "Open"}
+                  keyRef2={null}
+                  keyRef3={null}
+                  remark={null}
                   docNo={card.docNo}
                   status={card.status as StatusType}
+                  hideSelectedIds={card.status !== "Open"}
                   details={card.details}
                   selectedIds={selectedIds}
                   isSelected={selectedIds.includes(card.docNo)}
@@ -246,9 +262,7 @@ export default function TransferScreen() {
               <CustomButton
                 label="ส่งเอกสาร"
                 disabled={selectedIds.length === 0}
-                onPress={() => {
-                  // TODO: ส่ง selectedIds ไป endpoint
-                }}
+                onPress={submitSelected}
               />
             </View>
           </>

@@ -1,11 +1,12 @@
+import { theme } from "@/providers/Theme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import {
-    Text,
-    TextStyle,
-    TouchableOpacity,
-    View,
-    ViewStyle,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
 } from "react-native";
 
 type Props = {
@@ -46,13 +47,19 @@ export default function ErrorState({
         style={{ marginBottom: 12 }}
       />
       <Text
-        style={[{ color, textAlign: "center", marginBottom: 12 }, textStyle]}
+        style={[
+          theme.setFont,
+          { color, textAlign: "center", marginBottom: 12 },
+          textStyle,
+        ]}
       >
         {message}
       </Text>
       {onRetry && (
         <TouchableOpacity onPress={onRetry}>
-          <Text style={{ color: accentColor, fontWeight: "600" }}>
+          <Text
+            style={[theme.setFont, { color: accentColor, fontWeight: "600" }]}
+          >
             {retryLabel}
           </Text>
         </TouchableOpacity>

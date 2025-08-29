@@ -1,10 +1,11 @@
+import { theme } from "@/providers/Theme";
 import React from "react";
 import {
-    ActivityIndicator,
-    Text,
-    TextStyle,
-    View,
-    ViewStyle,
+  ActivityIndicator,
+  Text,
+  TextStyle,
+  View,
+  ViewStyle,
 } from "react-native";
 
 type Props = {
@@ -35,7 +36,9 @@ export default function LoadingView({
       ]}
     >
       <ActivityIndicator size="large" color={color} />
-      <Text style={[{ marginTop: 8, color: textColor }, textStyle]}>
+      <Text
+        style={[theme.setFont, { marginTop: 8, color: textColor }, textStyle]}
+      >
         {message}
       </Text>
     </View>

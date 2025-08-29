@@ -265,7 +265,7 @@ export default function CreateDocumentStockCheckScreen() {
             />
           </View>
           <View style={styles.flex1}>
-            <Text style={styles.label}>วันที่ตัดสินค้า</Text>
+            <Text style={styles.label}>วันที่ตรวจสินค้า</Text>
             <View style={styles.inputWrapper}>
               <TextInput
                 style={[styles.input, { flex: 1 }]}

@@ -150,14 +150,17 @@ export default function ScanInScreen() {
     [navigation]
   );
 
-  // เรียกอัปโหลดเฉพาะรายการที่ “ถูกเลือก”
   const submitSelected = useCallback(async () => {
-    if (selectedIds.length === 0) return;
+    try {
+      if (selectedIds.length === 0) return;
 
-    // ตัวอย่าง: เรียก UploadPicker ของแต่ละการ์ดที่เลือก
-    for (const id of selectedIds) {
-      const handle = uploadRefs.current[id];
-      await handle?.uploadAllInOneRequests?.();
+      for (const id of selectedIds) {
+        const handle = uploadRefs.current[id];
+        await handle?.uploadAllInOneRequests?.();
+      }
+    } catch (err) {
+    } finally {
+      emitter.emit(getDataScanIn);
     }
   }, [selectedIds]);
 
@@ -240,6 +243,7 @@ export default function ScanInScreen() {
                     uploadRefs.current[card.docNo] = h;
                   }}
                   id={card.id}
+                  hideAddFile={card.status !== "Open"}
                   keyRef1={card.docNo}
                   keyRef2={null}
                   keyRef3={null}

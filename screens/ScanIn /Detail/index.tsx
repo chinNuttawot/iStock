@@ -3,6 +3,7 @@ import CustomButton from "@/components/CustomButton";
 import DetailCard from "@/components/DetailCard";
 import Header from "@/components/Header";
 import QuantitySerialModal from "@/components/Modals/QuantitySerialModal";
+import EmptyState from "@/components/State/EmptyState";
 import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
@@ -12,12 +13,7 @@ import { CardListModel } from "@/service/myInterface";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  ScrollView,
-  Text,
-  TextInput,
-  View
-} from "react-native";
+import { ScrollView, Text, TextInput, View } from "react-native";
 import { styles } from "./styles";
 
 export default function ScanInDetailScreen() {
@@ -38,6 +34,7 @@ export default function ScanInDetailScreen() {
   const [error, setError] = useState<string | null>(null);
   const [cardDetailData, setCardDetailData] = useState<CardListModel[]>([]);
   const { docNo } = route.params as { docNo: string };
+  const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
 
   useEffect(() => {
     const onFilterChanged = (data: any) => {
@@ -192,6 +189,8 @@ export default function ScanInDetailScreen() {
     );
   });
 
+  const onSave = async () => {};
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.white }}>
       <ModalComponent
@@ -229,20 +228,43 @@ export default function ScanInDetailScreen() {
         form={scanInDetailForm}
         labelConfirm="ยืนยัน"
       />
-      {/* Header + Filter เดิม */}
-      <ScrollView contentContainerStyle={styles.content}>
-        {cardDetailData.map((item) => (
-          <DetailCard
-            key={item.id}
-            data={item}
-            isExpanded={expandedIds.includes(item.id)}
-            onToggle={() => toggleExpand(item.id)}
-            goTo={() => onShowDetail(item)}
+
+      {cardDetailData.length === 0 && (
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <EmptyState
+            title="ไม่พบรายการ"
+            subtitle=""
+            icon="file-search-outline"
+            color={textGray}
+            actionLabel="รีโหลด"
+            // onAction={fetchData}
+            buttonBg={theme.mainApp}
+            buttonTextColor={theme.white}
           />
-        ))}
-      </ScrollView>
+        </View>
+      )}
+      {cardDetailData.length !== 0 && (
+        <ScrollView contentContainerStyle={styles.content}>
+          {cardDetailData.map((item) => (
+            <DetailCard
+              key={item.id}
+              data={item}
+              isExpanded={expandedIds.includes(item.id)}
+              onToggle={() => toggleExpand(item.id)}
+              goTo={() => onShowDetail(item)}
+            />
+          ))}
+        </ScrollView>
+      )}
+
       <View style={{ padding: 16, marginBottom: 16 }}>
-        <CustomButton label="บันทึก" />
+        <CustomButton label="บันทึก" onPress={onSave} />
       </View>
     </View>
   );

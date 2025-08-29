@@ -1,11 +1,12 @@
+import { theme } from "@/providers/Theme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import {
-    Text,
-    TextStyle,
-    TouchableOpacity,
-    View,
-    ViewStyle,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
 } from "react-native";
 
 type Props = {
@@ -53,12 +54,19 @@ export default function EmptyState({
         color={color}
         style={{ marginBottom: 12 }}
       />
-      <Text style={[{ color, fontSize: 16, marginBottom: 6 }, titleStyle]}>
+      <Text
+        style={[
+          theme.setFont,
+          { color, fontSize: 16, marginBottom: 6 },
+          titleStyle,
+        ]}
+      >
         {title}
       </Text>
       {subtitle ? (
         <Text
           style={[
+            theme.setFont,
             { color, opacity: 0.85, textAlign: "center", marginBottom: 16 },
             subtitleStyle,
           ]}
@@ -77,7 +85,12 @@ export default function EmptyState({
             backgroundColor: buttonBg,
           }}
         >
-          <Text style={{ color: buttonTextColor, fontWeight: "600" }}>
+          <Text
+            style={[
+              theme.setFont,
+              { color: buttonTextColor, fontWeight: "600" },
+            ]}
+          >
             {actionLabel}
           </Text>
         </TouchableOpacity>

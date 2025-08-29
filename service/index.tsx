@@ -5,6 +5,8 @@ import { cardListIStockService } from "./cardListIStockService";
 import { cardListService } from "./cardListService";
 import { createDocumentSaveService } from "./createDocumentSaveService";
 import { createDocumentService } from "./createDocumentService";
+import { deleteDocumentProducts } from "./deleteDocumentProducts";
+import { fileService } from "./fileService";
 import { locationService } from "./locationService";
 import { loginService } from "./loginService";
 import { menuService } from "./menuService";
@@ -19,7 +21,9 @@ export {
     cardListService,
     createDocumentSaveService,
     createDocumentService,
+    deleteDocumentProducts,
     delProfile,
+    fileService,
     getProfile,
     locationService,
     loginService,

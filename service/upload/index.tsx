@@ -1,6 +1,7 @@
 // src/service/apiCore/uploadService.ts
 import { authToken } from "@/providers/keyStorageUtilliy";
 import { StorageUtility } from "@/providers/storageUtility";
+import { DEFAULT_BASE_URL } from "../apiCore";
 import uploadApi from "../apiCore/uploadApi";
 
 export type UploadMultiResult = {
@@ -22,7 +23,6 @@ export type UploadFilePart = {
   type: string; // เช่น "image/jpeg", "application/pdf"
 };
 
-const DEFAULT_BASE_URL = "http://istockapp.myvnc.com/"; // ให้ตรง prod โดยดีฟอลต์
 
 function toStr(v: unknown): string {
   return typeof v === "string" ? v : String(v);
@@ -41,6 +41,7 @@ export async function uploadMultiFetch(
   keyRef2: unknown = null,
   keyRef3: unknown = null,
   remark: unknown = null,
+  createdBy: unknown = null,
   opts?: UploadOpts
 ): Promise<UploadMultiResult> {
   // ---- FormData ----
@@ -53,6 +54,7 @@ export async function uploadMultiFetch(
   if (keyRef2 != null) form.append("keyRef2", toStr(keyRef2));
   if (keyRef3 != null) form.append("keyRef3", toStr(keyRef3));
   if (remark != null) form.append("remark", toStr(remark));
+  if (createdBy != null) form.append("createdBy", toStr(createdBy));
 
   // ---- Token ----
   let token: string | null = null;

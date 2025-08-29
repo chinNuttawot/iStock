@@ -5,12 +5,19 @@ import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
 import EmptyState from "@/components/State/EmptyState";
 import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
+import { UploadPickerHandle } from "@/components/UploadPicker";
 import { theme } from "@/providers/Theme";
 import { cardListIStockService } from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   RefreshControl,
   ScrollView,
@@ -24,6 +31,9 @@ export default function ScanOutScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { menuId }: RouteParams = route.params || {};
+
+  // ✅ เก็บ refs ของ UploadPicker แยกตาม docNo
+  const uploadRefs = useRef<Record<string, UploadPickerHandle | null>>({});
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
@@ -70,12 +80,13 @@ export default function ScanOutScreen() {
     }
   }, [menuId]);
 
-  // ครั้งแรก + เมื่อ menuId เปลี่ยน
+  // โหลดข้อมูลครั้งแรก + เมื่อ menuId เปลี่ยน
   useEffect(() => {
+    fetchData();
     setSelectedIds([]);
     setExpandedIds([]);
-    fetchData();
-  }, [fetchData]);
+    uploadRefs.current = {}; // ล้าง refs เก่าเมื่อ list เปลี่ยน
+  }, [menuId]);
 
   // Pull-to-refresh
   const onRefresh = useCallback(async () => {
@@ -128,6 +139,23 @@ export default function ScanOutScreen() {
     [navigation]
   );
 
+  // ✅ เรียกอัปโหลดเฉพาะรายการที่เลือก โดยอิงจาก uploadRefs.current[docNo]
+  const submitSelected = useCallback(async () => {
+    try {
+      if (selectedIds.length === 0) return;
+
+      for (const docNo of selectedIds) {
+        const handle = uploadRefs.current[docNo];
+        await handle?.uploadAllInOneRequests?.();
+      }
+    } catch (err) {
+      // เก็บ log หรือแจ้งเตือนเพิ่มเติมได้
+    } finally {
+      emitter.emit(getDataScanOut); // ให้ list รีโหลดสถานะ
+    }
+  }, [selectedIds]);
+
+  // ไปหน้าสร้างเอกสารใหม่ (Scan-Out)
   const goToCreateDocument = useCallback(() => {
     navigation.navigate("CreateDocumentScanOut", { menuId: 1 });
   }, [navigation]);
@@ -141,13 +169,13 @@ export default function ScanOutScreen() {
         title={"สแกน-ออก"}
         IconComponent={[
           <TouchableOpacity key="plus" onPress={goToCreateDocument}>
-            <MaterialCommunityIcons name="plus" size={30} color="white" />
+            <MaterialCommunityIcons name="plus" size={30} color={theme.white} />
           </TouchableOpacity>,
           <TouchableOpacity key="filter" onPress={openFilter}>
             <MaterialCommunityIcons
               name={filter?.isFilter ? "filter-check" : "filter"}
               size={30}
-              color="white"
+              color={theme.white}
             />
           </TouchableOpacity>,
         ]}
@@ -204,10 +232,18 @@ export default function ScanOutScreen() {
               {cardData.map((card) => (
                 <ScanCard
                   key={card.id}
+                  ref={(h) => {
+                    uploadRefs.current[card.docNo] = h;
+                  }}
                   id={card.docNo}
+                  hideAddFile={card.status !== "Open"}
+                  keyRef1={card.docNo}
+                  keyRef2={null}
+                  keyRef3={null}
+                  remark={null}
                   docNo={card.docNo}
-                  hideSelectedIds={card.status !== "Open"}
                   status={card.status as StatusType}
+                  hideSelectedIds={card.status !== "Open"}
                   details={card.details}
                   selectedIds={selectedIds}
                   isSelected={selectedIds.includes(card.docNo)}
@@ -223,9 +259,7 @@ export default function ScanOutScreen() {
               <CustomButton
                 label="ส่งเอกสาร"
                 disabled={selectedIds.length === 0}
-                onPress={() => {
-                  // TODO: ส่ง selectedIds ไป endpoint
-                }}
+                onPress={submitSelected}
               />
             </View>
           </>

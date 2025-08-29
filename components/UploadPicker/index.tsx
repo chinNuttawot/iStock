@@ -1,6 +1,6 @@
 // components/UploadPicker.tsx
 import { theme } from "@/providers/Theme";
-import { uploadMultiFetch } from "@/service"; // หรือ "@/service/apiCore/uploadService"
+import { fileService, Profile, uploadMultiFetch } from "@/service"; // หรือ "@/service/apiCore/uploadService"
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -8,6 +8,7 @@ import * as ImagePicker from "expo-image-picker";
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useState,
@@ -23,8 +24,8 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
   useWindowDimensions,
+  View,
 } from "react-native";
 
 // ====== (optional) ใช้ WebView ถ้ามีติดตั้งแพ็กเกจ react-native-webview ======
@@ -75,6 +76,7 @@ type Props = {
   allowsMultiple?: boolean;
   onAllUploaded?: (items: PickedItem[]) => void;
   insideScrollView?: boolean;
+  hideAddFile: boolean;
   keyRef1?: any;
   keyRef2?: any;
   keyRef3?: any;
@@ -92,6 +94,7 @@ function UploadPicker(props: Props, ref: React.Ref<UploadPickerHandle>) {
     keyRef2 = null,
     keyRef3 = null,
     remark = null,
+    hideAddFile = false,
   }: Props = props;
 
   const [items, setItems] = useState<PickedItem[]>([]);
@@ -104,6 +107,55 @@ function UploadPicker(props: Props, ref: React.Ref<UploadPickerHandle>) {
   );
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewIndex, setPreviewIndex] = useState(0);
+
+  const guessMimeFromName = (name?: string) => {
+    if (!name) return "application/octet-stream";
+    const n = name.toLowerCase();
+    if (/\.(jpg|jpeg)$/.test(n)) return "image/jpeg";
+    if (/\.png$/.test(n)) return "image/png";
+    if (/\.webp$/.test(n)) return "image/webp";
+    if (/\.pdf$/.test(n)) return "application/pdf";
+    return "application/octet-stream";
+  };
+
+  useEffect(() => {
+    getFile();
+  }, [keyRef1, keyRef2, keyRef3, remark]);
+
+  const getFile = async () => {
+    try {
+      const param = { keyRef1, keyRef2, keyRef3, remark };
+      const { data } = await fileService(param);
+      setItems(() =>
+        (Array.isArray(data) ? data : []).map((a: any, idx: number) => {
+          const url: string = a.url || a.uri || "";
+          const filename: string =
+            a.filename || a.fileName || url.split("/").pop() || `file_${idx}`;
+
+          const mime: string =
+            a.mime || a.mimeType || guessMimeFromName(filename);
+
+          const isImage =
+            mime.startsWith("image/") ||
+            /\.(jpg|jpeg|png|webp)$/i.test(filename) ||
+            /\.(jpg|jpeg|png|webp)$/i.test(url);
+
+          return {
+            id: String(a.id ?? `srv_${idx}`),
+            uri: url, // << ใช้ url จาก API
+            name: filename, // << ใช้ filename จาก API
+            mime,
+            size: a.size || a.fileSize,
+            type: isImage ? "image" : "file",
+            status: "success", // มาจากเซิร์ฟเวอร์แล้ว ถือว่า success
+            progress: 1,
+          } as PickedItem;
+        })
+      );
+    } catch (e) {
+      console.log("getFile error:", e);
+    }
+  };
 
   const openPreviewById = useCallback(
     (id: string) => {
@@ -363,8 +415,15 @@ function UploadPicker(props: Props, ref: React.Ref<UploadPickerHandle>) {
           return { uri: safeUri, name, type };
         })
       );
-
-      await uploadMultiFetch(parts, toStr(keyRef1), keyRef2, keyRef3, remark);
+      const createdBy = (await Profile()).userName;
+      await uploadMultiFetch(
+        parts,
+        toStr(keyRef1),
+        keyRef2,
+        keyRef3,
+        remark,
+        createdBy
+      );
     } catch (e: any) {
       setItems((prev) =>
         prev.map((p) =>
@@ -445,12 +504,14 @@ function UploadPicker(props: Props, ref: React.Ref<UploadPickerHandle>) {
             </Text>
           </View>
 
-          <Pressable
-            onPress={() => removeItem(item.id)}
-            style={styles.removeBtn}
-          >
-            <Text style={{ color: "#fff", fontWeight: "700" }}>×</Text>
-          </Pressable>
+          {item.status !== "success" && (
+            <Pressable
+              onPress={() => removeItem(item.id)}
+              style={styles.removeBtn}
+            >
+              <Text style={{ color: "#fff", fontWeight: "700" }}>×</Text>
+            </Pressable>
+          )}
         </View>
       </View>
     );
@@ -459,17 +520,19 @@ function UploadPicker(props: Props, ref: React.Ref<UploadPickerHandle>) {
   return (
     <View style={styles.container}>
       {/* Controls */}
-      <View style={styles.row}>
-        <TouchableOpacity style={styles.btn} onPress={pickImages}>
-          <Text style={styles.btnText}>เลือกจากคลังรูป</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.btn} onPress={takePhoto}>
-          <Text style={styles.btnText}>ถ่ายรูป</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.btn} onPress={pickDocuments}>
-          <Text style={styles.btnText}>เลือกไฟล์</Text>
-        </TouchableOpacity>
-      </View>
+      {!hideAddFile && (
+        <View style={styles.row}>
+          <TouchableOpacity style={styles.btn} onPress={pickImages}>
+            <Text style={styles.btnText}>เลือกจากคลังรูป</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.btn} onPress={takePhoto}>
+            <Text style={styles.btnText}>ถ่ายรูป</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.btn} onPress={pickDocuments}>
+            <Text style={styles.btnText}>เลือกไฟล์</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <FlatList
         data={items}

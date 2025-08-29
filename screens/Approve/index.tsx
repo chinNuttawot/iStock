@@ -1,3 +1,4 @@
+// screens/ApproveScreen.tsx
 import { emitter, filterApprove } from "@/common/emitter";
 import CustomButtons from "@/components/CustomButtons";
 import Header from "@/components/Header";
@@ -27,6 +28,7 @@ import { styles } from "./Styles";
 
 type Detail = { label: string; value: string };
 type Card = { id: string; docNo: string; status: string; details: Detail[] };
+
 const mock: Card[] = [
   {
     id: "1",
@@ -45,6 +47,7 @@ const mock: Card[] = [
 
 export default function ApproveScreen() {
   const navigation = useNavigation<any>();
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [isOpenReject, setOpenReject] = useState(false);
@@ -93,33 +96,35 @@ export default function ApproveScreen() {
     }
   }, [fetchData]);
 
-  const total = cardData.length;
+  // เลือกทั้งหมด: นับเฉพาะการ์ดที่ Open (ให้สอดคล้องทุกหน้า)
+  const selectableIds = useMemo(
+    () => cardData.filter((i) => i.status === "Open").map((i) => i.docNo),
+    [cardData]
+  );
   const allSelected = useMemo(
-    () => total > 0 && selectedIds.length === total,
-    [selectedIds.length, total]
+    () =>
+      selectableIds.length > 0 && selectedIds.length === selectableIds.length,
+    [selectedIds, selectableIds]
   );
 
-  const toggleSelect = useCallback((id: string) => {
+  // ใช้ docNo เป็นตัวระบุการเลือก/ขยาย เพื่อให้ตรงกับ handleSelectAll
+  const toggleSelect = useCallback((docNo: string) => {
     setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+      prev.includes(docNo) ? prev.filter((i) => i !== docNo) : [...prev, docNo]
     );
   }, []);
-  const toggleExpand = useCallback((id: string) => {
+
+  const toggleExpand = useCallback((docNo: string) => {
     setExpandedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+      prev.includes(docNo) ? prev.filter((i) => i !== docNo) : [...prev, docNo]
     );
   }, []);
 
   const handleSelectAll = useCallback(() => {
-    if (cardData.length === 0) return;
     setSelectedIds((prev) =>
-      prev.length === cardData.length
-        ? []
-        : cardData
-            .filter((item) => item.status === "Open")
-            .map((item) => item.docNo)
+      prev.length === selectableIds.length ? [] : selectableIds
     );
-  }, [cardData]);
+  }, [selectableIds]);
 
   const openFilter = useCallback(() => {
     setSelectedIds([]);
@@ -137,7 +142,7 @@ export default function ApproveScreen() {
       <ModalComponent
         isOpen={isOpenReject}
         onChange={() => {}}
-        onBackdropPress={() => setOpenReject(false)} // ✅ ปิด modal ถูกต้อง
+        onBackdropPress={() => setOpenReject(false)}
         option={{ change: { label: "ตกลง", color: theme.mainApp } }}
       >
         <View style={styles.mainView}>
@@ -169,7 +174,7 @@ export default function ApproveScreen() {
       <ModalComponent
         isOpen={isOpenApprove}
         onChange={() => {}}
-        onBackdropPress={() => setOpenApprove(false)} // ✅ ปิด modal ถูกต้อง
+        onBackdropPress={() => setOpenApprove(false)}
         option={{ change: { label: "ตกลง", color: theme.mainApp } }}
       >
         <View style={styles.mainView}>
@@ -221,6 +226,7 @@ export default function ApproveScreen() {
             textColor={textGray}
           />
         )}
+
         {!loading && error && (
           <ErrorState
             message={error}
@@ -229,7 +235,8 @@ export default function ApproveScreen() {
             accentColor={theme.mainApp}
           />
         )}
-        {!loading && !error && total === 0 && (
+
+        {!loading && !error && cardData.length === 0 && (
           <EmptyState
             title="ไม่พบรายการ"
             subtitle="ปรับตัวกรองหรือกดรีโหลดเพื่อดึงข้อมูลอีกครั้ง"
@@ -242,7 +249,7 @@ export default function ApproveScreen() {
           />
         )}
 
-        {!loading && !error && total > 0 && (
+        {!loading && !error && cardData.length > 0 && (
           <>
             <ScrollView
               contentContainerStyle={styles.content}
@@ -252,7 +259,7 @@ export default function ApproveScreen() {
             >
               <TouchableOpacity
                 onPress={handleSelectAll}
-                disabled={cardData.length === 0}
+                disabled={selectableIds.length === 0}
               >
                 <Text style={styles.selectAllText}>
                   {allSelected ? "ยกเลิก" : "เลือกทั้งหมด"}
@@ -263,12 +270,19 @@ export default function ApproveScreen() {
                 <ScanCard
                   key={card.id}
                   id={card.id}
+                  // ✅ ส่ง keyRef ให้ UploadPicker ภายในการ์ด (เผื่อดูไฟล์แนบ/รูป)
+                  keyRef1={card.docNo}
+                  hideAddFile={true}
+                  keyRef2={null}
+                  keyRef3={null}
+                  remark={null}
                   docNo={card.docNo}
                   status={card.status as StatusType}
                   details={card.details}
                   selectedIds={selectedIds}
-                  isSelected={selectedIds.includes(card.id)}
-                  isExpanded={expandedIds.includes(card.id)}
+                  // ✅ ใช้ docNo เป็นตัวอ้างอิง selection/expand ให้ตรงกับ select-all
+                  isSelected={selectedIds.includes(card.docNo)}
+                  isExpanded={expandedIds.includes(card.docNo)}
                   onSelect={toggleSelect}
                   onExpand={toggleExpand}
                   goTo={() => goToDetail(card)}
