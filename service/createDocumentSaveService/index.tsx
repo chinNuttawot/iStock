@@ -6,10 +6,15 @@ import { getProfile } from "../profileService";
 export const createDocumentSaveService = async (data: any) => {
   try {
     const token = await StorageUtility.get(authToken);
+
     const profile = await getProfile();
     const response = await api.post(
       `api/CreateDocument`,
-      { ...data, isApprover: profile?.isApprover },
+      {
+        ...data,
+        isApprover: profile?.isApprover,
+        branchCode: profile?.branchCode,
+      },
       {
         headers: {
           Authorization: `Bearer ${token}`,
