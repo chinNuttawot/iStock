@@ -8,7 +8,11 @@ export const cardListIStockService = async (params: any) => {
     const token = await StorageUtility.get(authToken);
     const profile = await getProfile();
     const response = await api.get(`api/documents`, {
-      params: { ...params, createdBy: profile?.userName },
+      params: {
+        ...params,
+        createdBy: profile?.userName,
+        isApprover: profile?.isApprover,
+      },
       headers: {
         Authorization: `Bearer ${token}`,
       },

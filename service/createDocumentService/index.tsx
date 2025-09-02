@@ -1,6 +1,7 @@
 import { authToken } from "@/providers/keyStorageUtilliy";
 import { StorageUtility } from "@/providers/storageUtility";
 import api from "../apiCore";
+import { getProfile } from "../profileService";
 
 interface paramsModel {
   menuId: number;
@@ -9,8 +10,10 @@ interface paramsModel {
 export const createDocumentService = async (params: paramsModel) => {
   try {
     const token = await StorageUtility.get(authToken);
+    const profile = await getProfile();
     const { menuId } = params;
     const response = await api.get(`api/CreateDocument?menuId=${menuId}`, {
+      params: { isApprover: profile?.isApprover },
       headers: {
         Authorization: `Bearer ${token}`,
       },

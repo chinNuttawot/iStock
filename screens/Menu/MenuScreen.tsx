@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import EmptyState from "@/components/State/EmptyState";
 import ErrorState from "@/components/State/ErrorState";
 import { theme } from "@/providers/Theme";
-import { getProfile, menuService } from "@/service";
+import { menuService } from "@/service";
 import type { Daum } from "@/service/myInterface";
 import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -63,13 +63,8 @@ export default function MenuScreen() {
     setError(null);
     try {
       if (!refreshing && !fetchingMore) setLoading(true);
-      const profile = await getProfile();
       const { data } = await menuService();
-      const isApprover = profile?.isApprover === true;
-      const filteredData = isApprover
-        ? data
-        : data.filter((item: any) => item.menuId !== 6);
-      setMenuData(filteredData);
+      setMenuData(data);
     } catch (e: any) {
       console.log("fetch menu error:", e?.message ?? e);
       setError(e?.message ?? "เกิดข้อผิดพลาดในการดึงเมนู");

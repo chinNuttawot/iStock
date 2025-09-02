@@ -1,6 +1,7 @@
 import { authToken } from "@/providers/keyStorageUtilliy";
 import { StorageUtility } from "@/providers/storageUtility";
 import api from "../apiCore";
+import { getProfile } from "../profileService";
 
 interface paramsModel {
   locationCodeFrom: string;
@@ -9,10 +10,12 @@ interface paramsModel {
 export const binCodesByLocationService = async (params: paramsModel) => {
   try {
     const token = await StorageUtility.get(authToken);
+    const profile = await getProfile();
     const { locationCodeFrom } = params;
     const response = await api.get(
       `api/BinCodesByLocation?locationCodeFrom=${locationCodeFrom}`,
       {
+        params: { isApprover: profile?.isApprover },
         headers: {
           Authorization: `Bearer ${token}`,
         },
