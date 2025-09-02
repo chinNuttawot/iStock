@@ -57,6 +57,7 @@ export interface CardListModel {
   docNo: string;
   menuType: string;
   status: string;
+  date: string;
   details: CardListDetail[];
 }
 

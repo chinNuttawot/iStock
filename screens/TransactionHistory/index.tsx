@@ -214,6 +214,7 @@ export default function TransactionHistoryScreen() {
                 remark={null}
                 hideAddFile={true}
                 docNo={card.docNo}
+                date={card.date}
                 status={card.status as StatusType}
                 details={card.details}
                 hideSelectedIds

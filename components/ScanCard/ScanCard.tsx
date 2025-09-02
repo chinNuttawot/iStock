@@ -12,6 +12,7 @@ export type StatusType = "Open" | "Pending Approval" | "Approved" | "Rejected";
 type ScanCardProps = {
   id: string;
   docNo: string;
+  date: string;
   details: { label: string; value: string }[];
   status: StatusType;
   isSelected: boolean;
@@ -48,6 +49,7 @@ const ScanCard = React.forwardRef<any, ScanCardProps>(
       goTo,
       hideSelectedIds = false,
       hideAddFile = false,
+      date,
     },
     ref
   ) => {
@@ -103,6 +105,9 @@ const ScanCard = React.forwardRef<any, ScanCardProps>(
             color={theme.mainApp}
           />
         </TouchableOpacity>
+        <Text style={[styles.text, { marginTop: 8, marginLeft: 8 }]}>
+          {date}
+        </Text>
         <UploadPicker
           hideAddFile={hideAddFile}
           ref={ref}

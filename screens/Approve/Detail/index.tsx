@@ -32,7 +32,7 @@ export const _productData: ProductItem[] = [
       { label: "หมายเหตุ", value: "ของเล่น ลาโพงน้องหมา M10" },
       { label: "คงเหลือ", value: "10" },
     ],
-    image: "https://picsum.photos/seed/shirt/100/100",
+    picURL: "https://picsum.photos/seed/shirt/100/100",
   },
   {
     id: "2",
@@ -46,7 +46,7 @@ export const _productData: ProductItem[] = [
       { label: "หมายเหตุ", value: "ของเล่น น้องแมว M20" },
       { label: "คงเหลือ", value: "10" },
     ],
-    image: "https://picsum.photos/seed/shirt/100/100",
+    picURL: "https://picsum.photos/seed/shirt/100/100",
   },
   {
     id: "3",
@@ -60,7 +60,7 @@ export const _productData: ProductItem[] = [
       { label: "หมายเหตุ", value: "ของเล่น น้องกระต่าย M30" },
       { label: "คงเหลือ", value: "10" },
     ],
-    image: "https://picsum.photos/seed/shirt/100/100",
+    picURL: "https://picsum.photos/seed/shirt/100/100",
   },
 ];
 

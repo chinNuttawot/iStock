@@ -7,6 +7,8 @@ import { createDocumentSaveService } from "./createDocumentSaveService";
 import { createDocumentService } from "./createDocumentService";
 import { deleteDocumentProducts } from "./deleteDocumentProducts";
 import { fileService } from "./fileService";
+import { itemProductWSService } from "./itemProductWSService";
+import { itemVariantWSService } from "./itemVariantWSService";
 import { locationService } from "./locationService";
 import { loginService } from "./loginService";
 import { menuService } from "./menuService";
@@ -25,6 +27,8 @@ export {
     delProfile,
     fileService,
     getProfile,
+    itemProductWSService,
+    itemVariantWSService,
     locationService,
     loginService,
     menuService,

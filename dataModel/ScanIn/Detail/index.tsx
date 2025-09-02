@@ -10,6 +10,6 @@ export type ProductItem = {
   qtyReceived: number | null;
   qtyShipped: number | null;
   details: ProductDetail[];
-  image: string;
+  picURL?: string;
   isDelete: boolean;
 };

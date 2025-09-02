@@ -242,6 +242,7 @@ export default function ScanOutScreen() {
                   keyRef3={null}
                   remark={null}
                   docNo={card.docNo}
+                  date={card.date}
                   status={card.status as StatusType}
                   hideSelectedIds={card.status !== "Open"}
                   details={card.details}

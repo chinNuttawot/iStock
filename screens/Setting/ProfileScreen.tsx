@@ -40,7 +40,7 @@ export default function ProfileScreen() {
         <ScrollView contentContainerStyle={styles.formContainer}>
           <FormItem
             icon={<Ionicons name="id-card-outline" size={20} />}
-            label="Employee ID"
+            label={profile?.User_Security_ID || "-"}
           />
           <FormItem
             icon={<Ionicons name="person-outline" size={20} />}
@@ -53,7 +53,7 @@ export default function ProfileScreen() {
                 size={20}
               />
             }
-            label="Department"
+            label={profile?.branchCode as string}
           />
           <FormItem
             icon={<Entypo name="location" size={20} />}

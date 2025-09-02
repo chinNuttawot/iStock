@@ -3,12 +3,13 @@ import { theme } from "@/providers/Theme";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
+  Image,
   Modal,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
 import uuid from "react-native-uuid";
@@ -21,6 +22,7 @@ type Props = {
   modelOptions: { key: string; value: string }[];
   stockQty: number;
   value: any;
+  description: string;
 };
 
 const ProductAddModalComponent = ({
@@ -31,11 +33,13 @@ const ProductAddModalComponent = ({
   modelOptions,
   stockQty,
   value,
+  description,
 }: Props) => {
   const [model, setModel] = useState("");
   const [quantity, setQuantity] = useState("");
   const [serialNo, setSerialNo] = useState("");
   const [remark, setRemark] = useState("");
+  const [picURL, setPicURL] = useState("");
 
   useEffect(() => {
     const isEmptyObject = Object.keys(value).length === 0;
@@ -57,6 +61,7 @@ const ProductAddModalComponent = ({
         serialNo,
         remark,
         uuid: uuid.v4(),
+        picURL,
       });
     } else {
       onSave({
@@ -66,6 +71,7 @@ const ProductAddModalComponent = ({
         serialNo,
         remark,
         uuid: value?.uuid,
+        picURL,
       });
     }
 
@@ -82,6 +88,7 @@ const ProductAddModalComponent = ({
     setQuantity("");
     setSerialNo("");
     setRemark("");
+    setPicURL("");
   };
 
   return (
@@ -103,13 +110,24 @@ const ProductAddModalComponent = ({
             <Text style={styles.label}>รหัสแบบ</Text>
             <View style={{ flex: 1 }}>
               <SelectList
-                setSelected={setModel}
+                setSelected={(res: any) => {
+                  setModel(res);
+                  const _picURL =
+                    modelOptions.filter((v) => v.value === res)[0]?.picURL ??
+                    "";
+
+                  setPicURL(_picURL);
+                }}
                 data={modelOptions}
                 boxStyles={styles.selectBox}
                 dropdownStyles={{ borderColor: theme.gray }}
                 search={true}
                 save="key"
                 placeholder="เลือก"
+                defaultOption={{
+                  key: modelOptions[0]?.key ?? "",
+                  value: modelOptions[0]?.value ?? "",
+                }}
               />
             </View>
           </View>
@@ -124,8 +142,18 @@ const ProductAddModalComponent = ({
           <Text style={styles.textLink}>จำนวนสินค้า</Text>
           <TextInput
             style={styles.input}
-            value={quantity}
-            onChangeText={setQuantity}
+            value={quantity.toString()}
+            onChangeText={(num) => {
+              if (num === "") {
+                setQuantity("");
+                return;
+              }
+
+              const parsed = Number(num);
+              if (!isNaN(parsed) && parsed <= stockQty) {
+                setQuantity(parsed.toString());
+              }
+            }}
             keyboardType="numeric"
           />
 
@@ -138,21 +166,27 @@ const ProductAddModalComponent = ({
 
           <Text style={styles.textLink}>หมายเหตุ</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { height: 150 }]}
             value={remark}
             onChangeText={setRemark}
+            multiline={true}
           />
+          <Text style={styles.textError}>{description}</Text>
 
-          <View style={styles.imageBox}>
-            <Ionicons name="image-outline" size={90} color={theme.gray} />
-          </View>
+          {picURL && (
+            <View style={styles.imageBox}>
+              <Image
+                source={{ uri: picURL }}
+                style={styles.imageItem}
+                resizeMode="cover"
+              />
+            </View>
+          )}
 
           <CustomButton
             label="บันทึก"
             onPress={handleSave}
-            disabled={
-              model === "" || quantity === "" || serialNo === ""
-            }
+            disabled={model === "" || quantity === ""}
           />
         </View>
       </View>
@@ -201,6 +235,17 @@ const styles = StyleSheet.create({
     ...theme.setFont,
     color: theme.mainApp,
   },
+  textError: {
+    ...theme.setFont,
+    color: theme.error,
+    textAlign: "center",
+  },
+  imageItem: {
+    width: 120,
+    height: 100,
+    alignSelf: "center",
+    marginTop: 16,
+  },
   stockQty: {
     ...theme.setFont,
     marginLeft: 8,
@@ -216,9 +261,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 8,
     ...theme.setFont,
+    justifyContent: "flex-start",
   },
   imageBox: {
-    padding: 16,
     alignItems: "center",
     marginBottom: 8,
   },

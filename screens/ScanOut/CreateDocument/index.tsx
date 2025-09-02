@@ -22,6 +22,8 @@ import {
   createDocumentSaveService,
   createDocumentService,
   getProfile,
+  itemProductWSService,
+  itemVariantWSService,
 } from "@/service";
 import {
   Alert,
@@ -63,9 +65,10 @@ export default function CreateDocumentScreen() {
   const [modelOptions, setModelOptions] = useState<any[]>([]);
   const [initData, setInitData] = useState({});
   const [productCode, setProductCode] = useState("");
+  const [description, setDescription] = useState("");
   const route = useRoute();
   const { menuId } = route.params as { menuId: number };
-  const stockQty = 99;
+  const [stockQty, setStockQty] = useState(0);
   const isValid = products.length > 0;
 
   const optionModalComponent: Modeloption = {
@@ -81,13 +84,26 @@ export default function CreateDocumentScreen() {
   }, []);
 
   useEffect(() => {
-    const onFilterChanged = ({ docNo: itemNo }: any) => {
+    const onFilterChanged = async ({ docNo: itemNo }: any) => {
       if (!itemNo) {
         Alert.alert("เกิดขอผิดพลาด", "ไม่มีรหัสสินค้า");
         return;
       }
+      const { data } = await itemProductWSService({ itemNo });
+      if (data.length === 0) {
+        Alert.alert("เกิดขอผิดพลาด", "ไม่พบข้อมูล");
+        return;
+      }
+      const { data: dataVariant } = await itemVariantWSService({ itemNo });
+      if (dataVariant.length === 0) {
+        Alert.alert("เกิดขอผิดพลาด", "ไม่พบข้อมูล");
+        return;
+      }
+      const _data = data[0];
       setProductCode(itemNo);
-      setModelOptions([{ key: "VR000", value: "VR000" }]);
+      setStockQty(_data.qtyShipped);
+      setDescription(_data.description);
+      setModelOptions(dataVariant);
       setShowAddModal(true);
     };
     emitter.on(filterCreateDocumentScanOut, onFilterChanged);
@@ -176,7 +192,7 @@ export default function CreateDocumentScreen() {
         { label: "Serial No", value: list.serialNo || "-" },
         { label: "หมายเหตุ", value: list.remark || "-" },
       ],
-      image: "https://picsum.photos/seed/shirt/100/100",
+      picURL: list.picURL,
     };
     const updatedViewMode = viewMode.some((item) => item.id === dataView.id)
       ? viewMode.map((item) => (item.id === dataView.id ? dataView : item))
@@ -227,6 +243,7 @@ export default function CreateDocumentScreen() {
           setShowAddModal(false);
         }}
         onSave={onSaveList}
+        description={description}
         productCode={productCode}
         modelOptions={modelOptions}
         stockQty={stockQty}

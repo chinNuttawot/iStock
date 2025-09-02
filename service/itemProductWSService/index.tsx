@@ -3,17 +3,16 @@ import { StorageUtility } from "@/providers/storageUtility";
 import api from "../apiCore";
 import { getProfile } from "../profileService";
 
-export const cardListIStockService = async (params: any) => {
+interface paramsModel {
+  itemNo: string;
+}
+
+export const itemProductWSService = async (params: paramsModel) => {
   try {
     const token = await StorageUtility.get(authToken);
     const profile = await getProfile();
-    const response = await api.get(`api/documents`, {
-      params: {
-        ...params,
-        createdBy: profile?.userName,
-        isApprover: profile?.isApprover,
-        branchCode: profile?.branchCode,
-      },
+    const response = await api.get(`api/ItemProductWS`, {
+      params: { ...params, branchCode: profile?.branchCode },
       headers: {
         Authorization: `Bearer ${token}`,
       },

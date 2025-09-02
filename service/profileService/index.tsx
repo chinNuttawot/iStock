@@ -11,7 +11,6 @@ export type ProfileApi = {
   userName: string;
   fullName: string;
   branchCode: string;
-  branchCodeFilter: string;
   isApprover: boolean;
 };
 

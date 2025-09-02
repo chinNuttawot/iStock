@@ -1,4 +1,8 @@
-import { emitter, filterCreateDocumentTransfer, getDataTransfer } from "@/common/emitter";
+import {
+  emitter,
+  filterCreateDocumentTransfer,
+  getDataTransfer,
+} from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import CustomButtons from "@/components/CustomButtons";
 import CustomDatePicker from "@/components/CustomDatePicker";
@@ -15,6 +19,8 @@ import {
   createDocumentSaveService,
   createDocumentService,
   getProfile,
+  itemProductWSService,
+  itemVariantWSService,
   locationService,
 } from "@/service";
 import { Ionicons } from "@expo/vector-icons";
@@ -68,7 +74,8 @@ export default function CreateDocumentTransferScreen() {
   const [isload, setIsload] = useState(false);
   const [productCode, setProductCode] = useState("");
   const [modelOptions, setModelOptions] = useState<any[]>([]);
-  const stockQty = 99;
+  const [description, setDescription] = useState("");
+  const [stockQty, setStockQty] = useState(0);
   const isValid =
     !!docNo &&
     !!stockOutDate &&
@@ -105,13 +112,26 @@ export default function CreateDocumentTransferScreen() {
   }, [editProducts]);
 
   useEffect(() => {
-    const onFilterChanged = ({ docNo: itemNo }: any) => {
+    const onFilterChanged = async ({ docNo: itemNo }: any) => {
       if (!itemNo) {
         Alert.alert("เกิดขอผิดพลาด", "ไม่มีรหัสสินค้า");
         return;
       }
+      const { data } = await itemProductWSService({ itemNo });
+      if (data.length === 0) {
+        Alert.alert("เกิดขอผิดพลาด", "ไม่พบข้อมูล");
+        return;
+      }
+      const { data: dataVariant } = await itemVariantWSService({ itemNo });
+      if (dataVariant.length === 0) {
+        Alert.alert("เกิดขอผิดพลาด", "ไม่พบข้อมูล");
+        return;
+      }
+      const _data = data[0];
       setProductCode(itemNo);
-      setModelOptions([{ key: "VR000", value: "VR000" }]);
+      setStockQty(_data.qtyShipped);
+      setDescription(_data.description);
+      setModelOptions(dataVariant);
       setShowAddModal(true);
     };
     emitter.on(filterCreateDocumentTransfer, onFilterChanged);
@@ -230,7 +250,7 @@ export default function CreateDocumentTransferScreen() {
         { label: "Serial No", value: list.serialNo || "-" },
         { label: "หมายเหตุ", value: list.remark || "-" },
       ],
-      image: "https://picsum.photos/seed/shirt/100/100",
+      picURL: list.picURL,
     };
 
     setViewMode((prev) =>
@@ -348,6 +368,7 @@ export default function CreateDocumentTransferScreen() {
           setShowAddModal(false);
         }}
         onSave={onSaveList}
+        description={description}
         productCode={productCode}
         modelOptions={modelOptions}
         stockQty={stockQty}

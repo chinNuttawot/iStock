@@ -55,13 +55,15 @@ export default function DetailCard({
                   },
                 ]}
               >
-                {item.value || `${data.qtyReceived} / ${data.qtyShipped}`}
+                {data.qtyReceived && data.qtyShipped
+                  ? `${data.qtyReceived} / ${data.qtyShipped}`
+                  : item.value || "-"}
               </Text>
             </View>
           ))}
-          {data.image && (
+          {data.picURL && (
             <Image
-              source={{ uri: data.image }}
+              source={{ uri: data.picURL }}
               style={styles.imageItem}
               resizeMode="cover"
             />
