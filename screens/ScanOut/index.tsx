@@ -7,7 +7,7 @@ import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
 import { UploadPickerHandle } from "@/components/UploadPicker";
 import { theme } from "@/providers/Theme";
-import { cardListIStockService } from "@/service";
+import { cardListIStockService, SendToApproveDocuments } from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -134,7 +134,11 @@ export default function ScanOutScreen() {
 
   const goToDetail = useCallback(
     (card: CardListModel) => {
-      navigation.navigate("ScanOutDetail", { docNo: card.docNo, menuId: 1 });
+      navigation.navigate("ScanOutDetail", {
+        docNo: card.docNo,
+        menuId: 1,
+        status: card.status,
+      });
     },
     [navigation]
   );
@@ -148,9 +152,11 @@ export default function ScanOutScreen() {
         const handle = uploadRefs.current[docNo];
         await handle?.uploadAllInOneRequests?.();
       }
+      await SendToApproveDocuments({ docNo: selectedIds.join("|") });
     } catch (err) {
       // เก็บ log หรือแจ้งเตือนเพิ่มเติมได้
     } finally {
+      setSelectedIds([]);
       emitter.emit(getDataScanOut); // ให้ list รีโหลดสถานะ
     }
   }, [selectedIds]);

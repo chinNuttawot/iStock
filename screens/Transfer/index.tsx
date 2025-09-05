@@ -8,7 +8,7 @@ import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
 import type { UploadPickerHandle } from "@/components/UploadPicker";
 import { theme } from "@/providers/Theme";
-import { cardListIStockService } from "@/service";
+import { cardListIStockService, SendToApproveDocuments } from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -138,7 +138,11 @@ export default function TransferScreen() {
 
   const goToDetail = useCallback(
     (card: CardListModel) => {
-      navigation.navigate("TransferDetail", { docNo: card.docNo, menuId: 2 });
+      navigation.navigate("TransferDetail", {
+        docNo: card.docNo,
+        menuId: 2,
+        status: card.status,
+      });
     },
     [navigation]
   );
@@ -152,7 +156,9 @@ export default function TransferScreen() {
         const handle = uploadRefs.current[docNo];
         await handle?.uploadAllInOneRequests?.();
       }
+      await SendToApproveDocuments({ docNo: selectedIds.join("|") });
     } finally {
+      setSelectedIds([]);
       emitter.emit(getDataTransfer); // ให้รีเฟรชสถานะหลังส่ง
     }
   }, [selectedIds]);

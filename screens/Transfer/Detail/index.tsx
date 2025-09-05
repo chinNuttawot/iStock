@@ -11,6 +11,7 @@ import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { Modeloption } from "@/providers/Modal/Model";
 import { theme } from "@/providers/Theme";
+import { RouteParams } from "@/screens/Approve/Detail";
 import { cardDetailIStockListService, deleteDocumentProducts } from "@/service";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useRef, useState } from "react";
@@ -36,7 +37,7 @@ export default function TransferDetailScreen() {
   };
   const navigation = useNavigation<any>();
   const route = useRoute();
-  const { docNo, menuId } = route.params as { docNo: string; menuId: number };
+  const { docNo, menuId, status } = route.params as RouteParams;
 
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [productData, setProductData] = useState<ProductItem[]>([]);
@@ -220,14 +221,16 @@ export default function TransferDetailScreen() {
                 textGoTo="ลบ"
                 colorButton={theme.red}
                 goTo={() => onDeleteItem(item)}
+                viewMode={status !== "Open"}
               />
             ))}
         </ScrollView>
       )}
-
-      <View style={{ padding: 16, marginBottom: 16 }}>
-        <CustomButton label="บันทึก" onPress={onSave} />
-      </View>
+      {status === "Open" && (
+        <View style={{ padding: 16, marginBottom: 16 }}>
+          <CustomButton label="บันทึก" onPress={onSave} />
+        </View>
+      )}
     </View>
   );
 }

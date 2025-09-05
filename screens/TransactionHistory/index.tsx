@@ -19,22 +19,13 @@ import {
 } from "react-native";
 import { styles } from "./Styles";
 
-type THDetail = { label: string; value: string };
-type THCard = {
-  id: string;
-  menuId: number;
-  docNo: string;
-  status: string;
-  details: THDetail[];
-};
-
 export default function TransactionHistoryScreen() {
   const navigation = useNavigation<any>();
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<any>({});
-  const [cardData, setCardData] = useState<THCard[]>([]);
+  const [cardData, setCardData] = useState<CardListModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -136,7 +127,7 @@ export default function TransactionHistoryScreen() {
   }, [filter, navigation]);
 
   const goToDetail = useCallback(
-    (card: THCard) => {
+    (card: CardListModel) => {
       navigation.navigate("TransactionHistoryDetail", {
         docNo: card.docNo,
         menuId: card.menuId,

@@ -8,7 +8,7 @@ import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
 import type { UploadPickerHandle } from "@/components/UploadPicker";
 import { theme } from "@/providers/Theme";
-import { cardListIStockService } from "@/service";
+import { cardListIStockService, SendToApproveDocuments } from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -139,7 +139,11 @@ export default function StockCheckScreen() {
   const goToDetail = useCallback(
     (card: CardListModel) => {
       // menuId=3 สำหรับตรวจนับ
-      navigation.navigate("StockCheckDetail", { docNo: card.docNo, menuId: 3 });
+      navigation.navigate("StockCheckDetail", {
+        docNo: card.docNo,
+        menuId: 3,
+        status: card.status,
+      });
     },
     [navigation]
   );
@@ -152,7 +156,9 @@ export default function StockCheckScreen() {
         const handle = uploadRefs.current[docNo];
         await handle?.uploadAllInOneRequests?.();
       }
+      await SendToApproveDocuments({ docNo: selectedIds.join("|") });
     } finally {
+      setSelectedIds([]);
       emitter.emit(getDataStockCheck); // ให้รีโหลดสถานะหลังอัปสำเร็จ
     }
   }, [selectedIds]);

@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import EmptyState from "@/components/State/EmptyState";
 import ErrorState from "@/components/State/ErrorState";
 import { theme } from "@/providers/Theme";
-import { menuService } from "@/service";
+import { BagnumberService, getProfile, menuService } from "@/service";
 import type { Daum } from "@/service/myInterface";
 import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -26,7 +26,7 @@ import {
 import { styles } from "./Styles";
 
 export default function MenuScreen() {
-  const [badgeNumber] = useState(1);
+  const [badgeNumber, setBadgeNumber] = useState(0);
   const [menus, setMenus] = useState<Daum[]>([]);
   const [loading, setLoading] = useState(false); // โหลดรอบแรก / โหลดทั่วไป
   const [refreshing, setRefreshing] = useState(false); // pull-to-refresh
@@ -63,7 +63,12 @@ export default function MenuScreen() {
     setError(null);
     try {
       if (!refreshing && !fetchingMore) setLoading(true);
+      const profile = await getProfile();
       const { data } = await menuService();
+      if (profile?.isApprover) {
+        const { data } = await BagnumberService();
+        setBadgeNumber(data);
+      }
       setMenuData(data);
     } catch (e: any) {
       console.log("fetch menu error:", e?.message ?? e);
@@ -169,7 +174,9 @@ export default function MenuScreen() {
         <View style={styles.menuRight}>
           {badgeNumber > 0 && item.Label === "อนุมัติรายการ" && (
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>{badgeNumber}</Text>
+              <Text style={styles.badgeText}>
+                {badgeNumber > 99 ? "99+" : badgeNumber}
+              </Text>
             </View>
           )}
           <Ionicons name="chevron-forward" size={20} color="black" />

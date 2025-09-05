@@ -1,101 +1,87 @@
-import { emitter, filterApproveDetail } from "@/common/emitter";
+import { emitter, filterApproveDetail, getDataApprove } from "@/common/emitter";
 import CustomButtons from "@/components/CustomButtons";
 import DetailCard from "@/components/DetailCard";
 import Header from "@/components/Header";
+import QuantitySerialModal from "@/components/Modals/QuantitySerialModal";
+import EmptyState from "@/components/State/EmptyState";
 import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  ApproveDocumentsService,
+  cardDetailIStockListService,
+} from "@/service";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useForm } from "react-hook-form";
+import { ScrollView, Text, View } from "react-native";
 import { styles } from "./styles";
 
-export const RenderGoBackItem = (
-  <View style={styles.mainView}>
-    <Text style={[styles.label, { textAlign: "center", padding: 8 }]}>
-      คุณมีรายการที่ทำค้างอยู่ ต้องการออกจากหน้านี้หรือไม่
-    </Text>
-  </View>
-);
-
-export const _productData: ProductItem[] = [
-  {
-    id: "1",
-    docNo: "5OTH01475",
-    model: "VR001",
-    qtyReceived: null,
-    qtyShipped: null,
-    isDelete: false,
-    details: [
-      { label: "รุ่น", value: "VR000" },
-      { label: "หมายเหตุ", value: "ของเล่น ลาโพงน้องหมา M10" },
-      { label: "คงเหลือ", value: "10" },
-    ],
-    picURL: "https://picsum.photos/seed/shirt/100/100",
-  },
-  {
-    id: "2",
-    docNo: "5OTH01475",
-    model: "VR001",
-    qtyReceived: null,
-    qtyShipped: null,
-    isDelete: false,
-    details: [
-      { label: "รุ่น", value: "VR001" },
-      { label: "หมายเหตุ", value: "ของเล่น น้องแมว M20" },
-      { label: "คงเหลือ", value: "10" },
-    ],
-    picURL: "https://picsum.photos/seed/shirt/100/100",
-  },
-  {
-    id: "3",
-    docNo: "5OTH01475",
-    model: "VR002",
-    qtyReceived: null,
-    qtyShipped: null,
-    isDelete: false,
-    details: [
-      { label: "รุ่น", value: "VR002" },
-      { label: "หมายเหตุ", value: "ของเล่น น้องกระต่าย M30" },
-      { label: "คงเหลือ", value: "10" },
-    ],
-    picURL: "https://picsum.photos/seed/shirt/100/100",
-  },
-];
+export type RouteParams = { docNo: string; menuId: number; status: string };
 
 export default function ApproveDetailScreen() {
-  const navigation = useNavigation<any>();
-  const route = useRoute();
-  const { docNo } = (route.params ?? {}) as { docNo: string };
+  const [itemDetail, setItemDetail] = useState<{
+    docNo: string;
+    model: string;
+    qtyReceived: number;
+    qtyShipped: number;
+  } | null>(null);
 
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
-  const [productData] = useState<ProductItem[]>(_productData);
   const [filter, setFilter] = useState<any>({});
+  const [isOpen, setIsOpen] = useState(false);
+  const navigation = useNavigation<any>();
+  const route = useRoute();
+  const { docNo, menuId, status } = route.params as RouteParams;
+
+  const scanInDetailForm = useForm();
+  const [productData, setProductData] = useState<ProductItem[]>([]);
   const [isOpenViewReject, setIsOpenViewReject] = useState(false);
   const [isOpenViewApprove, setIsOpenViewApprove] = useState(false);
 
-  // รับค่า filter จากหน้าอื่น
+  const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
+
   useEffect(() => {
-    const onFilterChanged = (data: any) => setFilter(data);
+    const onFilterChanged = (data: any) => {
+      console.log(`${filterApproveDetail} =====> `, data);
+      setFilter(data);
+    };
     emitter.on(filterApproveDetail, onFilterChanged);
-    return () => emitter.off(filterApproveDetail, onFilterChanged);
+    return () => {
+      emitter.off(filterApproveDetail, onFilterChanged);
+    };
   }, []);
 
-  const toggleExpand = useCallback((id: string) => {
+  useEffect(() => {
+    getDataDetail();
+  }, []);
+
+  const getDataDetail = async () => {
+    try {
+      const { data } = await cardDetailIStockListService({
+        docNo,
+        menuId,
+      });
+      setProductData(data);
+    } catch (err) {
+      // TODO: handle error state
+    }
+  };
+
+  const toggleExpand = (id: string) => {
     setExpandedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
-  }, []);
+  };
 
-  const openFilter = useCallback(() => {
+  const openFilter = () => {
     navigation.navigate("Filter", {
       filter,
       showFilterDate: false,
       showFilterStatus: false,
       ScanName: "รหัสสินค้า",
     });
-  }, [filter, navigation]);
+  };
 
   const onGoBack = useCallback(() => {
     navigation.goBack();
@@ -105,21 +91,26 @@ export default function ApproveDetailScreen() {
     () => productData.filter((v) => !v.isDelete),
     [productData]
   );
+
   const RenderViewReject = (
     <View style={styles.mainView}>
       <Text
         style={[
           styles.label,
-          { ...theme.setFont_Bold },
+          { ...(theme as any).setFont_Bold },
           { textAlign: "center", padding: 8, fontSize: 20 },
         ]}
-      >{`ปฏิเสธรายการ`}</Text>
+      >
+        ปฏิเสธรายการ
+      </Text>
       <Text
         style={[
           styles.label,
           { textAlign: "center", padding: 8, marginBottom: 26 },
         ]}
-      >{`คุณต้องการที่จะปฏิเสธรายการที่เลือกหรือไม่`}</Text>
+      >
+        คุณต้องการที่จะปฏิเสธรายการที่เลือกหรือไม่
+      </Text>
     </View>
   );
 
@@ -128,24 +119,41 @@ export default function ApproveDetailScreen() {
       <Text
         style={[
           styles.label,
-          { ...theme.setFont_Bold },
+          { ...(theme as any).setFont_Bold },
           { textAlign: "center", padding: 8, fontSize: 20 },
         ]}
-      >{`อนุมัติรายการ`}</Text>
+      >
+        อนุมัติรายการ
+      </Text>
       <Text
         style={[
           styles.label,
           { textAlign: "center", padding: 8, marginBottom: 26 },
         ]}
-      >{`คุณต้องการที่จะอนุมัติรายการที่เลือกหรือไม่`}</Text>
+      >
+        คุณต้องการที่จะอนุมัติรายการที่เลือกหรือไม่
+      </Text>
     </View>
   );
+
+  const callAPIApproveDocuments = async (status: string) => {
+    try {
+      await ApproveDocumentsService({ docNo, status });
+      navigation.goBack();
+    } catch (err) {
+    } finally {
+      emitter.emit(getDataApprove);
+    }
+  };
   return (
     <View style={{ flex: 1, backgroundColor: theme.white }}>
       {/* Reject modal */}
       <ModalComponent
         isOpen={isOpenViewReject}
-        onChange={() => setIsOpenViewReject(false)}
+        onChange={() => {
+          callAPIApproveDocuments("Rejected");
+          setIsOpenViewReject(false);
+        }}
         onBackdropPress={() => setIsOpenViewReject(false)}
         option={{ change: { label: "ตกลง", color: theme.mainApp } }}
       >
@@ -155,7 +163,10 @@ export default function ApproveDetailScreen() {
       {/* Approve modal */}
       <ModalComponent
         isOpen={isOpenViewApprove}
-        onChange={() => setIsOpenViewApprove(false)}
+        onChange={() => {
+          callAPIApproveDocuments("Approved");
+          setIsOpenViewApprove(false);
+        }}
         onBackdropPress={() => setIsOpenViewApprove(false)}
         option={{ change: { label: "ตกลง", color: theme.mainApp } }}
       >
@@ -168,41 +179,74 @@ export default function ApproveDetailScreen() {
         hideGoback={false}
         title={docNo}
         onGoBack={onGoBack}
-        IconComponent={[
-          <TouchableOpacity key="filter" onPress={openFilter}>
-            <MaterialCommunityIcons
-              name={filter?.isFilter ? "filter-check" : "filter"}
-              size={30}
-              color="white"
-            />
-          </TouchableOpacity>,
-        ]}
+        // IconComponent={[
+        //   <TouchableOpacity key="filter" onPress={openFilter}>
+        //     <MaterialCommunityIcons
+        //       name={filter?.isFilter ? "filter-check" : "filter"}
+        //       size={30}
+        //       color="white"
+        //     />
+        //   </TouchableOpacity>,
+        // ]}
       />
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {visibleItems.map((item) => (
-          <DetailCard
-            key={item.id}
-            data={item}
-            viewMode
-            isExpanded={expandedIds.includes(item.id)}
-            onToggle={() => toggleExpand(item.id)}
-          />
-        ))}
-      </ScrollView>
+      <QuantitySerialModal
+        isOpen={isOpen}
+        item={itemDetail}
+        onClose={() => setIsOpen(false)}
+        form={scanInDetailForm}
+        labelConfirm="ยืนยัน"
+      />
 
-      <View style={{ padding: 16, marginBottom: 16, flexDirection: "row" }}>
-        <CustomButtons
-          color={theme.red}
-          label="ปฏิเสธ"
-          onPress={() => setIsOpenViewReject(true)}
-        />
-        <CustomButtons
-          color={theme.green}
-          label="อนุมัติรายการ"
-          onPress={() => setIsOpenViewApprove(true)}
-        />
-      </View>
+      {productData.length === 0 && (
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <EmptyState
+            title="ไม่พบรายการ"
+            subtitle=""
+            icon="file-search-outline"
+            color={textGray}
+            actionLabel="รีโหลด"
+            // onAction={fetchData}
+            buttonBg={theme.mainApp}
+            buttonTextColor={theme.white}
+          />
+        </View>
+      )}
+
+      {productData.length !== 0 && (
+        <ScrollView contentContainerStyle={styles.content}>
+          {visibleItems.map((item) => (
+            <DetailCard
+              key={item.id}
+              data={item}
+              viewMode
+              isExpanded={expandedIds.includes(item.id)}
+              onToggle={() => toggleExpand(item.id)}
+            />
+          ))}
+        </ScrollView>
+      )}
+
+      {status === "Pending Approval" && (
+        <View style={{ padding: 16, marginBottom: 16, flexDirection: "row" }}>
+          <CustomButtons
+            color={theme.red}
+            label="ปฏิเสธ"
+            onPress={() => setIsOpenViewReject(true)}
+          />
+          <CustomButtons
+            color={theme.green}
+            label="อนุมัติรายการ"
+            onPress={() => setIsOpenViewApprove(true)}
+          />
+        </View>
+      )}
     </View>
   );
 }

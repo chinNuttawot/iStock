@@ -1,13 +1,16 @@
 // screens/ApproveScreen.tsx
-import { emitter, filterApprove } from "@/common/emitter";
+import { emitter, filterApprove, getDataApprove } from "@/common/emitter";
 import CustomButtons from "@/components/CustomButtons";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
 import EmptyState from "@/components/State/EmptyState";
 import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
+import { UploadPickerHandle } from "@/components/UploadPicker";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
+import { ApproveDocumentsService, cardListIStockService } from "@/service";
+import { CardListModel } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, {
@@ -15,6 +18,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -26,25 +30,6 @@ import {
 } from "react-native";
 import { styles } from "./Styles";
 
-type Detail = { label: string; value: string };
-type Card = { id: string; docNo: string; status: string; details: Detail[] };
-
-const mock: Card[] = [
-  {
-    id: "1",
-    docNo: "TRO2506-079",
-    status: "Open",
-    details: [
-      { label: "วันที่ตรวจนับ", value: "23/06/2025" },
-      { label: "จัดทำโดย", value: "CHY" },
-      { label: "หมายเหตุ", value: "ตัดเบิกโอเปอร์ประชุม ผจก. เดือน มิ.ย.68" },
-    ],
-  },
-  { id: "2", docNo: "TRO2506-080", status: "Approved", details: [] },
-  { id: "3", docNo: "TRO2506-010", status: "Pending Approval", details: [] },
-  { id: "4", docNo: "TRO2506-011", status: "Rejected", details: [] },
-];
-
 export default function ApproveScreen() {
   const navigation = useNavigation<any>();
 
@@ -53,29 +38,43 @@ export default function ApproveScreen() {
   const [isOpenReject, setOpenReject] = useState(false);
   const [isOpenApprove, setOpenApprove] = useState(false);
   const [filter, setFilter] = useState<any>({});
-  const [cardData, setData] = useState<Card[]>([]);
+  const [cardData, setCardData] = useState<CardListModel[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isload, setIsload] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  // ✅ ใช้ “แผนที่ของ refs” อ้างอิง UploadPicker ของแต่ละการ์ดตาม id
+  const uploadRefs = useRef<Record<string, UploadPickerHandle | null>>({});
   const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
   const errorColor = (theme as any).error ?? "#ef4444";
 
   useEffect(() => {
-    const onFilterChanged = (d: any) => setFilter(d);
+    const onFilterChanged = (data: any) => {
+      console.log("data ====>", data);
+
+      setFilter(data);
+    };
     emitter.on(filterApprove, onFilterChanged);
     return () => emitter.off(filterApprove, onFilterChanged);
+  }, []);
+
+  useEffect(() => {
+    const onFilterChanged = (data: any) => {
+      fetchData();
+    };
+    emitter.on(getDataApprove, onFilterChanged);
+    return () => emitter.off(getDataApprove, onFilterChanged);
   }, []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      await new Promise((r) => setTimeout(r, 250));
-      setData(mock);
-    } catch (e: any) {
-      setError(e?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
-      setData([]);
+      const { data } = await cardListIStockService({});
+      setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
+    } catch (err: any) {
+      setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
+      setCardData([]);
     } finally {
       setLoading(false);
     }
@@ -98,7 +97,10 @@ export default function ApproveScreen() {
 
   // เลือกทั้งหมด: นับเฉพาะการ์ดที่ Open (ให้สอดคล้องทุกหน้า)
   const selectableIds = useMemo(
-    () => cardData.filter((i) => i.status === "Open").map((i) => i.docNo),
+    () =>
+      cardData
+        .filter((i) => i.status === "Pending Approval")
+        .map((i) => i.docNo),
     [cardData]
   );
   const allSelected = useMemo(
@@ -128,20 +130,51 @@ export default function ApproveScreen() {
 
   const openFilter = useCallback(() => {
     setSelectedIds([]);
-    navigation.navigate("Filter", { filter, statusName: "ประเภทเอกสาร" });
+    navigation.navigate("Filter", {
+      filter,
+      statusName: "ประเภทเอกสาร",
+      statusOptions: [
+        { key: "All", value: "All" },
+        { key: "Pending Approval", value: "Pending Approval" },
+        { key: "Approved", value: "Approved" },
+        { key: "Rejected", value: "Rejected" },
+      ],
+    });
   }, [filter, navigation]);
 
   const goToDetail = useCallback(
-    (card: Card) => navigation.navigate("ApproveDetail", { docNo: card.docNo }),
+    (card: CardListModel) =>
+      navigation.navigate("ApproveDetail", {
+        docNo: card.docNo,
+        menuId: card.menuId,
+        status: card.status,
+      }),
     [navigation]
   );
+
+  const callAPIApproveDocuments = async (status: string) => {
+    try {
+      setIsload(true);
+      await ApproveDocumentsService({ docNo: selectedIds.join("|"), status });
+      setSelectedIds([]);
+    } catch (err) {
+    } finally {
+      emitter.emit(getDataApprove);
+      setIsload(false);
+    }
+  };
 
   return (
     <Fragment>
       {/* Reject Modal */}
       <ModalComponent
         isOpen={isOpenReject}
-        onChange={() => {}}
+        onChange={() => {
+          {
+            callAPIApproveDocuments("Rejected");
+            setOpenReject(false);
+          }
+        }}
         onBackdropPress={() => setOpenReject(false)}
         option={{ change: { label: "ตกลง", color: theme.mainApp } }}
       >
@@ -173,8 +206,13 @@ export default function ApproveScreen() {
       {/* Approve Modal */}
       <ModalComponent
         isOpen={isOpenApprove}
-        onChange={() => {}}
-        onBackdropPress={() => setOpenApprove(false)}
+        onChange={() => {
+          callAPIApproveDocuments("Approved");
+          setOpenApprove(false);
+        }}
+        onBackdropPress={() => {
+          setOpenApprove(false);
+        }}
         option={{ change: { label: "ตกลง", color: theme.mainApp } }}
       >
         <View style={styles.mainView}>
@@ -259,7 +297,7 @@ export default function ApproveScreen() {
             >
               <TouchableOpacity
                 onPress={handleSelectAll}
-                disabled={selectableIds.length === 0}
+                disabled={cardData.length === 0}
               >
                 <Text style={styles.selectAllText}>
                   {allSelected ? "ยกเลิก" : "เลือกทั้งหมด"}
@@ -269,18 +307,22 @@ export default function ApproveScreen() {
               {cardData.map((card) => (
                 <ScanCard
                   key={card.id}
+                  // ✅ ผูก ref ของแต่ละการ์ดให้เก็บไว้ใน uploadRefs.current[card.id]
+                  ref={(h) => {
+                    uploadRefs.current[card.docNo] = h;
+                  }}
                   id={card.id}
-                  // ✅ ส่ง keyRef ให้ UploadPicker ภายในการ์ด (เผื่อดูไฟล์แนบ/รูป)
+                  hideAddFile={card.status !== "Open"}
                   keyRef1={card.docNo}
-                  hideAddFile={true}
                   keyRef2={null}
                   keyRef3={null}
                   remark={null}
                   docNo={card.docNo}
+                  date={card.date || ""}
                   status={card.status as StatusType}
+                  hideSelectedIds={card.status !== "Pending Approval"}
                   details={card.details}
                   selectedIds={selectedIds}
-                  // ✅ ใช้ docNo เป็นตัวอ้างอิง selection/expand ให้ตรงกับ select-all
                   isSelected={selectedIds.includes(card.docNo)}
                   isExpanded={expandedIds.includes(card.docNo)}
                   onSelect={toggleSelect}
@@ -303,12 +345,14 @@ export default function ApproveScreen() {
                 label="ปฏิเสธ"
                 disabled={selectedIds.length === 0}
                 onPress={() => setOpenReject(true)}
+                isload={isload}
               />
               <CustomButtons
                 color={theme.green}
                 label="อนุมัติรายการ"
                 disabled={selectedIds.length === 0}
                 onPress={() => setOpenApprove(true)}
+                isload={isload}
               />
             </View>
           </>

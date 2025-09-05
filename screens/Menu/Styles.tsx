@@ -30,10 +30,12 @@ const styles = StyleSheet.create({
   badge: {
     ...theme.setFont,
     backgroundColor: "red",
-    borderRadius: 12,
-    paddingHorizontal: 5,
+    borderRadius: 100,
     marginRight: 8,
     alignItems: "center",
+    justifyContent: "center",
+    width: 25,
+    height: 25,
   },
   badgeText: {
     ...theme.setFont,

@@ -1,7 +1,8 @@
 import { theme } from "@/providers/Theme";
-import { Text, TouchableOpacity } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity } from "react-native";
 
 export default function CustomButtons(props: any) {
+  const { isload = false } = props;
   return (
     <TouchableOpacity
       disabled={props.disabled}
@@ -21,9 +22,15 @@ export default function CustomButtons(props: any) {
         borderRadius: 8,
       }}
     >
-      <Text style={{ ...theme.setFont, color: props.colorText || theme.white }}>
-        {props.label}
-      </Text>
+      {isload ? (
+        <ActivityIndicator color={theme.white} size={30} />
+      ) : (
+        <Text
+          style={{ ...theme.setFont, color: props.colorText || theme.white }}
+        >
+          {props.label}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 }

@@ -1,3 +1,5 @@
+import { ApproveDocumentsService } from "./ApproveDocumentsService";
+import { BagnumberService } from "./BagnumberService";
 import { binCodesByLocationService } from "./binCodesByLocationService";
 import { cardDetailIStockListService } from "./cardDetailIStockListService";
 import { cardDetailListService } from "./cardDetailListService";
@@ -13,9 +15,12 @@ import { locationService } from "./locationService";
 import { loginService } from "./loginService";
 import { menuService } from "./menuService";
 import { delProfile, getProfile, Profile } from "./profileService";
+import { SendToApproveDocuments } from "./SendToApproveDocuments";
 import { uploadMultiFetch } from "./upload";
 
 export {
+    ApproveDocumentsService,
+    BagnumberService,
     binCodesByLocationService,
     cardDetailIStockListService,
     cardDetailListService,
@@ -33,6 +38,7 @@ export {
     loginService,
     menuService,
     Profile,
+    SendToApproveDocuments,
     uploadMultiFetch
 };
 

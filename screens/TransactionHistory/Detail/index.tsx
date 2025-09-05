@@ -7,6 +7,7 @@ import EmptyState from "@/components/State/EmptyState";
 import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
+import { RouteParams } from "@/screens/Approve/Detail";
 import { keyboardTypeNumber } from "@/screens/Register/register";
 import { cardDetailIStockListService } from "@/service";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -28,7 +29,7 @@ export default function TransactionHistoryDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute();
   const scanInDetailForm = useForm();
-  const { docNo, menuId } = route.params as { docNo: string; menuId: number };
+  const { docNo, menuId, status } = route.params as RouteParams;
   const [productData, setProductData] = useState<ProductItem[]>([]);
   const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
   useEffect(() => {

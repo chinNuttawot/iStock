@@ -33,3 +33,4 @@ export const filterTransactionHistoryDetail =
 //Approve
 export const filterApprove = "on-filter-Approve";
 export const filterApproveDetail = "on-filter-Approve-detail";
+export const getDataApprove = "on-get-Data-Approve";

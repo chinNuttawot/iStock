@@ -35,17 +35,9 @@ import {
 } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
 
-const statusOptions = [
-  { key: "All", value: "All" },
-  { key: "Open", value: "Open" },
-  { key: "Pending Approval", value: "Pending Approval" },
-  { key: "Approved", value: "Approved" },
-  { key: "Rejected", value: "Rejected" },
-];
-
 export default function FilterScreen() {
   const [docNo, setDocumentNo] = useState("");
-  const [documentDate, setDocumentDate] = useState("");
+  const [createdAt, setDocumentDate] = useState("");
   const [status, setStatus] = useState("All");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
@@ -64,6 +56,13 @@ export default function FilterScreen() {
     ScanName = "เลขที่เอกสาร",
     statusName = "สถานะเอกสาร",
     textSearch = "ค้นหา",
+    statusOptions = [
+      { key: "All", value: "All" },
+      { key: "Open", value: "Open" },
+      { key: "Pending Approval", value: "Pending Approval" },
+      { key: "Approved", value: "Approved" },
+      { key: "Rejected", value: "Rejected" },
+    ],
   } = route.params as {
     filter: any;
     showFilterDoc: boolean;
@@ -73,12 +72,13 @@ export default function FilterScreen() {
     ScanName?: string;
     statusName?: string;
     textSearch?: string;
+    statusOptions?: any;
   };
 
   useEffect(() => {
     if (filter) {
       setStatus(filter?.status || status);
-      setDocumentDate(filter?.documentDate || documentDate);
+      setDocumentDate(filter?.createdAt || createdAt);
       setDocumentNo(filter?.docNo || docNo);
     }
   }, []);
@@ -87,7 +87,7 @@ export default function FilterScreen() {
     Promise.all([setDocumentNo(""), setDocumentDate(""), setStatus("All")]);
     const parmas = {
       status: "All",
-      documentDate: "",
+      createdAt: "",
       docNo: "",
       isFilter: false,
       isReset: true,
@@ -153,7 +153,7 @@ export default function FilterScreen() {
   const onSearch = () => {
     const parmas = {
       status,
-      documentDate,
+      createdAt,
       docNo,
       isFilter: true,
       isReset: false,
@@ -206,7 +206,7 @@ export default function FilterScreen() {
               onPress={() => setShowDatePicker(true)}
             >
               <TextInput
-                value={documentDate}
+                value={createdAt}
                 editable={false}
                 style={styles.input}
                 placeholder=""

@@ -11,6 +11,7 @@ import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { Modeloption } from "@/providers/Modal/Model";
 import { theme } from "@/providers/Theme";
+import { RouteParams } from "@/screens/Approve/Detail";
 import { cardDetailIStockListService, deleteDocumentProducts } from "@/service";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useRef, useState } from "react";
@@ -25,51 +26,6 @@ export const RenderGoBackItem = (
   </View>
 );
 
-export const _productData: ProductItem[] = [
-  {
-    id: "1",
-    docNo: "5OTH01475",
-    model: "VR001",
-    qtyReceived: null,
-    qtyShipped: null,
-    isDelete: false,
-    details: [
-      { label: "รุ่น", value: "VR000" },
-      { label: "หมายเหตุ", value: "ของเล่น ลาโพงน้องหมา M10" },
-      { label: "คงเหลือ", value: "10" },
-    ],
-    picURL: "https://picsum.photos/seed/shirt/100/100",
-  },
-  {
-    id: "2",
-    docNo: "5OTH01475",
-    model: "VR001",
-    qtyReceived: null,
-    qtyShipped: null,
-    isDelete: false,
-    details: [
-      { label: "รุ่น", value: "VR001" },
-      { label: "หมายเหตุ", value: "ของเล่น น้องแมว M20" },
-      { label: "คงเหลือ", value: "10" },
-    ],
-    picURL: "https://picsum.photos/seed/shirt/100/100",
-  },
-  {
-    id: "3",
-    docNo: "5OTH01475",
-    model: "VR002",
-    qtyReceived: null,
-    qtyShipped: null,
-    isDelete: false,
-    details: [
-      { label: "รุ่น", value: "VR002" },
-      { label: "หมายเหตุ", value: "ของเล่น น้องกระต่าย M30" },
-      { label: "คงเหลือ", value: "10" },
-    ],
-    picURL: "https://picsum.photos/seed/shirt/100/100",
-  },
-];
-
 export default function StockCheckDetailScreen() {
   const optionModalComponent: Modeloption = {
     change: { label: "ยืนยัน", color: theme.red },
@@ -81,10 +37,10 @@ export default function StockCheckDetailScreen() {
   };
   const navigation = useNavigation<any>();
   const route = useRoute();
-  const { docNo, menuId } = route.params as { docNo: string; menuId: number };
+  const { docNo, menuId, status } = route.params as RouteParams;
 
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
-  const [productData, setProductData] = useState<ProductItem[]>(_productData);
+  const [productData, setProductData] = useState<ProductItem[]>([]);
   const [filter, setFilter] = useState<any>({});
 
   // ✅ ใช้ confirm modal เดียว
@@ -264,14 +220,17 @@ export default function StockCheckDetailScreen() {
                 textGoTo="ลบ"
                 colorButton={theme.red}
                 goTo={() => onDeleteItem(item)}
+                viewMode={status !== "Open"}
               />
             ))}
         </ScrollView>
       )}
 
-      <View style={{ padding: 16, marginBottom: 16 }}>
-        <CustomButton label="บันทึก" onPress={onSave} />
-      </View>
+      {status === "Open" && (
+        <View style={{ padding: 16, marginBottom: 16 }}>
+          <CustomButton label="บันทึก" onPress={onSave} />
+        </View>
+      )}
     </View>
   );
 }
