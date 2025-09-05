@@ -7,6 +7,7 @@ import { cardListIStockService } from "./cardListIStockService";
 import { cardListService } from "./cardListService";
 import { createDocumentSaveService } from "./createDocumentSaveService";
 import { createDocumentService } from "./createDocumentService";
+import { DashboardService } from "./DashboardService";
 import { deleteDocumentProducts } from "./deleteDocumentProducts";
 import { fileService } from "./fileService";
 import { itemProductWSService } from "./itemProductWSService";
@@ -28,6 +29,7 @@ export {
     cardListService,
     createDocumentSaveService,
     createDocumentService,
+    DashboardService,
     deleteDocumentProducts,
     delProfile,
     fileService,
