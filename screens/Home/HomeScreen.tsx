@@ -40,6 +40,20 @@ export default function HomeScreen() {
     getData();
   }, [getData]);
 
+  /** ✅ เลือก icon + สีตาม status */
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "Pending Approval":
+        return { name: "time-outline", color: "#fbbf24" }; // เหลือง
+      case "Approved":
+        return { name: "checkmark-circle-outline", color: "#10b981" }; // เขียว
+      case "Rejected":
+        return { name: "close-circle-outline", color: "#ef4444" }; // แดง
+      default:
+        return { name: "document-outline", color: theme.white };
+    }
+  };
+
   return (
     <Fragment>
       <Header hideGoback={true} />
@@ -59,17 +73,16 @@ export default function HomeScreen() {
               <View key={index} style={styles.groupContainer}>
                 <Text style={styles.groupTitle}>{group.groupName}</Text>
                 <View style={styles.cardRow}>
-                  {group.items.map((item, idx) => (
-                    <View key={idx} style={styles.card}>
-                      <Ionicons
-                        name="document-outline"
-                        size={24}
-                        color={theme.white}
-                      />
-                      <Text style={styles.cardCount}>{item.count}</Text>
-                      <Text style={styles.cardText}>{item.status}</Text>
-                    </View>
-                  ))}
+                  {group.items.map((item, idx) => {
+                    const { name, color } = getStatusIcon(item.status);
+                    return (
+                      <View key={idx} style={styles.card}>
+                        <Ionicons name={name as any} size={24} color={color} />
+                        <Text style={styles.cardCount}>{item.count}</Text>
+                        <Text style={styles.cardText}>{item.status}</Text>
+                      </View>
+                    );
+                  })}
                 </View>
               </View>
             ))
