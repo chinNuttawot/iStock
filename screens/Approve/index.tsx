@@ -1,5 +1,11 @@
 // screens/ApproveScreen.tsx
-import { emitter, filterApprove, getDataApprove } from "@/common/emitter";
+import {
+  emitter,
+  filterApprove,
+  filterDataDashboard,
+  filterDataMenu,
+  getDataApprove,
+} from "@/common/emitter";
 import CustomButtons from "@/components/CustomButtons";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
@@ -160,6 +166,8 @@ export default function ApproveScreen() {
     } catch (err) {
     } finally {
       emitter.emit(getDataApprove);
+      emitter.emit(filterDataDashboard);
+      emitter.emit(filterDataMenu);
       setIsload(false);
     }
   };

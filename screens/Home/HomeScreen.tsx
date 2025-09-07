@@ -1,3 +1,4 @@
+import { emitter, filterDataDashboard } from "@/common/emitter";
 import Header from "@/components/Header";
 import { DashboardGroup } from "@/dataModel/Dashboard";
 import { theme } from "@/providers/Theme";
@@ -17,6 +18,14 @@ export default function HomeScreen() {
   const [dashboard, setDashboard] = useState<DashboardGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+    useEffect(() => {
+      const onFilterChanged = (data: any) => {
+        getData();
+      };
+      emitter.on(filterDataDashboard, onFilterChanged);
+      return () => emitter.off(filterDataDashboard, onFilterChanged);
+    }, []);
 
   useEffect(() => {
     getData();

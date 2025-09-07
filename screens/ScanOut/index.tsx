@@ -1,4 +1,9 @@
-import { emitter, filterScanOut, getDataScanOut } from "@/common/emitter";
+import {
+  emitter,
+  filterDataDashboard,
+  filterScanOut,
+  getDataScanOut,
+} from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
@@ -172,7 +177,8 @@ export default function ScanOutScreen() {
       // เก็บ log หรือแจ้งเตือนเพิ่มเติมได้
     } finally {
       setSelectedIds([]);
-      emitter.emit(getDataScanOut); // ให้ list รีโหลดสถานะ
+      emitter.emit(getDataScanOut);
+      emitter.emit(filterDataDashboard);
     }
   }, [selectedIds]);
 

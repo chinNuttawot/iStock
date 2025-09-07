@@ -1,6 +1,7 @@
 import {
   emitter,
   filterCreateDocumentTransfer,
+  filterDataDashboard,
   getDataTransfer,
 } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
@@ -221,6 +222,7 @@ export default function CreateDocumentTransferScreen() {
       await createDocumentSaveService(param);
       navigation.goBack();
       emitter.emit(getDataTransfer, menuId);
+      emitter.emit(filterDataDashboard);
     } catch (err) {
       Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {

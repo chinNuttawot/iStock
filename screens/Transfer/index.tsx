@@ -1,5 +1,10 @@
 // screens/TransferScreen.tsx
-import { emitter, filterTransfer, getDataTransfer } from "@/common/emitter";
+import {
+  emitter,
+  filterDataDashboard,
+  filterTransfer,
+  getDataTransfer,
+} from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
@@ -176,7 +181,8 @@ export default function TransferScreen() {
       await SendToApproveDocuments({ docNo: selectedIds.join("|") });
     } finally {
       setSelectedIds([]);
-      emitter.emit(getDataTransfer); // ให้รีเฟรชสถานะหลังส่ง
+      emitter.emit(getDataTransfer);
+      emitter.emit(filterDataDashboard);
     }
   }, [selectedIds]);
 

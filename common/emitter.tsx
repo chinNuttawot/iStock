@@ -34,3 +34,9 @@ export const filterTransactionHistoryDetail =
 export const filterApprove = "on-filter-Approve";
 export const filterApproveDetail = "on-filter-Approve-detail";
 export const getDataApprove = "on-get-Data-Approve";
+
+//Home
+export const filterDataDashboard = "filterDataDashboard";
+
+//menu
+export const filterDataMenu = "filterDataMenu";

@@ -1,4 +1,5 @@
 import { Assets } from "@/assets/Assets";
+import { emitter, filterDataMenu } from "@/common/emitter";
 import Header from "@/components/Header";
 import EmptyState from "@/components/State/EmptyState";
 import ErrorState from "@/components/State/ErrorState";
@@ -45,6 +46,14 @@ export default function MenuScreen() {
 
   const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
   const errorColor = (theme as any).error ?? "#ef4444";
+
+  useEffect(() => {
+    const onFilterChanged = (data: any) => {
+      fetchMenus();
+    };
+    emitter.on(filterDataMenu, onFilterChanged);
+    return () => emitter.off(filterDataMenu, onFilterChanged);
+  }, []);
 
   const setMenuData = useCallback((data: unknown) => {
     if (Array.isArray(data)) {

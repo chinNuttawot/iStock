@@ -1,5 +1,5 @@
 // screens/StockCheckScreen.tsx
-import { emitter, filterStockCheck, getDataStockCheck } from "@/common/emitter";
+import { emitter, filterDataDashboard, filterStockCheck, getDataStockCheck } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
@@ -159,7 +159,8 @@ export default function StockCheckScreen() {
       await SendToApproveDocuments({ docNo: selectedIds.join("|") });
     } finally {
       setSelectedIds([]);
-      emitter.emit(getDataStockCheck); // ให้รีโหลดสถานะหลังอัปสำเร็จ
+      emitter.emit(getDataStockCheck);
+      emitter.emit(filterDataDashboard);
     }
   }, [selectedIds]);
 

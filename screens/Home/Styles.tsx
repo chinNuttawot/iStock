@@ -32,13 +32,13 @@ const styles = StyleSheet.create({
   cardCount: {
     ...theme.setFont,
     color: theme.white,
-    fontSize: 20,
+    fontSize: 28,
     marginVertical: 4,
   },
   cardText: {
     ...theme.setFont,
     color: theme.white,
-    fontSize: 12,
+    fontSize: 10,
     textAlign: "center",
   },
 });

@@ -15,6 +15,7 @@ import React, { useEffect, useState } from "react";
 import {
   emitter,
   filterCreateDocumentStockCheck,
+  filterDataDashboard,
   getDataStockCheck,
 } from "@/common/emitter";
 import { formatThaiDate } from "@/screens/ScanOut/CreateDocument";
@@ -161,6 +162,7 @@ export default function CreateDocumentStockCheckScreen() {
       await createDocumentSaveService(param);
       navigation.goBack();
       emitter.emit(getDataStockCheck, menuId);
+      emitter.emit(filterDataDashboard);
     } catch (err) {
       Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {

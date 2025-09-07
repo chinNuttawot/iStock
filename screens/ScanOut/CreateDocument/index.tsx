@@ -15,6 +15,7 @@ import React, { useEffect, useState } from "react";
 import {
   emitter,
   filterCreateDocumentScanOut,
+  filterDataDashboard,
   getDataScanOut,
 } from "@/common/emitter";
 import {
@@ -162,6 +163,7 @@ export default function CreateDocumentScreen() {
       await createDocumentSaveService(param);
       navigation.goBack();
       emitter.emit(getDataScanOut, menuId);
+      emitter.emit(filterDataDashboard);
     } catch (err) {
       Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {
