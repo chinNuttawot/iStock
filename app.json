@@ -11,6 +11,7 @@
     "ios": {
       "bundleIdentifier": "com.echonovatech.istock",
       "supportsTablet": true,
+      "buildNumber": "1",
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": false,
@@ -25,6 +26,7 @@
     },
     "android": {
       "package": "com.echonovatech.istock",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
