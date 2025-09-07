@@ -59,7 +59,8 @@
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
     "react-redux": "^9.2.0",
-    "expo-dev-client": "~5.2.4"
+    "expo-dev-client": "~5.2.4",
+    "react-native-vector-icons": "10.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -69,5 +70,10 @@
     "eslint-config-expo": "~9.2.0",
     "typescript": "~5.8.3"
   },
+  "engines": {
+    "node": "20.18.1",
+    "npm": ">=10 <11"
+  },
+  "packageManager": "npm@10.8.2",
   "private": true
 }
