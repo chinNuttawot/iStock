@@ -2,7 +2,6 @@
 import { authToken } from "@/providers/keyStorageUtilliy";
 import { StorageUtility } from "@/providers/storageUtility";
 import { DEFAULT_BASE_URL } from "../apiCore";
-import uploadApi from "../apiCore/uploadApi";
 
 export type UploadMultiResult = {
   ok: boolean;
@@ -18,22 +17,39 @@ export type UploadMultiResult = {
 };
 
 export type UploadFilePart = {
-  uri: string; // RN/Expo: file:// หรือ content://
+  uri: string;
   name: string;
-  type: string; // เช่น "image/jpeg", "application/pdf"
+  type: string;
 };
-
 
 function toStr(v: unknown): string {
   return typeof v === "string" ? v : String(v);
 }
 
 type UploadOpts = {
-  baseUrl?: string; // override ได้ต่อคำขอ
-  timeoutMs?: number; // ดีฟอลต์ 180s
+  baseUrl?: string;
+  timeoutMs?: number; // client timeout (ดีฟอลต์ 5 นาที)
   signal?: AbortSignal; // ยกเลิกจากภายนอก
-  onProgress?: (pct: number) => void; // อัปเดต % ขณะอัปโหลด
+  onProgress?: (pct: number) => void;
 };
+
+/** รวมหลาย AbortSignal: ไหน abort → ยกเลิกทั้งหมด */
+function anySignal(
+  signals: (AbortSignal | undefined)[]
+): AbortController | null {
+  const active = signals.filter(Boolean) as AbortSignal[];
+  if (active.length === 0) return null;
+  const c = new AbortController();
+  const onAbort = () => c.abort();
+  active.forEach((s) => {
+    if (s.aborted) c.abort();
+    else s.addEventListener("abort", onAbort, { once: true });
+  });
+  c.signal.addEventListener("abort", () => {
+    active.forEach((s) => s.removeEventListener("abort", onAbort as any));
+  });
+  return c;
+}
 
 export async function uploadMultiFetch(
   files: UploadFilePart[],
@@ -47,7 +63,6 @@ export async function uploadMultiFetch(
   // ---- FormData ----
   const form = new FormData();
   for (const f of files) {
-    // อย่าเซ็ต Content-Type เอง ปล่อย axios จัดการ boundary ให้
     form.append("files", { uri: f.uri, name: f.name, type: f.type } as any);
   }
   form.append("keyRef1", toStr(keyRef1));
@@ -64,54 +79,70 @@ export async function uploadMultiFetch(
     // noop
   }
 
-  // ---- Abort/Timeout ----
-  const innerController = new AbortController();
-  const timeoutMs = opts?.timeoutMs ?? 180_000;
-  const timeoutId = setTimeout(() => innerController.abort(), timeoutMs);
-  const signal = opts?.signal ?? innerController.signal;
-
   // ---- Base URL ----
   const baseURL = opts?.baseUrl ?? DEFAULT_BASE_URL;
 
-  try {
-    const res = await uploadApi.post<UploadMultiResult>(
-      "api/upload/multi",
-      form,
-      {
-        baseURL,
-        signal,
-        timeout: timeoutMs, // override ต่อคำขอ
-        maxContentLength: Infinity as any,
-        maxBodyLength: Infinity as any,
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          // ⚠️ ห้ามกำหนด 'Content-Type': 'multipart/form-data' เอง
-        },
-        onUploadProgress: (e: any) => {
-          if (opts?.onProgress && e.total) {
-            const pct = Math.round((e.loaded / e.total) * 100);
-            opts.onProgress(pct);
-          }
-        },
-      }
-    );
+  // ---- Timeout/Abort ----
+  const DEFAULT_TIMEOUT = 5 * 60 * 1000;
+  const timeoutMs = Math.max(10_000, opts?.timeoutMs ?? DEFAULT_TIMEOUT);
 
-    // axios จะ parse JSON ให้อยู่แล้วเมื่อ Content-Type เป็น application/json
-    return res.data ?? ({ ok: true, count: files.length } as UploadMultiResult);
+  // internal timeout
+  const timeoutController = new AbortController();
+  const timeoutId = setTimeout(() => timeoutController.abort(), timeoutMs);
+
+  // รวมสัญญาณจากภายนอก + internal
+  const combined = (() => {
+    const c = new AbortController();
+    const subs: [AbortSignal, () => void][] = [];
+    const join = (sig: AbortSignal) => {
+      const onAbort = () => c.abort();
+      if (sig.aborted) c.abort();
+      else sig.addEventListener("abort", onAbort, { once: true });
+      subs.push([sig, onAbort]);
+    };
+    join(timeoutController.signal);
+    if (opts?.signal) join(opts.signal);
+    c.signal.addEventListener("abort", () => {
+      subs.forEach(([s, fn]) => s.removeEventListener("abort", fn));
+    });
+    return c;
+  })();
+
+  try {
+    const res = await fetch(`${baseURL}api/upload/multi`, {
+      method: "POST",
+      body: form,
+      // ❗️ห้ามกำหนด Content-Type เอง ให้ RN ใส่ multipart/form-data + boundary อัตโนมัติ
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        Accept: "application/json",
+      } as any,
+      signal: combined.signal,
+      // withCredentials ไม่มีผลใน RN fetch; ถ้าบนเว็บให้จัด CORS แยก
+    });
+
+    // clear timeout ทันทีที่ได้ response
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Upload failed: ${res.status} ${text}`);
+    }
+
+    // TODO: onProgress ยังทำไม่ได้ด้วย fetch บน RN
+    const data = (await res.json()) as UploadMultiResult;
+    return data ?? ({ ok: true, count: files.length } as UploadMultiResult);
   } catch (err: any) {
-    if (err?.response) {
-      console.log("response error:", {
-        status: err.response.status,
-        data: err.response.data,
+    // แยกกรณี timeout/abort เพื่อดีบักง่าย
+    if (timeoutController.signal.aborted) {
+      console.log("client timeout (fetch):", {
+        timeoutMs,
+        url: baseURL + "/api/upload/multi",
       });
-    } else if (err?.request) {
-      console.log("no response from server:", {
-        url: err.config?.baseURL + err.config?.url,
-        method: err.config?.method,
-        timeout: err.config?.timeout,
-      });
+    } else if (opts?.signal?.aborted) {
+      console.log("request aborted by external signal");
     } else {
-      console.log("setup error:", err?.message);
+      console.log("upload (fetch) error:", err?.message || err);
     }
     throw err;
   } finally {

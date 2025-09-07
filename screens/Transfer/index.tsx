@@ -25,6 +25,7 @@ import React, {
   useState,
 } from "react";
 import {
+  Alert,
   RefreshControl,
   ScrollView,
   Text,
@@ -187,10 +188,12 @@ export default function TransferScreen() {
         await handle?.uploadAllInOneRequests?.();
       }
       await SendToApproveDocuments({ docNo: selectedIds.join("|") });
-    } finally {
-      setSelectedIds([]);
       emitter.emit(getDataTransfer);
       emitter.emit(filterDataDashboard);
+    } catch (err) {
+      Alert.alert("เกิดข้อผิดพลาด", "ลองใหม่อีกครั้ง");
+    } finally {
+      setSelectedIds([]);
     }
   }, [selectedIds]);
 

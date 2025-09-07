@@ -17,6 +17,7 @@ type ScanCardProps = {
   status: StatusType;
   isSelected: boolean;
   isExpanded: boolean;
+  isShowStatusForScanIn: boolean;
   onSelect: (docNo: string) => void;
   onExpand: (docNo: string) => void;
   goTo?: () => void;
@@ -49,6 +50,7 @@ const ScanCard = React.forwardRef<any, ScanCardProps>(
       goTo,
       hideSelectedIds = false,
       hideAddFile = false,
+      isShowStatusForScanIn = false,
       date,
     },
     ref
@@ -80,6 +82,16 @@ const ScanCard = React.forwardRef<any, ScanCardProps>(
       }
     };
 
+    const StatusForScanIn = () => {
+      return (
+        <View style={styles.mainStatus}>
+          <Text style={[styles.text, { color: theme.white, fontSize: 10 }]}>
+            {"กรอกรายละเอียด"}
+          </Text>
+        </View>
+      );
+    };
+
     return (
       <View style={styles.card}>
         <TouchableOpacity
@@ -96,7 +108,7 @@ const ScanCard = React.forwardRef<any, ScanCardProps>(
           )}
 
           <Text style={styles.cardTitle}>{docNo}</Text>
-
+          {isShowStatusForScanIn && StatusForScanIn()}
           {renderStatusIcon()}
 
           <Ionicons
@@ -153,6 +165,12 @@ const ScanCard = React.forwardRef<any, ScanCardProps>(
 export default React.memo(ScanCard);
 
 const styles = StyleSheet.create({
+  mainStatus: {
+    backgroundColor: theme.orange,
+    borderRadius: 100,
+    padding: 8,
+    marginRight: 10,
+  },
   card: {
     borderWidth: 1,
     borderColor: theme.mainApp,

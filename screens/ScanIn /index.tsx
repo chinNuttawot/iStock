@@ -20,6 +20,7 @@ import React, {
   useState,
 } from "react";
 import {
+  Alert,
   RefreshControl,
   ScrollView,
   Text,
@@ -158,9 +159,12 @@ export default function ScanInScreen() {
         const handle = uploadRefs.current[id];
         await handle?.uploadAllInOneRequests?.();
       }
+      // emitter.emit(getDataScanOut);
+      // emitter.emit(filterDataDashboard);
     } catch (err) {
+      Alert.alert("เกิดข้อผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {
-      emitter.emit(getDataScanIn);
+      setSelectedIds([]);
     }
   }, [selectedIds]);
 
@@ -242,6 +246,7 @@ export default function ScanInScreen() {
                   ref={(h) => {
                     uploadRefs.current[card.docNo] = h;
                   }}
+                  isShowStatusForScanIn
                   id={card.id}
                   hideAddFile={card.status !== "Open"}
                   keyRef1={card.docNo}

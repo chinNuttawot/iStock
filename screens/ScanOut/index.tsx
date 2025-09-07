@@ -24,6 +24,7 @@ import React, {
   useState,
 } from "react";
 import {
+  Alert,
   RefreshControl,
   ScrollView,
   Text,
@@ -181,12 +182,12 @@ export default function ScanOutScreen() {
         await handle?.uploadAllInOneRequests?.();
       }
       await SendToApproveDocuments({ docNo: selectedIds.join("|") });
-    } catch (err) {
-      // เก็บ log หรือแจ้งเตือนเพิ่มเติมได้
-    } finally {
-      setSelectedIds([]);
       emitter.emit(getDataScanOut);
       emitter.emit(filterDataDashboard);
+    } catch (err) {
+      Alert.alert("เกิดข้อผิดพลาด", "ลองใหม่อีกครั้ง");
+    } finally {
+      setSelectedIds([]);
     }
   }, [selectedIds]);
 

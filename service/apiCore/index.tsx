@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://istockapp.myvnc.com/";
-export const DEFAULT_BASE_URL = "http://istockapp.myvnc.com/";
+const API_BASE_URL = "https://istockapp.myvnc.com:8443/";
+export const DEFAULT_BASE_URL = "https://istockapp.myvnc.com:8443/";
 // const API_BASE_URL = "http://localhost:3001/";
 // export const DEFAULT_BASE_URL = "http://localhost:3001/";
 

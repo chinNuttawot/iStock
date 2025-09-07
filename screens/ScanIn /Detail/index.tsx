@@ -16,6 +16,49 @@ import { useForm } from "react-hook-form";
 import { ScrollView, Text, TextInput, View } from "react-native";
 import { styles } from "./styles";
 
+function parseKey(
+  key: string
+): { docNo: string; field: string; itemNo: string } | null {
+  const last = key.lastIndexOf("_");
+  if (last < 0) return null;
+  const second = key.lastIndexOf("_", last - 1);
+  if (second < 0) return null;
+  const docNo = key.slice(0, second);
+  const field = key.slice(second + 1, last);
+  const itemNo = key.slice(last + 1);
+  if (!docNo || !field || !itemNo) return null;
+  return { docNo, field, itemNo };
+}
+
+type ItemFields = Record<string, string>;
+type OutputDoc = { [docNo: string]: Array<{ [itemNo: string]: ItemFields }> };
+type FinalOutput = OutputDoc[];
+
+function transformFlatToDesired(
+  input: Record<string, unknown>,
+  onlyDocNo?: string
+): FinalOutput {
+  const grouped: Record<string, Record<string, ItemFields>> = {};
+
+  for (const [k, v] of Object.entries(input)) {
+    const parsed = parseKey(k);
+    if (!parsed) continue;
+    const { docNo, field, itemNo } = parsed;
+    if (onlyDocNo && docNo !== onlyDocNo) continue;
+
+    grouped[docNo] ||= {};
+    grouped[docNo][itemNo] ||= {};
+    grouped[docNo][itemNo][field] = String(v ?? "");
+  }
+
+  return Object.entries(grouped).map(([docNo, itemsObj]) => {
+    const itemsArr = Object.entries(itemsObj).map(([itemNo, fields]) => ({
+      [itemNo]: fields,
+    }));
+    return { [docNo]: itemsArr };
+  });
+}
+
 export default function ScanInDetailScreen() {
   const [itemDetail, setItemDetail] = useState<{
     docNo: string;
@@ -49,7 +92,6 @@ export default function ScanInDetailScreen() {
 
   useEffect(() => {
     fetchData();
-    // reset selection เมื่อ list เปลี่ยน context
     setExpandedIds([]);
   }, [docNo]);
 
@@ -114,7 +156,7 @@ export default function ScanInDetailScreen() {
 
     useEffect(() => {
       const currentQty = scanInDetailForm.getValues(
-        `newReceivedQty-docNo-${myDocId}-model-${myModel}`
+        `${myDocId}_qty_${myModel}`
       );
 
       if (currentQty) {
@@ -126,7 +168,7 @@ export default function ScanInDetailScreen() {
 
     useEffect(() => {
       const currentserialNo = scanInDetailForm.getValues(
-        `serialNo-docNo-${myDocId}-model-${myModel}`
+        `${myDocId}_serialNo_${myModel}`
       );
 
       if (currentserialNo) {
@@ -172,13 +214,11 @@ export default function ScanInDetailScreen() {
         <View style={{ paddingHorizontal: 64 }}>
           <CustomButton
             label="บันทึก"
+            disabled={!qty}
             onPress={() => {
+              scanInDetailForm.setValue(`${myDocId}_qty_${myModel}`, qty);
               scanInDetailForm.setValue(
-                `newReceivedQty-docNo-${myDocId}-model-${myModel}`,
-                qty
-              );
-              scanInDetailForm.setValue(
-                `serialNo-docNo-${myDocId}-model-${myModel}`,
+                `${myDocId}_serialNo_${myModel}`,
                 serialNo
               );
               props.onChange && props.onChange(false);
@@ -188,9 +228,13 @@ export default function ScanInDetailScreen() {
       </View>
     );
   });
-
-  const onSave = async () => {};
-
+  
+  const onSave = async () => {
+    const rawValues = scanInDetailForm.getValues() as Record<string, unknown>;
+    const payload = transformFlatToDesired(rawValues, docNo);
+    console.log("scanInDetailForm raw ====>", payload[0]);
+  };
+  
   return (
     <View style={{ flex: 1, backgroundColor: theme.white }}>
       <ModalComponent
@@ -254,10 +298,10 @@ export default function ScanInDetailScreen() {
           {cardDetailData.map((item) => (
             <DetailCard
               key={item.id}
-              data={item}
+              data={item as any}
               isExpanded={expandedIds.includes(item.id)}
               onToggle={() => toggleExpand(item.id)}
-              goTo={() => onShowDetail(item)}
+              goTo={() => onShowDetail(item as any)}
             />
           ))}
         </ScrollView>
