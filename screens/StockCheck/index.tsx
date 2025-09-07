@@ -1,5 +1,10 @@
 // screens/StockCheckScreen.tsx
-import { emitter, filterDataDashboard, filterStockCheck, getDataStockCheck } from "@/common/emitter";
+import {
+  emitter,
+  filterDataDashboard,
+  filterStockCheck,
+  getDataStockCheck,
+} from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
@@ -51,7 +56,18 @@ export default function StockCheckScreen() {
 
   // ====== ฟังอีเวนต์ฟิลเตอร์ ======
   useEffect(() => {
-    const onFilterChanged = (data: any) => setFilter(data);
+    const onFilterChanged = (data: any) => {
+      if (data.isFilter) {
+        if (data.status === "All") {
+          const { status, ...newData } = data;
+          fetchData(newData);
+        }
+        fetchData(data);
+      } else {
+        fetchData();
+      }
+      setFilter(data);
+    };
     emitter.on(filterStockCheck, onFilterChanged);
     return () => emitter.off(filterStockCheck, onFilterChanged);
   }, []);
@@ -63,26 +79,32 @@ export default function StockCheckScreen() {
   }, []);
 
   // ====== โหลดข้อมูล ======
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const menuIdNum = Number(menuId);
-      if (Number.isNaN(menuIdNum)) throw new Error("menuId ไม่ถูกต้อง");
-      const { data } = await cardListIStockService({ menuId: menuIdNum });
-      setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "เกิดข้อผิดพลาดในการดึงข้อมูล";
-      console.log("StockCheck fetchData error:", err?.response?.data || err);
-      setError(msg);
-      setCardData([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [menuId]);
+  const fetchData = useCallback(
+    async (params = {}) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const menuIdNum = Number(menuId);
+        if (Number.isNaN(menuIdNum)) throw new Error("menuId ไม่ถูกต้อง");
+        const { data } = await cardListIStockService({
+          menuId: menuIdNum,
+          ...params,
+        });
+        setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
+      } catch (err: any) {
+        const msg =
+          err?.response?.data?.message ||
+          err?.message ||
+          "เกิดข้อผิดพลาดในการดึงข้อมูล";
+        console.log("StockCheck fetchData error:", err?.response?.data || err);
+        setError(msg);
+        setCardData([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [menuId]
+  );
 
   // ครั้งแรก + เมื่อ menuId เปลี่ยน
   useEffect(() => {
@@ -96,7 +118,15 @@ export default function StockCheckScreen() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await fetchData();
+      if (filter.isFilter) {
+        if (filter.status === "All") {
+          const { status, ...newData } = filter;
+          fetchData(newData);
+        }
+        fetchData(filter);
+      } else {
+        fetchData();
+      }
     } finally {
       setRefreshing(false);
     }
@@ -201,7 +231,7 @@ export default function StockCheckScreen() {
         {!loading && error && (
           <ErrorState
             message={error}
-            onRetry={fetchData}
+            onRetry={onRefresh}
             color={errorColor}
             accentColor={theme.mainApp}
           />
@@ -214,7 +244,7 @@ export default function StockCheckScreen() {
             icon="clipboard-search-outline"
             color={textGray}
             actionLabel="รีโหลด"
-            onAction={fetchData}
+            onAction={onRefresh}
             buttonBg={theme.mainApp}
             buttonTextColor={theme.white}
           />

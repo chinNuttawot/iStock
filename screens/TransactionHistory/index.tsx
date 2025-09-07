@@ -81,11 +81,19 @@ export default function TransactionHistoryScreen() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await fetchData();
+      if (filter.isFilter) {
+        if (filter.status === "All") {
+          const { status, ...newData } = filter;
+          fetchData(newData);
+        }
+        fetchData(filter);
+      } else {
+        fetchData();
+      }
     } finally {
       setRefreshing(false);
     }
-  }, [fetchData]);
+  }, [fetchData, filter]);
 
   const total = cardData.length;
   const allSelected = useMemo(
@@ -134,7 +142,7 @@ export default function TransactionHistoryScreen() {
 
   const openFilter = useCallback(() => {
     setSelectedIds([]);
-    navigation.navigate("Filter", { filter, statusName: "ประเภทเอกสาร" });
+    navigation.navigate("Filter", { filter, statusName: "สถานะเอกสาร" });
   }, [filter, navigation]);
 
   const goToDetail = useCallback(
@@ -146,9 +154,6 @@ export default function TransactionHistoryScreen() {
     },
     [navigation]
   );
-
-  const handleRetry = useCallback(() => fetchData(), [fetchData]);
-  const handleReload = useCallback(() => fetchData(), [fetchData]);
 
   return (
     <>
@@ -180,7 +185,7 @@ export default function TransactionHistoryScreen() {
         {!loading && error && (
           <ErrorState
             message={error}
-            onRetry={handleRetry}
+            onRetry={onRefresh}
             color={errorColor}
             accentColor={theme.mainApp}
           />
@@ -193,7 +198,7 @@ export default function TransactionHistoryScreen() {
             icon="history"
             color={textGray}
             actionLabel="รีโหลด"
-            onAction={handleReload}
+            onAction={onRefresh}
             buttonBg={theme.mainApp}
             buttonTextColor={theme.white}
           />

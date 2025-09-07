@@ -112,7 +112,15 @@ export default function ScanOutScreen() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await fetchData();
+      if (filter.isFilter) {
+        if (filter.status === "All") {
+          const { status, ...newData } = filter;
+          fetchData(newData);
+        }
+        fetchData(filter);
+      } else {
+        fetchData();
+      }
     } finally {
       setRefreshing(false);
     }
@@ -220,7 +228,7 @@ export default function ScanOutScreen() {
         {!loading && error && (
           <ErrorState
             message={error}
-            onRetry={fetchData}
+            onRetry={onRefresh}
             color={errorColor}
             accentColor={theme.mainApp}
           />
@@ -233,7 +241,7 @@ export default function ScanOutScreen() {
             icon="file-search-outline"
             color={textGray}
             actionLabel="รีโหลด"
-            onAction={fetchData}
+            onAction={onRefresh}
             buttonBg={theme.mainApp}
             buttonTextColor={theme.white}
           />

@@ -3,12 +3,12 @@ import { StorageUtility } from "@/providers/storageUtility";
 import api from "../apiCore";
 import { getProfile } from "../profileService";
 
-export const menuService = async () => {
+export const menuService = async (parmas = {}) => {
   try {
     const token = await StorageUtility.get(authToken);
     const profile = await getProfile();
     const response = await api.get("api/Menus", {
-      params: { isApprover: profile?.isApprover },
+      params: { isApprover: profile?.isApprover, ...parmas },
       headers: {
         Authorization: `Bearer ${token}`,
       },

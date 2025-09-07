@@ -15,7 +15,11 @@ import LoadingView from "@/components/State/LoadingView";
 import { UploadPickerHandle } from "@/components/UploadPicker";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
-import { ApproveDocumentsService, cardListIStockService } from "@/service";
+import {
+  ApproveDocumentsService,
+  cardListIStockService,
+  menuService,
+} from "@/service";
 import { CardListModel } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -56,8 +60,31 @@ export default function ApproveScreen() {
 
   useEffect(() => {
     const onFilterChanged = (data: any) => {
-      console.log("data ====>", data);
-
+      if (data.isFilter) {
+        if (data.status === "All") {
+          if (data.menuId === "All") {
+            const { status, menuId, ...newData } = data;
+            fetchData(newData);
+          } else {
+            const { status, ...newData } = data;
+            fetchData(newData);
+          }
+        }
+        if (data.menuId === "All") {
+          if (data.status === "All") {
+            const { status, menuId, ...newData } = data;
+            fetchData(newData);
+          } else {
+            const { menuId, ...newData } = data;
+            fetchData(newData);
+          }
+        }
+        if (data.menuId !== "All" && data.status !== "All") {
+          fetchData(data);
+        }
+      } else {
+        fetchData();
+      }
       setFilter(data);
     };
     emitter.on(filterApprove, onFilterChanged);
@@ -72,11 +99,11 @@ export default function ApproveScreen() {
     return () => emitter.off(getDataApprove, onFilterChanged);
   }, []);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (parmas = {}) => {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await cardListIStockService({});
+      const { data } = await cardListIStockService(parmas);
       setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
     } catch (err: any) {
       setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
@@ -95,11 +122,35 @@ export default function ApproveScreen() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await fetchData();
+      if (filter.isFilter) {
+        if (filter.status === "All") {
+          if (filter.menuId === "All") {
+            const { status, menuId, ...newData } = filter;
+            fetchData(newData);
+          } else {
+            const { status, ...newData } = filter;
+            fetchData(newData);
+          }
+        }
+        if (filter.menuId === "All") {
+          if (filter.status === "All") {
+            const { status, menuId, ...newData } = filter;
+            fetchData(newData);
+          } else {
+            const { menuId, ...newData } = filter;
+            fetchData(newData);
+          }
+        }
+        if (filter.menuId !== "All" && filter.status !== "All") {
+          fetchData(filter);
+        }
+      } else {
+        fetchData();
+      }
     } finally {
       setRefreshing(false);
     }
-  }, [fetchData]);
+  }, [fetchData, filter]);
 
   // เลือกทั้งหมด: นับเฉพาะการ์ดที่ Open (ให้สอดคล้องทุกหน้า)
   const selectableIds = useMemo(
@@ -134,11 +185,26 @@ export default function ApproveScreen() {
     );
   }, [selectableIds]);
 
-  const openFilter = useCallback(() => {
+  const openFilter = useCallback(async () => {
+    const [datamenuService] = await Promise.all([
+      menuService({ isApprover: false }),
+    ]);
+
+    const { data } = datamenuService;
+    let dataAll = [{ key: "All", value: "All" }];
+    let dataAPI = data
+      .filter((v: any) => v.menuId === 0 || v.menuId === 1 || v.menuId === 2)
+      .map((v: any) => ({
+        value: v.Label,
+        key: v.menuId,
+      }));
+    dataAll = [...dataAll, ...dataAPI];
     setSelectedIds([]);
     navigation.navigate("Filter", {
       filter,
-      statusName: "ประเภทเอกสาร",
+      statusName: "สถานะเอกสาร",
+      isTypeDoc: true,
+      TypeDocOptions: dataAll,
       statusOptions: [
         { key: "All", value: "All" },
         { key: "Pending Approval", value: "Pending Approval" },
@@ -276,7 +342,7 @@ export default function ApproveScreen() {
         {!loading && error && (
           <ErrorState
             message={error}
-            onRetry={fetchData}
+            onRetry={onRefresh}
             color={errorColor}
             accentColor={theme.mainApp}
           />
@@ -289,7 +355,7 @@ export default function ApproveScreen() {
             icon="clipboard-check-outline"
             color={textGray}
             actionLabel="รีโหลด"
-            onAction={fetchData}
+            onAction={onRefresh}
             buttonBg={theme.mainApp}
             buttonTextColor={theme.white}
           />

@@ -39,6 +39,7 @@ export default function FilterScreen() {
   const [docNo, setDocumentNo] = useState("");
   const [stockOutDate, setDocumentDate] = useState("");
   const [status, setStatus] = useState("All");
+  const [menuId, setDocType] = useState("All");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -53,6 +54,7 @@ export default function FilterScreen() {
     showFilterDate = true,
     showFilterStatus = true,
     showFilterReset = true,
+    isTypeDoc = false,
     ScanName = "เลขที่เอกสาร",
     statusName = "สถานะเอกสาร",
     textSearch = "ค้นหา",
@@ -63,32 +65,42 @@ export default function FilterScreen() {
       { key: "Approved", value: "Approved" },
       { key: "Rejected", value: "Rejected" },
     ],
+    TypeDocOptions = [],
   } = route.params as {
     filter: any;
     showFilterDoc: boolean;
     showFilterDate: boolean;
     showFilterStatus: boolean;
     showFilterReset: boolean;
+    isTypeDoc: boolean;
     ScanName?: string;
     statusName?: string;
     textSearch?: string;
     statusOptions?: any;
+    TypeDocOptions?: any;
   };
 
   useEffect(() => {
     if (filter) {
-      setStatus(filter?.status || status);
-      setDocumentDate(filter?.stockOutDate || stockOutDate);
-      setDocumentNo(filter?.docNo || docNo);
+      setStatus(filter?.status);
+      setDocumentDate(filter?.stockOutDate);
+      setDocumentNo(filter?.docNo);
+      setDocType(filter?.menuId);
     }
   }, []);
 
   const resetFilterForm = () => {
-    Promise.all([setDocumentNo(""), setDocumentDate(""), setStatus("All")]);
+    Promise.all([
+      setDocumentNo(""),
+      setDocumentDate(""),
+      setStatus("All"),
+      setDocType("All"),
+    ]);
     const parmas = {
       status: "All",
       stockOutDate: "",
       docNo: "",
+      menuId: "",
       isFilter: false,
       isReset: true,
     };
@@ -155,6 +167,7 @@ export default function FilterScreen() {
       status,
       stockOutDate,
       docNo,
+      menuId,
       isFilter: true,
       isReset: false,
     };
@@ -233,6 +246,26 @@ export default function FilterScreen() {
               placeholder="Select Status"
               save="key"
               defaultOption={statusOptions.find((s) => s.key === status)}
+            />
+          </View>
+        )}
+
+        {isTypeDoc && (
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>{"ประเภทเอกสาร"}</Text>
+            <SelectList
+              setSelected={setDocType}
+              data={TypeDocOptions}
+              boxStyles={{
+                flex: 1,
+                borderWidth: 0,
+                backgroundColor: theme.background,
+              }}
+              dropdownStyles={{ borderColor: theme.gray }}
+              search={true}
+              placeholder="Select Status"
+              save="key"
+              defaultOption={TypeDocOptions.find((s) => s.key === menuId)}
             />
           </View>
         )}
