@@ -37,7 +37,7 @@ import { SelectList } from "react-native-dropdown-select-list";
 
 export default function FilterScreen() {
   const [docNo, setDocumentNo] = useState("");
-  const [createdAt, setDocumentDate] = useState("");
+  const [stockOutDate, setDocumentDate] = useState("");
   const [status, setStatus] = useState("All");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
@@ -78,7 +78,7 @@ export default function FilterScreen() {
   useEffect(() => {
     if (filter) {
       setStatus(filter?.status || status);
-      setDocumentDate(filter?.createdAt || createdAt);
+      setDocumentDate(filter?.stockOutDate || stockOutDate);
       setDocumentNo(filter?.docNo || docNo);
     }
   }, []);
@@ -87,7 +87,7 @@ export default function FilterScreen() {
     Promise.all([setDocumentNo(""), setDocumentDate(""), setStatus("All")]);
     const parmas = {
       status: "All",
-      createdAt: "",
+      stockOutDate: "",
       docNo: "",
       isFilter: false,
       isReset: true,
@@ -153,7 +153,7 @@ export default function FilterScreen() {
   const onSearch = () => {
     const parmas = {
       status,
-      createdAt,
+      stockOutDate,
       docNo,
       isFilter: true,
       isReset: false,
@@ -206,7 +206,7 @@ export default function FilterScreen() {
               onPress={() => setShowDatePicker(true)}
             >
               <TextInput
-                value={createdAt}
+                value={stockOutDate}
                 editable={false}
                 style={styles.input}
                 placeholder=""

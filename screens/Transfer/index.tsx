@@ -51,7 +51,18 @@ export default function TransferScreen() {
 
   // ====== รับค่า filter ======
   useEffect(() => {
-    const onFilterChanged = (data: any) => setFilter(data);
+    const onFilterChanged = (data: any) => {
+      if (data.isFilter) {
+        if (data.status === "All") {
+          const { status, ...newData } = data;
+          fetchData(newData);
+        }
+        fetchData(data);
+      } else {
+        fetchData();
+      }
+      setFilter(data);
+    };
     emitter.on(filterTransfer, onFilterChanged);
     return () => emitter.off(filterTransfer, onFilterChanged);
   }, []);
@@ -63,27 +74,33 @@ export default function TransferScreen() {
   }, []);
 
   // ====== โหลดข้อมูล ======
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const menuIdNum = Number(menuId);
-      if (Number.isNaN(menuIdNum)) throw new Error("menuId ไม่ถูกต้อง");
+  const fetchData = useCallback(
+    async (params = {}) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const menuIdNum = Number(menuId);
+        if (Number.isNaN(menuIdNum)) throw new Error("menuId ไม่ถูกต้อง");
 
-      const { data } = await cardListIStockService({ menuId: menuIdNum });
-      setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "เกิดข้อผิดพลาดในการดึงข้อมูล";
-      console.log("Transfer fetchData error:", err?.response?.data || err);
-      setCardData([]);
-      setError(msg);
-    } finally {
-      setLoading(false);
-    }
-  }, [menuId]);
+        const { data } = await cardListIStockService({
+          ...params,
+          menuId: menuIdNum,
+        });
+        setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
+      } catch (err: any) {
+        const msg =
+          err?.response?.data?.message ||
+          err?.message ||
+          "เกิดข้อผิดพลาดในการดึงข้อมูล";
+        console.log("Transfer fetchData error:", err?.response?.data || err);
+        setCardData([]);
+        setError(msg);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [menuId]
+  );
 
   useEffect(() => {
     setSelectedIds([]);

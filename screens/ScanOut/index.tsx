@@ -48,7 +48,18 @@ export default function ScanOutScreen() {
 
   // รับ filter event
   useEffect(() => {
-    const onFilterChanged = (data: any) => setFilter(data);
+    const onFilterChanged = (data: any) => {
+      if (data.isFilter) {
+        if (data.status === "All") {
+          const { status, ...newData } = data;
+          fetchData(newData);
+        }
+        fetchData(data);
+      } else {
+        fetchData();
+      }
+      setFilter(data);
+    };
     emitter.on(filterScanOut, onFilterChanged);
     return () => emitter.off(filterScanOut, onFilterChanged);
   }, []);
@@ -62,23 +73,27 @@ export default function ScanOutScreen() {
   }, []);
 
   // โหลดข้อมูล
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const menuIdNum = Number(menuId);
-      if (Number.isNaN(menuIdNum)) throw new Error("menuId ไม่ถูกต้อง");
-      const { data } = await cardListIStockService({
-        menuId: menuIdNum,
-      });
-      setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
-    } catch (err: any) {
-      setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
-      setCardData([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [menuId]);
+  const fetchData = useCallback(
+    async (params = {}) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const menuIdNum = Number(menuId);
+        if (Number.isNaN(menuIdNum)) throw new Error("menuId ไม่ถูกต้อง");
+        const { data } = await cardListIStockService({
+          ...params,
+          menuId: menuIdNum,
+        });
+        setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
+      } catch (err: any) {
+        setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
+        setCardData([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [menuId]
+  );
 
   // โหลดข้อมูลครั้งแรก + เมื่อ menuId เปลี่ยน
   useEffect(() => {

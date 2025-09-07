@@ -34,7 +34,18 @@ export default function TransactionHistoryScreen() {
   const errorColor = (theme as any).error ?? "#ef4444";
 
   useEffect(() => {
-    const onFilterChanged = (d: any) => setFilter(d);
+    const onFilterChanged = (data: any) => {
+      if (data.isFilter) {
+        if (data.status === "All") {
+          const { status, ...newData } = data;
+          fetchData(newData);
+        }
+        fetchData(data);
+      } else {
+        fetchData();
+      }
+      setFilter(data);
+    };
     emitter.on(filterTransactionHistory, onFilterChanged);
     return () => emitter.off(filterTransactionHistory, onFilterChanged);
   }, []);
