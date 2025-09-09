@@ -92,7 +92,9 @@ export default function CreateDocumentTransferScreen() {
   };
 
   const defaultBinFrom = useMemo(
-    () => (binCodeFrom ? { key: binCodeFrom, value: binCodeFrom } : undefined),
+    () =>
+      binCodesFrom?.find((o) => o.key === binCodeFrom) ??
+      (binCodesFrom?.[0] as { key: string; value: string } | undefined),
     [binCodeFrom]
   );
   const defaultLocTo = useMemo(

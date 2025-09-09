@@ -330,7 +330,9 @@ export default function CreateDocumentScreen() {
               search={true}
               placeholder="Select"
               save="key"
-              defaultOption={{ key: binCodeFrom, value: binCodeFrom }}
+              defaultOption={
+                dataBinCodes.length > 0 ? dataBinCodes[0] : undefined
+              }
             />
           </View>
         </View>

@@ -1,7 +1,7 @@
 // screens/TransactionHistoryScreen.tsx
 import { emitter, filterTransactionHistory } from "@/common/emitter";
 import Header from "@/components/Header";
-import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
+import ScanCard from "@/components/ScanCard/ScanCard";
 import EmptyState from "@/components/State/EmptyState";
 import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
@@ -54,7 +54,10 @@ export default function TransactionHistoryScreen() {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await cardListIStockService(option);
+      const { data } = await cardListIStockService({
+        ...option,
+        status: "Approved",
+      });
       setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
     } catch (err: any) {
       const msg =
@@ -142,7 +145,11 @@ export default function TransactionHistoryScreen() {
 
   const openFilter = useCallback(() => {
     setSelectedIds([]);
-    navigation.navigate("Filter", { filter, statusName: "สถานะเอกสาร" });
+    navigation.navigate("Filter", {
+      filter,
+      statusName: "สถานะเอกสาร",
+      showFilterStatus: false,
+    });
   }, [filter, navigation]);
 
   const goToDetail = useCallback(
@@ -222,7 +229,7 @@ export default function TransactionHistoryScreen() {
                 hideAddFile={true}
                 docNo={card.docNo}
                 date={card.date}
-                status={card.status as StatusType}
+                status={null}
                 details={card.details}
                 hideSelectedIds
                 selectedIds={selectedIds}

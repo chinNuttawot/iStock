@@ -10,11 +10,11 @@ import UploadPicker from "../UploadPicker"; // ✅ import handle
 export type StatusType = "Open" | "Pending Approval" | "Approved" | "Rejected";
 
 type ScanCardProps = {
-  id: string;
+  id?: string;
   docNo: string;
   date: string;
   details: { label: string; value: string }[];
-  status: StatusType;
+  status?: StatusType | null;
   isSelected: boolean;
   isExpanded: boolean;
   isShowStatusForScanIn: boolean;

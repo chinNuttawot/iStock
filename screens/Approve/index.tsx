@@ -193,7 +193,7 @@ export default function ApproveScreen() {
     const { data } = datamenuService;
     let dataAll = [{ key: "All", value: "All" }];
     let dataAPI = data
-      .filter((v: any) => v.menuId === 0 || v.menuId === 1 || v.menuId === 2)
+      .filter((v: any) => v.menuId === 1 || v.menuId === 2 || v.menuId === 3)
       .map((v: any) => ({
         value: v.Label,
         key: v.menuId,

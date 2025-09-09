@@ -186,7 +186,7 @@ const ProductAddModalComponent = ({
           <CustomButton
             label="บันทึก"
             onPress={handleSave}
-            disabled={model === "" || quantity === ""}
+            disabled={model === "" || quantity === "" || Number(stockQty) === 0}
           />
         </View>
       </View>
