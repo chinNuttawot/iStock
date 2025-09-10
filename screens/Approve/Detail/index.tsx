@@ -2,7 +2,6 @@ import { emitter, filterApproveDetail, getDataApprove } from "@/common/emitter";
 import CustomButtons from "@/components/CustomButtons";
 import DetailCard from "@/components/DetailCard";
 import Header from "@/components/Header";
-import QuantitySerialModal from "@/components/Modals/QuantitySerialModal";
 import EmptyState from "@/components/State/EmptyState";
 import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
@@ -10,14 +9,22 @@ import { theme } from "@/providers/Theme";
 import {
   ApproveDocumentsService,
   cardDetailIStockListService,
+  cardListIStockBydocNoForTransactionHistoryService,
+  getProfile,
+  transactionHistorySaveService,
 } from "@/service";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { ScrollView, Text, View } from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
 import { styles } from "./styles";
 
-export type RouteParams = { docNo: string; menuId: number; status: string };
+export type RouteParams = {
+  docNo: string;
+  menuId: number;
+  status: string;
+  product: any[];
+};
 
 export default function ApproveDetailScreen() {
   const [itemDetail, setItemDetail] = useState<{
@@ -64,6 +71,7 @@ export default function ApproveDetailScreen() {
       });
       setProductData(data);
     } catch (err) {
+      Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
       // TODO: handle error state
     }
   };
@@ -138,9 +146,20 @@ export default function ApproveDetailScreen() {
 
   const callAPIApproveDocuments = async (status: string) => {
     try {
+      const profile = await getProfile();
+      let { data } = await cardListIStockBydocNoForTransactionHistoryService({
+        docNo,
+      });
+      data = data.map((v: any) => ({
+        ...v,
+        createdBy: profile?.userName,
+        status,
+      }));
+      await transactionHistorySaveService(data);
       await ApproveDocumentsService({ docNo, status });
       navigation.goBack();
     } catch (err) {
+      Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {
       emitter.emit(getDataApprove);
     }
@@ -189,15 +208,6 @@ export default function ApproveDetailScreen() {
         //   </TouchableOpacity>,
         // ]}
       />
-
-      <QuantitySerialModal
-        isOpen={isOpen}
-        item={itemDetail}
-        onClose={() => setIsOpen(false)}
-        form={scanInDetailForm}
-        labelConfirm="ยืนยัน"
-      />
-
       {productData.length === 0 && (
         <View
           style={{

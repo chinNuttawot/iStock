@@ -2,62 +2,26 @@ import { emitter, filterScanInDetail } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import DetailCard from "@/components/DetailCard";
 import Header from "@/components/Header";
-import QuantitySerialModal from "@/components/Modals/QuantitySerialModal";
 import EmptyState from "@/components/State/EmptyState";
 import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
 import { keyboardTypeNumber } from "@/screens/Register/register";
-import { cardDetailListService } from "@/service";
+import { cardDetailListService, saveDocumentsNAVService } from "@/service";
 import { CardListModel } from "@/service/myInterface";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, ScrollView, Text, TextInput, View } from "react-native";
 import { styles } from "./styles";
 
-function parseKey(
-  key: string
-): { docNo: string; field: string; itemNo: string } | null {
-  const last = key.lastIndexOf("_");
-  if (last < 0) return null;
-  const second = key.lastIndexOf("_", last - 1);
-  if (second < 0) return null;
-  const docNo = key.slice(0, second);
-  const field = key.slice(second + 1, last);
-  const itemNo = key.slice(last + 1);
-  if (!docNo || !field || !itemNo) return null;
-  return { docNo, field, itemNo };
-}
+type ScanFormValues = Record<string, unknown>;
 
-type ItemFields = Record<string, string>;
-type OutputDoc = { [docNo: string]: Array<{ [itemNo: string]: ItemFields }> };
-type FinalOutput = OutputDoc[];
-
-function transformFlatToDesired(
-  input: Record<string, unknown>,
-  onlyDocNo?: string
-): FinalOutput {
-  const grouped: Record<string, Record<string, ItemFields>> = {};
-
-  for (const [k, v] of Object.entries(input)) {
-    const parsed = parseKey(k);
-    if (!parsed) continue;
-    const { docNo, field, itemNo } = parsed;
-    if (onlyDocNo && docNo !== onlyDocNo) continue;
-
-    grouped[docNo] ||= {};
-    grouped[docNo][itemNo] ||= {};
-    grouped[docNo][itemNo][field] = String(v ?? "");
-  }
-
-  return Object.entries(grouped).map(([docNo, itemsObj]) => {
-    const itemsArr = Object.entries(itemsObj).map(([itemNo, fields]) => ({
-      [itemNo]: fields,
-    }));
-    return { [docNo]: itemsArr };
-  });
-}
+type ProductRow = {
+  productCode: string;
+  quantity: string; // เก็บเป็น string ตามฟอร์ม
+  serialNo: string;
+};
 
 export default function ScanInDetailScreen() {
   const [itemDetail, setItemDetail] = useState<{
@@ -73,6 +37,7 @@ export default function ScanInDetailScreen() {
   const route = useRoute();
   const scanInDetailForm = useForm();
   const [loading, setLoading] = useState<boolean>(false);
+  const [isload, setIsload] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [cardDetailData, setCardDetailData] = useState<CardListModel[]>([]);
@@ -228,13 +193,44 @@ export default function ScanInDetailScreen() {
       </View>
     );
   });
-  
+
   const onSave = async () => {
-    const rawValues = scanInDetailForm.getValues() as Record<string, unknown>;
-    const payload = transformFlatToDesired(rawValues, docNo);
-    console.log("scanInDetailForm raw ====>", payload[0]);
+    try {
+      setIsload(true);
+      const rawValues = scanInDetailForm.getValues() as ScanFormValues;
+      const keyPattern = /^([A-Za-z0-9]+)_(qty|serialNo)_[A-Za-z0-9]+$/;
+      const grouped: Record<string, ProductRow> = Object.entries(
+        rawValues
+      ).reduce((acc, [key, value]) => {
+        const m = key.match(keyPattern);
+        if (!m) return acc;
+
+        const [, productCode, field] = m;
+        const val = String(value ?? "");
+
+        if (!acc[productCode]) {
+          acc[productCode] = { productCode, quantity: "", serialNo: "" };
+        }
+
+        if (field === "qty") acc[productCode].quantity = val;
+        else if (field === "serialNo") acc[productCode].serialNo = val;
+
+        return acc;
+      }, {} as Record<string, ProductRow>);
+
+      const products: ProductRow[] = Object.values(grouped);
+      const payload = {
+        docNo,
+        products,
+      };
+      await saveDocumentsNAVService(payload);
+    } catch (err) {
+      Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
+    } finally {
+      setIsload(false);
+    }
   };
-  
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.white }}>
       <ModalComponent
@@ -265,14 +261,6 @@ export default function ScanInDetailScreen() {
         //   </TouchableOpacity>,
         // ]}
       />
-      <QuantitySerialModal
-        isOpen={isOpen}
-        item={itemDetail}
-        onClose={() => setIsOpen(false)}
-        form={scanInDetailForm}
-        labelConfirm="ยืนยัน"
-      />
-
       {cardDetailData.length === 0 && (
         <View
           style={{
@@ -308,7 +296,7 @@ export default function ScanInDetailScreen() {
       )}
 
       <View style={{ padding: 16, marginBottom: 16 }}>
-        <CustomButton label="บันทึก" onPress={onSave} />
+        <CustomButton label="บันทึก" onPress={onSave} isload={isload} />
       </View>
     </View>
   );

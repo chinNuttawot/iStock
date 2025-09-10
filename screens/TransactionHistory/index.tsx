@@ -6,7 +6,7 @@ import EmptyState from "@/components/State/EmptyState";
 import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
 import { theme } from "@/providers/Theme";
-import { cardListIStockService } from "@/service";
+import { transactionHistoryService } from "@/service";
 import { CardListModel } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -54,9 +54,8 @@ export default function TransactionHistoryScreen() {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await cardListIStockService({
+      const { data } = await transactionHistoryService({
         ...option,
-        status: "Approved",
       });
       setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
     } catch (err: any) {
@@ -148,7 +147,7 @@ export default function TransactionHistoryScreen() {
     navigation.navigate("Filter", {
       filter,
       statusName: "สถานะเอกสาร",
-      showFilterStatus: false,
+      // showFilterStatus: false,
     });
   }, [filter, navigation]);
 
@@ -157,6 +156,7 @@ export default function TransactionHistoryScreen() {
       navigation.navigate("TransactionHistoryDetail", {
         docNo: card.docNo,
         menuId: card.menuId,
+        product: card.product,
       });
     },
     [navigation]
@@ -220,21 +220,23 @@ export default function TransactionHistoryScreen() {
           >
             {cardData.map((card) => (
               <ScanCard
+                isShowOnExpandBy={"id"}
+                menuType={card.menuType}
                 key={card.id}
                 id={card.id}
-                keyRef1={card.docNo}
+                keyRef1={"XX-XX"}
                 keyRef2={null}
                 keyRef3={null}
                 remark={null}
                 hideAddFile={true}
                 docNo={card.docNo}
                 date={card.date}
-                status={null}
+                status={card.status as any}
                 details={card.details}
                 hideSelectedIds
                 selectedIds={selectedIds}
-                isSelected={selectedIds.includes(card.docNo)}
-                isExpanded={expandedIds.includes(card.docNo)}
+                isSelected={selectedIds.includes(card.id)}
+                isExpanded={expandedIds.includes(card.id)}
                 onSelect={onSelectSafe}
                 onExpand={onExpandSafe}
                 goTo={() => goToDetail(card)}

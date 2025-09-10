@@ -1,5 +1,10 @@
 // screens/ScanInScreen.tsx
-import { emitter, filterScanIn, getDataScanIn } from "@/common/emitter";
+import {
+  emitter,
+  filterScanIn,
+  getDataScanIn,
+  getDataScanOut,
+} from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
@@ -8,7 +13,11 @@ import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
 import type { UploadPickerHandle } from "@/components/UploadPicker"; // <<— ใช้ชนิด handle จาก UploadPicker
 import { theme } from "@/providers/Theme";
-import { cardListService, getProfile } from "@/service";
+import {
+  ApproveDocumentsNAVService,
+  cardListService,
+  getProfile,
+} from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -154,13 +163,8 @@ export default function ScanInScreen() {
   const submitSelected = useCallback(async () => {
     try {
       if (selectedIds.length === 0) return;
-
-      for (const id of selectedIds) {
-        const handle = uploadRefs.current[id];
-        await handle?.uploadAllInOneRequests?.();
-      }
-      // emitter.emit(getDataScanOut);
-      // emitter.emit(filterDataDashboard);
+      await ApproveDocumentsNAVService({ docNo: selectedIds.join("|") });
+      emitter.emit(getDataScanOut);
     } catch (err) {
       Alert.alert("เกิดข้อผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {

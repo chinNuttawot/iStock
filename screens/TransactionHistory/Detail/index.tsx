@@ -2,18 +2,16 @@ import { emitter, filterTransactionHistoryDetail } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import DetailCard from "@/components/DetailCard";
 import Header from "@/components/Header";
-import QuantitySerialModal from "@/components/Modals/QuantitySerialModal";
 import EmptyState from "@/components/State/EmptyState";
 import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
 import { RouteParams } from "@/screens/Approve/Detail";
 import { keyboardTypeNumber } from "@/screens/Register/register";
-import { cardDetailIStockListService } from "@/service";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { memo, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, ScrollView, Text, TextInput, View } from "react-native";
 import { styles } from "./styles";
 
 export default function TransactionHistoryDetailScreen() {
@@ -29,7 +27,7 @@ export default function TransactionHistoryDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute();
   const scanInDetailForm = useForm();
-  const { docNo, menuId, status } = route.params as RouteParams;
+  const { docNo, menuId, status, product } = route.params as RouteParams;
   const [productData, setProductData] = useState<ProductItem[]>([]);
   const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
   useEffect(() => {
@@ -49,12 +47,10 @@ export default function TransactionHistoryDetailScreen() {
 
   const getDataDetail = async () => {
     try {
-      const { data } = await cardDetailIStockListService({
-        docNo,
-        menuId: menuId,
-      });
-      setProductData(data);
-    } catch (err) {}
+      setProductData(product);
+    } catch (err) {
+      Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
+    }
   };
 
   const toggleExpand = (id: string) => {
@@ -201,13 +197,6 @@ export default function TransactionHistoryDetailScreen() {
         //     />
         //   </TouchableOpacity>,
         // ]}
-      />
-      <QuantitySerialModal
-        isOpen={isOpen}
-        item={itemDetail}
-        onClose={() => setIsOpen(false)}
-        form={scanInDetailForm}
-        labelConfirm="ยืนยัน"
       />
       {productData.length === 0 && (
         <View

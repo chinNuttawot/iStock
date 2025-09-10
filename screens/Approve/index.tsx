@@ -17,8 +17,11 @@ import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
 import {
   ApproveDocumentsService,
+  cardListIStockBydocNoForTransactionHistoryService,
   cardListIStockService,
+  getProfile,
   menuService,
+  transactionHistorySaveService,
 } from "@/service";
 import { CardListModel } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -32,6 +35,7 @@ import React, {
   useState,
 } from "react";
 import {
+  Alert,
   RefreshControl,
   ScrollView,
   Text,
@@ -227,9 +231,22 @@ export default function ApproveScreen() {
   const callAPIApproveDocuments = async (status: string) => {
     try {
       setIsload(true);
+      const profile = await getProfile();
+      for (const docNo of selectedIds) {
+        let { data } = await cardListIStockBydocNoForTransactionHistoryService({
+          docNo,
+        });
+        data = [data].map((v: any) => ({
+          ...v,
+          createdBy: profile?.userName,
+          status,
+        }))[0];
+        await transactionHistorySaveService(data);
+      }
       await ApproveDocumentsService({ docNo: selectedIds.join("|"), status });
       setSelectedIds([]);
     } catch (err) {
+      Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {
       emitter.emit(getDataApprove);
       emitter.emit(filterDataDashboard);
@@ -385,6 +402,7 @@ export default function ApproveScreen() {
                   ref={(h) => {
                     uploadRefs.current[card.docNo] = h;
                   }}
+                  menuType={card.menuType}
                   id={card.id}
                   hideAddFile={card.status !== "Open"}
                   keyRef1={card.docNo}

@@ -13,7 +13,13 @@ import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
 import type { UploadPickerHandle } from "@/components/UploadPicker";
 import { theme } from "@/providers/Theme";
-import { cardListIStockService, SendToApproveDocuments } from "@/service";
+import {
+  cardListIStockBydocNoForTransactionHistoryService,
+  cardListIStockService,
+  getProfile,
+  SendToApproveDocuments,
+  transactionHistorySaveService
+} from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -183,9 +189,19 @@ export default function StockCheckScreen() {
   const submitSelected = useCallback(async () => {
     try {
       if (selectedIds.length === 0) return;
+      const profile = await getProfile();
       for (const docNo of selectedIds) {
         const handle = uploadRefs.current[docNo];
         await handle?.uploadAllInOneRequests?.();
+        let { data } = await cardListIStockBydocNoForTransactionHistoryService({
+          docNo,
+        });
+        data = [data].map((v: any) => ({
+          ...v,
+          createdBy: profile?.userName,
+          status: "Pending Approval",
+        }))[0];
+        await transactionHistorySaveService(data);
       }
       await SendToApproveDocuments({ docNo: selectedIds.join("|") });
       emitter.emit(getDataStockCheck);

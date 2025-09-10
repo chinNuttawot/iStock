@@ -59,6 +59,7 @@ export interface CardListModel {
   status: string;
   date: string;
   details: CardListDetail[];
+  product?: any[];
 }
 
 export interface CardListDetail {

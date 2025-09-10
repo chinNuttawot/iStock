@@ -68,7 +68,9 @@ export default function TransferDetailScreen() {
         menuId: menuId,
       });
       setProductData(data);
-    } catch (err) {}
+    } catch (err) {
+      Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
+    }
   };
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) =>
@@ -154,7 +156,7 @@ export default function TransferDetailScreen() {
         navigation.goBack();
       }
     } catch (err) {
-      Alert.alert("เกิดขอผิดพลาด", "");
+      Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
     }
   };
 

@@ -66,7 +66,7 @@ export default function ScanOutDetailScreen() {
       });
       setProductData(data);
     } catch (err) {
-      Alert.alert("เกิดขอผิดพลาด", "");
+      Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
     }
   };
   const toggleExpand = (id: string) => {
@@ -145,8 +145,7 @@ export default function ScanOutDetailScreen() {
       if (hasDeleted) {
         const delItem = productData
           .filter((v) => v.isDelete)
-          .map((v: any) => ({ uuid: v.uuid, docNo: v.docNo }));
-        console.log(delItem);
+          .map((v: any) => ({ uuid: v.uuid, productCode: v.docNo }));
         await deleteDocumentProducts({ items: delItem });
         emitter.emit(getDataScanOut, menuId);
         navigation.goBack();
@@ -154,7 +153,7 @@ export default function ScanOutDetailScreen() {
         navigation.goBack();
       }
     } catch (err) {
-      Alert.alert("เกิดขอผิดพลาด", "");
+      Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
     }
   };
 

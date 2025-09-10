@@ -15,9 +15,11 @@ type ScanCardProps = {
   date: string;
   details: { label: string; value: string }[];
   status?: StatusType | null;
+  menuType?: string;
   isSelected: boolean;
   isExpanded: boolean;
   isShowStatusForScanIn: boolean;
+  isShowOnExpandBy: string;
   onSelect: (docNo: string) => void;
   onExpand: (docNo: string) => void;
   goTo?: () => void;
@@ -52,6 +54,8 @@ const ScanCard = React.forwardRef<any, ScanCardProps>(
       hideAddFile = false,
       isShowStatusForScanIn = false,
       date,
+      isShowOnExpandBy = "docNo",
+      menuType,
     },
     ref
   ) => {
@@ -82,11 +86,11 @@ const ScanCard = React.forwardRef<any, ScanCardProps>(
       }
     };
 
-    const StatusForScanIn = () => {
+    const StatusForScanIn = (menuType: string) => {
       return (
         <View style={styles.mainStatus}>
           <Text style={[styles.text, { color: theme.white, fontSize: 10 }]}>
-            {"กรอกรายละเอียด"}
+            {menuType}
           </Text>
         </View>
       );
@@ -96,19 +100,23 @@ const ScanCard = React.forwardRef<any, ScanCardProps>(
       <View style={styles.card}>
         <TouchableOpacity
           style={styles.cardHeader}
-          onPress={() => onExpand(docNo)}
+          onPress={() =>
+            onExpand(isShowOnExpandBy === "docNo" ? docNo ?? "" : id ?? "")
+          }
         >
           {!hideSelectedIds && (
             <Ionicons
               name={isSelected ? "checkbox" : "square-outline"}
               size={24}
               color={theme.mainApp}
-              onPress={() => onSelect(docNo)}
+              onPress={() =>
+                onSelect(isShowOnExpandBy === "docNo" ? docNo ?? "" : id ?? "")
+              }
             />
           )}
 
           <Text style={styles.cardTitle}>{docNo}</Text>
-          {isShowStatusForScanIn && StatusForScanIn()}
+          {menuType && StatusForScanIn(menuType)}
           {renderStatusIcon()}
 
           <Ionicons
@@ -166,7 +174,7 @@ export default React.memo(ScanCard);
 
 const styles = StyleSheet.create({
   mainStatus: {
-    backgroundColor: theme.orange,
+    backgroundColor: theme.secondary,
     borderRadius: 100,
     padding: 8,
     marginRight: 10,

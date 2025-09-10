@@ -68,7 +68,7 @@ export default function CreateDocumentStockCheckScreen() {
     docNo !== "" &&
     stockOutDate !== "" &&
     locationCodeFrom !== "" &&
-    binCodeFrom !== "" &&
+    // binCodeFrom !== "" &&
     products.length > 0;
 
   const optionModalComponent: Modeloption = {
@@ -132,7 +132,9 @@ export default function CreateDocumentStockCheckScreen() {
           locationCodeFrom: profile.branchCode,
         });
       setDataBinCodes(dataBinCodesByLocationService);
-    } catch (err) {}
+    } catch (err) {
+      Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
+    }
   };
 
   const handleAddProduct = () => {

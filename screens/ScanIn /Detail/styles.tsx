@@ -44,7 +44,7 @@ export const styles = StyleSheet.create({
     backgroundColor: theme.background,
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingVertical: 8,
     marginBottom: 16,
   },
 });

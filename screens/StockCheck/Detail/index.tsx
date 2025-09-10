@@ -69,7 +69,9 @@ export default function StockCheckDetailScreen() {
         menuId: menuId,
       });
       setProductData(data);
-    } catch (err) {}
+    } catch (err) {
+      Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
+    }
   };
 
   const toggleExpand = (id: string) => {
@@ -156,7 +158,7 @@ export default function StockCheckDetailScreen() {
         navigation.goBack();
       }
     } catch (err) {
-      Alert.alert("เกิดขอผิดพลาด", "");
+      Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
     }
   };
 

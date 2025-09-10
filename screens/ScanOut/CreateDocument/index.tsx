@@ -126,7 +126,9 @@ export default function CreateDocumentScreen() {
           locationCodeFrom: profile.branchCode,
         });
       setDataBinCodes(dataBinCodesByLocationService);
-    } catch (err) {}
+    } catch (err) {
+      Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
+    }
   };
 
   useEffect(() => {
