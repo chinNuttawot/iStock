@@ -1,46 +1,91 @@
-import { theme } from "@/providers/Theme";
-import { StyleSheet } from "react-native";
+// ./Styles.ts
+import { theme as appTheme, theme } from "@/providers/Theme";
+import { Dimensions, Platform, StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
+const t: any = appTheme ?? {};
+const W = Dimensions.get("window").width;
+
+const color = {
+  text: t.text ?? "#111827",
+  textMuted: t.textGray ?? "#6B7280",
+  primary: t.mainApp ?? "#2563EB",
+  border: "rgba(255,255,255,0.2)",
+  surface: "rgba(255,255,255,0.9)", // โปร่งใสให้เห็น bg
+};
+
+const radius = { xl: 22 };
+const gap = 14;
+const cardWidth = (W - 36 - gap) / 2;
+
+const shadow = Platform.select({
+  ios: {
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 12,
+  },
+  android: { elevation: 5 },
+});
+
+export const styles = StyleSheet.create({
   container: {
-    ...theme.setFont,
-    paddingHorizontal: 16,
-    backgroundColor: theme.white,
     flex: 1,
+    paddingHorizontal: 18,
   },
   groupContainer: {
-    ...theme.setFont,
-    marginBottom: 16,
+    marginBottom: 28,
   },
   groupTitle: {
-    ...theme.setFont,
-    marginBottom: 8,
+     ...theme.setFont,
+    fontSize: 18,
+    fontWeight: "700",
+    color: color.text,
+    marginBottom: 12,
   },
   cardRow: {
-    ...theme.setFont,
     flexDirection: "row",
-    justifyContent: "space-between",
+    flexWrap: "wrap",
+    columnGap: gap,
+    rowGap: gap,
   },
   card: {
-    ...theme.setFont,
-    backgroundColor: theme.mainApp,
-    padding: 12,
-    borderRadius: 8,
-    width: "30%",
-    alignItems: "center",
+    width: cardWidth,
+    minHeight: 116,
+    borderRadius: radius.xl,
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.border,
+    padding: 14,
+    justifyContent: "space-between",
+    ...shadow,
+  },
+  iconPill: {
+    alignSelf: "flex-start",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: "rgba(0,0,0,0.06)",
+    marginBottom: 6,
   },
   cardCount: {
     ...theme.setFont,
-    color: theme.white,
     fontSize: 28,
-    marginVertical: 4,
+    fontWeight: "800",
+    color: color.text,
   },
   cardText: {
     ...theme.setFont,
-    color: theme.white,
-    fontSize: 10,
-    textAlign: "center",
+    fontSize: 13,
+    fontWeight: "600",
+    color: color.textMuted,
+  },
+  spinnerWrap: {
+    flex: 1,
+    alignItems: "center",
+    marginTop: 32,
+  },
+  scrollPad: {
+    flexGrow: 1,
+    paddingTop: 16,
   },
 });
-
-export { styles };
