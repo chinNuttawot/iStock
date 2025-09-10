@@ -14,6 +14,7 @@ import { createDocumentSaveService } from "./createDocumentSaveService";
 import { createDocumentService } from "./createDocumentService";
 import { DashboardService } from "./DashboardService";
 import { deleteDocumentProducts } from "./deleteDocumentProducts";
+import { deleteFileService } from "./deleteFileService";
 import { fileService } from "./fileService";
 import { itemProductWSService } from "./itemProductWSService";
 import { itemVariantWSService } from "./itemVariantWSService";
@@ -42,6 +43,7 @@ export {
     createDocumentService,
     DashboardService,
     deleteDocumentProducts,
+    deleteFileService,
     delProfile,
     fileService,
     getProfile,

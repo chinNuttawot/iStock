@@ -12,10 +12,9 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  RefreshControl,
   ScrollView,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { styles } from "./Styles";
 
@@ -214,9 +213,9 @@ export default function TransactionHistoryScreen() {
         {!loading && !error && total > 0 && (
           <ScrollView
             contentContainerStyle={styles.content}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
+            // refreshControl={
+            //   <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            // }
           >
             {cardData.map((card) => (
               <ScanCard

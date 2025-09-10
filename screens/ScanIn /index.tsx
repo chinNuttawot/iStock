@@ -28,14 +28,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  Alert,
-  RefreshControl,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./Styles";
 
 type Nav = ReturnType<typeof useNavigation<any>>;
@@ -53,6 +46,7 @@ export default function ScanInScreen() {
   const [cardData, setCardData] = useState<CardListModel[]>([]);
   const [filter, setFilter] = useState<any>({});
   const [loading, setLoading] = useState<boolean>(false);
+  const [isload, setIsload] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -163,12 +157,16 @@ export default function ScanInScreen() {
   const submitSelected = useCallback(async () => {
     try {
       if (selectedIds.length === 0) return;
-      await ApproveDocumentsNAVService({ docNo: selectedIds.join("|") });
+      setIsload(true);
+      let _selectedIds = selectedIds;
+      setSelectedIds([]);
+      await ApproveDocumentsNAVService({ docNo: _selectedIds.join("|") });
       emitter.emit(getDataScanOut);
     } catch (err) {
       Alert.alert("เกิดข้อผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {
       setSelectedIds([]);
+      setIsload(false);
     }
   }, [selectedIds]);
 
@@ -230,9 +228,9 @@ export default function ScanInScreen() {
           <>
             <ScrollView
               contentContainerStyle={styles.content}
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-              }
+              // refreshControl={
+              //   <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              // }
             >
               <TouchableOpacity
                 onPress={handleSelectAll}
@@ -275,6 +273,7 @@ export default function ScanInScreen() {
             {/* Fixed bottom button */}
             <View style={{ padding: 16, marginBottom: 16 }}>
               <CustomButton
+                isload={isload}
                 label="ส่งเอกสาร"
                 disabled={selectedIds.length === 0}
                 onPress={submitSelected}

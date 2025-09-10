@@ -30,14 +30,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  Alert,
-  RefreshControl,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./Styles";
 
 type Nav = ReturnType<typeof useNavigation<any>>;
@@ -55,6 +48,7 @@ export default function TransferScreen() {
   const [filter, setFilter] = useState<any>({});
   const [cardData, setCardData] = useState<CardListModel[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [isload, setIsload] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -188,8 +182,12 @@ export default function TransferScreen() {
   const submitSelected = useCallback(async () => {
     try {
       if (selectedIds.length === 0) return;
+
+      setIsload(true);
+      let _selectedIds = selectedIds;
+      setSelectedIds([]);
       const profile = await getProfile();
-      for (const docNo of selectedIds) {
+      for (const docNo of _selectedIds) {
         const handle = uploadRefs.current[docNo];
         await handle?.uploadAllInOneRequests?.();
         let { data } = await cardListIStockBydocNoForTransactionHistoryService({
@@ -202,13 +200,14 @@ export default function TransferScreen() {
         }))[0];
         await transactionHistorySaveService(data);
       }
-      await SendToApproveDocuments({ docNo: selectedIds.join("|") });
+      await SendToApproveDocuments({ docNo: _selectedIds.join("|") });
       emitter.emit(getDataTransfer);
       emitter.emit(filterDataDashboard);
     } catch (err) {
       Alert.alert("เกิดข้อผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {
       setSelectedIds([]);
+      setIsload(false);
     }
   }, [selectedIds]);
 
@@ -272,9 +271,9 @@ export default function TransferScreen() {
           <>
             <ScrollView
               contentContainerStyle={styles.content}
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-              }
+              // refreshControl={
+              //   <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              // }
             >
               <TouchableOpacity
                 onPress={handleSelectAll}
@@ -316,6 +315,7 @@ export default function TransferScreen() {
 
             <View style={{ padding: 16, marginBottom: 16 }}>
               <CustomButton
+                isload={isload}
                 label="ส่งเอกสาร"
                 disabled={selectedIds.length === 0}
                 onPress={submitSelected}

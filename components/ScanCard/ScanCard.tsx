@@ -2,7 +2,13 @@
 import { theme } from "@/providers/Theme";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Divider } from "react-native-elements";
 import CustomButton from "../CustomButton";
 import UploadPicker from "../UploadPicker"; // ✅ import handle
@@ -128,20 +134,24 @@ const ScanCard = React.forwardRef<any, ScanCardProps>(
         <Text style={[styles.text, { marginTop: 8, marginLeft: 8 }]}>
           {date}
         </Text>
-        <UploadPicker
-          hideAddFile={hideAddFile}
-          ref={ref}
-          keyRef1={keyRef1}
-          keyRef2={keyRef2}
-          keyRef3={keyRef3}
-          remark={remark}
-          insideScrollView
-          fieldName="file"
-          allowsMultiple
-          onAllUploaded={(items) => {
-            // TODO: handle uploaded items
-          }}
-        />
+        <View style={{ maxHeight: 200 }}>
+          <ScrollView>
+            <UploadPicker
+              hideAddFile={hideAddFile}
+              ref={ref}
+              keyRef1={keyRef1}
+              keyRef2={keyRef2}
+              keyRef3={keyRef3}
+              remark={remark}
+              insideScrollView
+              fieldName="file"
+              allowsMultiple
+              onAllUploaded={(items) => {
+                // TODO: handle uploaded items
+              }}
+            />
+          </ScrollView>
+        </View>
         {isExpanded && (
           <View style={styles.cardContent}>
             <Divider orientation="horizontal" style={{ marginVertical: 10 }} />
