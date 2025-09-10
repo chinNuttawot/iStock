@@ -15,6 +15,7 @@ const theme = {
   green: "#398814",
   green2: "#00C524",
   secondary: "#0A7EA4",
+  secondary_2: "#f6f9faff",
   setFont: { fontFamily: "NotoSans-Regular", fontSize: 16 },
   setFont_Bold: { fontFamily: "NotoSans-Bold", fontSize: 16 },
 };

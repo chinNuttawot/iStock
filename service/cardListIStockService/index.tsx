@@ -3,10 +3,21 @@ import { StorageUtility } from "@/providers/storageUtility";
 import api from "../apiCore";
 import { getProfile } from "../profileService";
 
+export function cleanParams(obj: any) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([k, v]) => {
+      if (v === "" || v === null || v === undefined) return false;
+      if (v === "All") return false; // กรณีไม่อยากส่งค่า All
+      return true;
+    })
+  );
+}
+
 export const cardListIStockService = async (params: any) => {
   try {
     const token = await StorageUtility.get(authToken);
     const profile = await getProfile();
+    params = cleanParams(params);
     const response = await api.get(`api/documents`, {
       params: {
         ...params,

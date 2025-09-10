@@ -10,7 +10,7 @@ const color = {
   textMuted: t.textGray ?? "#6B7280",
   primary: t.mainApp ?? "#2563EB",
   border: "rgba(255,255,255,0.2)",
-  surface: "rgba(255,255,255,0.9)", // โปร่งใสให้เห็น bg
+  surface: "rgba(255, 255, 255, 1)", // โปร่งใสให้เห็น bg
 };
 
 const radius = { xl: 22 };
@@ -31,6 +31,7 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 18,
+    backgroundColor: theme.secondary_2
   },
   groupContainer: {
     marginBottom: 28,
