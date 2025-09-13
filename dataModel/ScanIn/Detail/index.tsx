@@ -12,4 +12,5 @@ export type ProductItem = {
   details: ProductDetail[];
   picURL?: string;
   isDelete: boolean;
+  lineNo?: number;
 };

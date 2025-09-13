@@ -3,14 +3,11 @@ import { styles } from "@/screens/ScanIn /Styles";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { Fragment } from "react";
+import { StatusBar, Text, TouchableOpacity, View } from "react-native";
 import {
   SafeAreaView,
-  StatusBar,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 const Header = (props: any) => {
   const { hideGoback = true, IconComponent = [], title, onGoBack } = props;
@@ -49,7 +46,6 @@ const Header = (props: any) => {
       <SafeAreaView
         style={{
           backgroundColor: props.backgroundColor || theme.mainApp,
-          paddingTop: insets.top,
         }}
       >
         <StatusBar

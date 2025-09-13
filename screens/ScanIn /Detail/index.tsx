@@ -1,4 +1,4 @@
-import { emitter, filterScanInDetail } from "@/common/emitter";
+import { emitter, filterScanInDetail, getDataScanOut } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import DetailCard from "@/components/DetailCard";
 import Header from "@/components/Header";
@@ -7,7 +7,12 @@ import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
 import { keyboardTypeNumber } from "@/screens/Register/register";
-import { cardDetailListService, saveDocumentsNAVService } from "@/service";
+import {
+  binCodesByLocationService,
+  cardDetailListService,
+  Profile,
+  saveDocumentsNAVService,
+} from "@/service";
 import { CardListModel } from "@/service/myInterface";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { memo, useCallback, useEffect, useState } from "react";
@@ -21,6 +26,7 @@ type ProductRow = {
   productCode: string;
   quantity: string; // เก็บเป็น string ตามฟอร์ม
   serialNo: string;
+  lineNo: number;
 };
 
 export default function ScanInDetailScreen() {
@@ -29,6 +35,7 @@ export default function ScanInDetailScreen() {
     model: string;
     qtyReceived: number;
     qtyShipped: number;
+    lineNo: number;
   } | null>(null);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<any>({});
@@ -98,6 +105,7 @@ export default function ScanInDetailScreen() {
       model: item.model,
       qtyReceived: item.qtyReceived,
       qtyShipped: item.qtyShipped,
+      lineNo: item.lineNo,
     });
     setIsOpen(true);
   };
@@ -117,11 +125,16 @@ export default function ScanInDetailScreen() {
       qtyShipped,
       docNo: myDocId,
       model: myModel,
+      lineNo,
     } = props.itemDetail;
 
     useEffect(() => {
+      scanInDetailForm.setValue(
+        `${myDocId}_lineNo_${myModel}_${lineNo}`,
+        lineNo
+      );
       const currentQty = scanInDetailForm.getValues(
-        `${myDocId}_qty_${myModel}`
+        `${myDocId}_qty_${myModel}_${lineNo}`
       );
 
       if (currentQty) {
@@ -133,7 +146,7 @@ export default function ScanInDetailScreen() {
 
     useEffect(() => {
       const currentserialNo = scanInDetailForm.getValues(
-        `${myDocId}_serialNo_${myModel}`
+        `${myDocId}_serialNo_${myModel}_${lineNo}`
       );
 
       if (currentserialNo) {
@@ -181,9 +194,12 @@ export default function ScanInDetailScreen() {
             label="บันทึก"
             disabled={!qty}
             onPress={() => {
-              scanInDetailForm.setValue(`${myDocId}_qty_${myModel}`, qty);
               scanInDetailForm.setValue(
-                `${myDocId}_serialNo_${myModel}`,
+                `${myDocId}_qty_${myModel}_${lineNo}`,
+                qty
+              );
+              scanInDetailForm.setValue(
+                `${myDocId}_serialNo_${myModel}_${lineNo}`,
                 serialNo
               );
               props.onChange && props.onChange(false);
@@ -198,32 +214,79 @@ export default function ScanInDetailScreen() {
     try {
       setIsload(true);
       const rawValues = scanInDetailForm.getValues() as ScanFormValues;
-      const keyPattern = /^([A-Za-z0-9]+)_(qty|serialNo)_[A-Za-z0-9]+$/;
+
+      // ตัวอย่าง key:
+      // DOC123_qty_NAUTILUS_1000
+      // DOC123_serialNo_NAUTILUS_1000
+      // DOC123_lineNo_NAUTILUS_1000
+      const keyPattern =
+        /^(?<productCode>[A-Za-z0-9]+)_(?<field>qty|serialNo|lineNo)_(?<model>[A-Za-z0-9]+)_(?<lineNo>\d+)$/;
+
+      type ProductRow = {
+        productCode: string;
+        model: string; // ถ้า backend ยังไม่ต้องใช้ ลบ property นี้ออกได้
+        quantity: string;
+        serialNo: string;
+        lineNo: number;
+      };
+
       const grouped: Record<string, ProductRow> = Object.entries(
         rawValues
       ).reduce((acc, [key, value]) => {
-        const m = key.match(keyPattern);
-        if (!m) return acc;
+        const m = keyPattern.exec(key);
+        if (!m || !m.groups) return acc;
 
-        const [, productCode, field] = m;
+        const { productCode, field, model, lineNo } = m.groups as {
+          productCode: string;
+          field: "qty" | "serialNo" | "lineNo";
+          model: string;
+          lineNo: string; // มาจาก suffix ตามที่กำหนด
+        };
+
+        // ใช้ (productCode + model + lineNo จาก key) เป็นตัวรวม
+        const rowKey = `${productCode}_${model}_${lineNo}`;
         const val = String(value ?? "");
 
-        if (!acc[productCode]) {
-          acc[productCode] = { productCode, quantity: "", serialNo: "" };
+        if (!acc[rowKey]) {
+          acc[rowKey] = {
+            productCode,
+            model,
+            quantity: "",
+            serialNo: "",
+            lineNo: parseInt(lineNo, 10) || 0, // ตั้งต้นจากค่าใน key
+          };
         }
 
-        if (field === "qty") acc[productCode].quantity = val;
-        else if (field === "serialNo") acc[productCode].serialNo = val;
+        if (field === "qty") acc[rowKey].quantity = val;
+        else if (field === "serialNo") acc[rowKey].serialNo = val;
+        else if (field === "lineNo") {
+          // ถ้ามี field lineNo ในฟอร์ม ก็ยอมให้ override จากค่าที่ผู้ใช้กรอก
+          const n = parseInt(val, 10);
+          acc[rowKey].lineNo = Number.isFinite(n) ? n : acc[rowKey].lineNo;
+        }
 
         return acc;
       }, {} as Record<string, ProductRow>);
 
+      console.log("grouped ===>", grouped);
+
       const products: ProductRow[] = Object.values(grouped);
+      const profile = await Profile();
+
+      const { data: dataBinCodesByLocationService } =
+        await binCodesByLocationService({
+          locationCodeFrom: profile.branchCode,
+        });
       const payload = {
         docNo,
         products,
+        username: profile.userName,
+        branchCode: profile.branchCode,
+        binCode: dataBinCodesByLocationService[0].value ?? "",
       };
       await saveDocumentsNAVService(payload);
+      emitter.emit(getDataScanOut);
+      navigation.goBack();
     } catch (err) {
       Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {

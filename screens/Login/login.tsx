@@ -18,7 +18,6 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Image,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -27,6 +26,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // (option) polyfill เผื่อบาง env ไม่มี Buffer
 // @ts-ignore
