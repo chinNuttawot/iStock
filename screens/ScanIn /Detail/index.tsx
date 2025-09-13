@@ -268,8 +268,6 @@ export default function ScanInDetailScreen() {
         return acc;
       }, {} as Record<string, ProductRow>);
 
-      console.log("grouped ===>", grouped);
-
       const products: ProductRow[] = Object.values(grouped);
       const profile = await Profile();
 
