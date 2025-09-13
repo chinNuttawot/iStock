@@ -46,6 +46,7 @@ export default () => {
       ],
       "expo-font",
       "expo-secure-store",
+      "expo-web-browser", // 👈 เพิ่มตรงนี้
     ],
     experiments: {
       typedRoutes: true,
