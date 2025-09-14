@@ -12,6 +12,7 @@ import {
   cardDetailListService,
   Profile,
   saveDocumentsNAVService,
+  transactionHistorySaveService,
 } from "@/service";
 import { CardListModel } from "@/service/myInterface";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -282,7 +283,8 @@ export default function ScanInDetailScreen() {
         branchCode: profile.branchCode,
         binCode: dataBinCodesByLocationService[0].value ?? "",
       };
-      await saveDocumentsNAVService(payload);
+      const { data } = await saveDocumentsNAVService(payload);
+      await transactionHistorySaveService(data);
       emitter.emit(getDataScanOut);
       navigation.goBack();
     } catch (err) {

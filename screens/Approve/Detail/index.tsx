@@ -7,6 +7,7 @@ import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
 import {
+  ApproveDocumentsNAVService,
   ApproveDocumentsService,
   cardDetailIStockListService,
   cardListIStockBydocNoForTransactionHistoryService,
@@ -157,6 +158,7 @@ export default function ApproveDetailScreen() {
       }));
       await transactionHistorySaveService(data);
       await ApproveDocumentsService({ docNo, status });
+      await ApproveDocumentsNAVService({ docNo, status });
       navigation.goBack();
     } catch (err) {
       Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");

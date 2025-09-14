@@ -163,9 +163,9 @@ export default function CreateDocumentScreen() {
         products,
       };
       await createDocumentSaveService(param);
-      navigation.goBack();
       emitter.emit(getDataScanOut, menuId);
       emitter.emit(filterDataDashboard);
+      navigation.goBack();
     } catch (err) {
       Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {

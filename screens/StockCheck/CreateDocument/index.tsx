@@ -162,9 +162,9 @@ export default function CreateDocumentStockCheckScreen() {
         products,
       };
       await createDocumentSaveService(param);
-      navigation.goBack();
       emitter.emit(getDataStockCheck, menuId);
       emitter.emit(filterDataDashboard);
+      navigation.goBack();
     } catch (err) {
       Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {

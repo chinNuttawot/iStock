@@ -2,10 +2,17 @@ import { Assets } from "@/assets/Assets";
 import { useAuth } from "@/AuthContext";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
-import { authToken } from "@/providers/keyStorageUtilliy";
+import {
+  authToken,
+  rememberMeKey,
+  savedPasswordKey,
+  savedUsernameKey,
+} from "@/providers/keyStorageUtilliy";
 import { StorageUtility } from "@/providers/storageUtility";
 import { theme } from "@/providers/Theme";
+import { deleteAccountService, delProfile } from "@/service";
 import { Ionicons } from "@expo/vector-icons";
+import * as SecureStore from "expo-secure-store";
 import React, { useState } from "react";
 import { Image, ScrollView, Text, TextInput, View } from "react-native";
 import { stylesDeleteAccountScreen } from "./Styles";
@@ -16,11 +23,21 @@ export default function DeleteAccountScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleDelete = async () => {
-    if (password && password === confirmPassword) {
-      await StorageUtility.remove(authToken);
-      logout(); // ✅ ออกจากระบบผ่าน Context
-    } else {
-      alert("Password does not match");
+    try {
+      if (password && password === confirmPassword) {
+        await deleteAccountService().then(async () => {
+          await StorageUtility.remove(authToken);
+          await SecureStore.deleteItemAsync(savedPasswordKey);
+          await StorageUtility.remove(rememberMeKey);
+          await StorageUtility.remove(savedUsernameKey);
+          await delProfile();
+          logout();
+        });
+      } else {
+        alert("Password does not match");
+      }
+    } catch (err) {
+      // Alert.alert("เกิดข้อผิดพลาด", "ลองใหม่อีกครั้ง");
     }
   };
 

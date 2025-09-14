@@ -274,7 +274,7 @@ export default function ScanInScreen() {
             <View style={{ padding: 16, marginBottom: 16 }}>
               <CustomButton
                 isload={isload}
-                label="ส่งเอกสาร"
+                label="ส่งรูปและไฟล์"
                 disabled={selectedIds.length === 0}
                 onPress={submitSelected}
               />

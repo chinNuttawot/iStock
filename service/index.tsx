@@ -13,6 +13,7 @@ import { cardListService } from "./cardListService";
 import { createDocumentSaveService } from "./createDocumentSaveService";
 import { createDocumentService } from "./createDocumentService";
 import { DashboardService } from "./DashboardService";
+import { deleteAccountService } from "./deleteAccountService";
 import { deleteDocumentProducts } from "./deleteDocumentProducts";
 import { deleteFileService } from "./deleteFileService";
 import { fileService } from "./fileService";
@@ -42,6 +43,7 @@ export {
     createDocumentSaveService,
     createDocumentService,
     DashboardService,
+    deleteAccountService,
     deleteDocumentProducts,
     deleteFileService,
     delProfile,

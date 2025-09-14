@@ -16,6 +16,7 @@ import { UploadPickerHandle } from "@/components/UploadPicker";
 import ModalComponent from "@/providers/Modal";
 import { theme } from "@/providers/Theme";
 import {
+  ApproveDocumentsNAVService,
   ApproveDocumentsService,
   cardListIStockBydocNoForTransactionHistoryService,
   cardListIStockService,
@@ -243,7 +244,13 @@ export default function ApproveScreen() {
         }))[0];
         await transactionHistorySaveService(data);
       }
-      await ApproveDocumentsService({ docNo: selectedIds.join("|"), status });
+      Promise.all([
+        ApproveDocumentsService({ docNo: selectedIds.join("|"), status }),
+        ApproveDocumentsNAVService({
+          docNo: selectedIds.join("|"),
+          status,
+        }),
+      ]);
       setSelectedIds([]);
     } catch (err) {
       Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");

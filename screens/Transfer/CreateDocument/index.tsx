@@ -222,9 +222,9 @@ export default function CreateDocumentTransferScreen() {
         products,
       };
       await createDocumentSaveService(param);
-      navigation.goBack();
       emitter.emit(getDataTransfer, menuId);
       emitter.emit(filterDataDashboard);
+      navigation.goBack();
     } catch (err) {
       Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {

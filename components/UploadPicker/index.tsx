@@ -16,7 +16,7 @@ import {
 } from "@/service"; // หรือ "@/service/apiCore/uploadService"
 import { MaterialIcons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import React, {
@@ -314,8 +314,8 @@ function UploadPicker(props: Props, ref: React.Ref<UploadPickerHandle>) {
 
   // ---------- helpers ----------
   const getFileSize = useCallback(async (uri: string) => {
-    const info = await FileSystem.getInfoAsync(uri, { size: true });
-    return Number(info.size || 0);
+    const info = await FileSystem.getInfoAsync(uri, { size: true } as any);
+    return Number((info as any).size || 0);
   }, []);
 
   // ใช้สำหรับ "อัปโหลด": ไม่แปลง http/https (ให้เป็น URL ไปตามเดิม)
@@ -409,7 +409,7 @@ function UploadPicker(props: Props, ref: React.Ref<UploadPickerHandle>) {
     const selectionLimit = allowsMultiple ? Math.max(1, remainingSlots) : 1;
 
     const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       allowsMultipleSelection: allowsMultiple,
       quality: 0.9,
       selectionLimit, // อาจถูกเมินบนบางแพลตฟอร์ม → เรามี clamp ซ้ำชั้นล่าง

@@ -70,6 +70,14 @@ export default function ScanOutScreen() {
     return () => emitter.off(filterScanOut, onFilterChanged);
   }, []);
 
+  useEffect(() => {
+    const onFilterChanged = (data: any) => {
+      fetchData();
+    };
+    emitter.on(getDataScanOut, onFilterChanged);
+    return () => emitter.off(getDataScanOut, onFilterChanged);
+  }, []);
+
   // โหลดข้อมูล
   const fetchData = useCallback(
     async (params = {}) => {
