@@ -11,7 +11,12 @@ export type ProfileApi = {
   userName: string;
   fullName: string;
   branchCode: string;
+  branch?: string;
+  phoneNumber?: string;
+  lineId?: string;
+  email?: string;
   isApprover: boolean;
+  department?: string;
 };
 
 export type ProfileResponse = {

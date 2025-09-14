@@ -17,12 +17,14 @@ import { deleteAccountService } from "./deleteAccountService";
 import { deleteDocumentProducts } from "./deleteDocumentProducts";
 import { deleteFileService } from "./deleteFileService";
 import { fileService } from "./fileService";
+import { ForgotPasswordService } from "./ForgotPasswordService";
 import { itemProductWSService } from "./itemProductWSService";
 import { itemVariantWSService } from "./itemVariantWSService";
 import { locationService } from "./locationService";
 import { loginService } from "./loginService";
 import { menuService } from "./menuService";
 import { delProfile, getProfile, Profile } from "./profileService";
+import { RegisterService } from "./RegisterService";
 import { saveDocumentsNAVService } from "./saveDocumentsNAVService";
 import { SendToApproveDocuments } from "./SendToApproveDocuments";
 import { transactionHistorySaveService } from "./transactionHistorySaveService";
@@ -48,6 +50,7 @@ export {
     deleteFileService,
     delProfile,
     fileService,
+    ForgotPasswordService,
     getProfile,
     itemProductWSService,
     itemVariantWSService,
@@ -55,6 +58,7 @@ export {
     loginService,
     menuService,
     Profile,
+    RegisterService,
     saveDocumentsNAVService,
     SendToApproveDocuments,
     transactionHistorySaveService,

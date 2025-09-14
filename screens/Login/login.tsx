@@ -16,6 +16,7 @@ import { Buffer } from "buffer";
 import * as SecureStore from "expo-secure-store";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -82,8 +83,7 @@ export default function LoginScreen() {
       await Profile();
       login();
     } catch (error) {
-      // TODO: แสดง error ตามต้องการ (toast/snackbar)
-      console.log("login error:", error);
+      Alert.alert("เกิดข้อผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {
       setIsload(false);
     }

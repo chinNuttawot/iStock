@@ -32,6 +32,11 @@ export interface ProfileApiModel {
   fullName?: string;
   branchCode?: string;
   branchCodeFilter?: string;
+  department?: string;
+  branch?: string;
+  email?: string;
+  lineId?: string;
+  phoneNumber?: string;
   isApprover?: boolean;
 }
 

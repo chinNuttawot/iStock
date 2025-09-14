@@ -11,15 +11,14 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  View
+  View,
 } from "react-native";
 
 export default function ForgotPasswordScreen() {
   const [username, setUsername] = useState("");
   const navigation = useNavigation<any>();
   const handleSend = () => {
-    console.log("📧 ส่งลืมรหัสผ่านให้:", username);
-    navigation.navigate("ConfirmForgotPassword");
+    navigation.navigate("ConfirmForgotPassword", { username });
   };
 
   return (

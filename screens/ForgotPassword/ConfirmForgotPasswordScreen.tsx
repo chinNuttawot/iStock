@@ -2,33 +2,41 @@ import { Assets } from "@/assets/Assets";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import { theme } from "@/providers/Theme";
+import { ForgotPasswordService } from "@/service";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useState } from "react";
 import {
+  Alert,
   Image,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  View
+  View,
 } from "react-native";
 
 export default function ConfirmForgotPasswordScreen() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const navigation = useNavigation<any>();
-
-  const handleConfirm = () => {
-    if (password !== confirm) {
-      alert("Password doesn't match");
-      return;
+  const route = useRoute();
+  const { username } = route.params as { username: string };
+  const handleConfirm = async () => {
+    try {
+      if (password !== confirm) {
+        alert("Password doesn't match");
+        return;
+      }
+      const newPassword = Buffer.from(password, "utf8").toString("base64");
+      await ForgotPasswordService({ username, newPassword });
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
+    } catch (err) {
+      Alert.alert("เกิดข้อผิดพลาด", "ลองใหม่อีกครั้ง");
     }
-    console.log("✅ New password set:", password);
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "Login" }],
-    });
   };
 
   return (

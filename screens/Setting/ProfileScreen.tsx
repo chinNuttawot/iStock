@@ -53,15 +53,15 @@ export default function ProfileScreen() {
                 size={20}
               />
             }
-            label={profile?.branchCode as string}
+            label={profile?.branchCode || (profile?.department as string)}
           />
           <FormItem
             icon={<Entypo name="location" size={20} />}
-            label="Branch"
+            label={profile?.branch || "Branch"}
           />
           <FormItem
             icon={<Ionicons name="mail-outline" size={20} />}
-            label="Email"
+            label={profile?.email || "Email"}
           />
           <FormItem
             icon={
@@ -71,11 +71,11 @@ export default function ProfileScreen() {
                 resizeMode="contain"
               />
             }
-            label="ID Line"
+            label={profile?.lineId || "ID Line"}
           />
           <FormItem
             icon={<Feather name="phone" size={20} />}
-            label="Phone Number"
+            label={profile?.phoneNumber || "Phone Number"}
           />
         </ScrollView>
       </View>
