@@ -1,4 +1,4 @@
-import { emitter, filterScanInDetail, getDataScanOut } from "@/common/emitter";
+import { emitter, filterScanInDetail, getDataScanIn } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import DetailCard from "@/components/DetailCard";
 import Header from "@/components/Header";
@@ -285,7 +285,7 @@ export default function ScanInDetailScreen() {
       };
       const { data } = await saveDocumentsNAVService(payload);
       await transactionHistorySaveService(data);
-      emitter.emit(getDataScanOut);
+      emitter.emit(getDataScanIn);
       navigation.goBack();
     } catch (err) {
       Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
