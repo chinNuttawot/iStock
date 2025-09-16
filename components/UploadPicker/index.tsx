@@ -1012,9 +1012,9 @@ const styles = StyleSheet.create({
     height: 56 + 24,
   },
   previewCounter: {
+    ...theme.setFont,
     width: 300,
     color: "#fff",
-    fontWeight: "700",
   },
   previewClose: {
     width: 45,

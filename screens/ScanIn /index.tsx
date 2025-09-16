@@ -1,9 +1,5 @@
 // screens/ScanInScreen.tsx
-import {
-  emitter,
-  filterScanIn,
-  getDataScanIn
-} from "@/common/emitter";
+import { emitter, filterScanIn, getDataScanIn } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
 import ScanCard, { StatusType } from "@/components/ScanCard/ScanCard";
@@ -12,10 +8,7 @@ import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
 import type { UploadPickerHandle } from "@/components/UploadPicker"; // <<— ใช้ชนิด handle จาก UploadPicker
 import { theme } from "@/providers/Theme";
-import {
-  cardListService,
-  getProfile
-} from "@/service";
+import { cardListService, getProfile } from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -61,45 +54,63 @@ export default function ScanInScreen() {
     uploadRefs.current = {};
   }, [menuId]);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const profile = await getProfile();
-      const menuIdNum = Number(menuId);
-      if (Number.isNaN(menuIdNum)) throw new Error("menuId ไม่ถูกต้อง");
+  const fetchData = useCallback(
+    async (params = {}) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const profile = await getProfile();
+        const menuIdNum = Number(menuId);
+        if (Number.isNaN(menuIdNum)) throw new Error("menuId ไม่ถูกต้อง");
 
-      const { data } = await cardListService({
-        menuId: menuIdNum,
-        branchCode: profile?.branchCode as string,
-      });
-      setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
-    } catch (err: any) {
-      setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
-      setCardData([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [menuId]);
+        const { data } = await cardListService({
+          ...params,
+          menuId: menuIdNum,
+          branchCode: profile?.branchCode as string,
+        });
+        setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
+      } catch (err: any) {
+        setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
+        setCardData([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [menuId]
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await fetchData();
+      if (filter.isFilter) {
+        if (filter.status === "All") {
+          const { status, ...newData } = filter;
+          fetchData(newData);
+        }
+        fetchData(filter);
+      } else {
+        fetchData();
+      }
     } finally {
       setRefreshing(false);
     }
   }, [fetchData]);
 
-  // รับ filter จากหน้าฟิลเตอร์
   useEffect(() => {
     const onFilterChanged = (data: any) => {
+      if (data.isFilter) {
+        if (data.status === "All") {
+          const { status, ...newData } = data;
+          fetchData(newData);
+        }
+        fetchData(data);
+      } else {
+        fetchData();
+      }
       setFilter(data);
     };
     emitter.on(filterScanIn, onFilterChanged);
-    return () => {
-      emitter.off(filterScanIn, onFilterChanged);
-    };
+    return () => emitter.off(filterScanIn, onFilterChanged);
   }, []);
 
   useEffect(() => {

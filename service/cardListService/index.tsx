@@ -1,12 +1,13 @@
 import { authToken } from "@/providers/keyStorageUtilliy";
 import { StorageUtility } from "@/providers/storageUtility";
+import moment from "moment";
 import api from "../apiCore";
 import { cleanParams } from "../cardListIStockService";
 import { getProfile } from "../profileService";
-
 interface paramsModel {
   menuId: number;
   branchCode: string;
+  stockOutDate?: string;
 }
 
 export const cardListService = async (params: paramsModel) => {
@@ -15,6 +16,17 @@ export const cardListService = async (params: paramsModel) => {
     const profile = await getProfile();
     let { menuId, branchCode, ...newParma } = params;
     newParma = cleanParams(newParma);
+    if (newParma?.stockOutDate) {
+      newParma = {
+        ...newParma,
+        stockOutDate: moment(newParma.stockOutDate, "DD/MM/YYYY").format(
+          "YYYY-MM-DD"
+        ),
+      };
+    }
+
+    console.log("newParma ===>", newParma);
+    
     const response = await api.get(
       `api/CardList?menuId=${menuId}&branchCode=${branchCode}`,
       {

@@ -268,7 +268,6 @@ const styles = StyleSheet.create({
     ...theme.setFont,
     color: theme.mainApp,
     fontSize: 14,
-    fontWeight: "bold",
     textAlign: "right",
   },
   registerText: {

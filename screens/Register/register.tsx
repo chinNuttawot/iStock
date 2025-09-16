@@ -462,7 +462,6 @@ const modalStyles = StyleSheet.create({
   sheetTitle: {
     ...theme.setFont,
     fontSize: 16,
-    fontWeight: "600",
   },
   row: {
     paddingHorizontal: 16,

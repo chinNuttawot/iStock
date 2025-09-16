@@ -41,7 +41,6 @@ const styles = StyleSheet.create({
     ...theme.setFont,
     color: theme.white,
     fontSize: 12,
-    fontWeight: "bold",
   },
 });
 

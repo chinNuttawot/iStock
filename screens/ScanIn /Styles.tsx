@@ -2,6 +2,7 @@ import { theme } from "@/providers/Theme";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
+  BG_Home: { width: 300, height: 200, alignSelf: "center", marginBottom: 16 },
   headerBar: {
     flexDirection: "row",
     alignItems: "center",

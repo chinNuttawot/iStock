@@ -1,4 +1,3 @@
-// ./Styles.ts
 import { theme as appTheme, theme } from "@/providers/Theme";
 import { Dimensions, Platform, StyleSheet } from "react-native";
 
@@ -9,37 +8,80 @@ const color = {
   text: t.text ?? "#111827",
   textMuted: t.textGray ?? "#6B7280",
   primary: t.mainApp ?? "#2563EB",
-  border: "rgba(255,255,255,0.2)",
-  surface: "rgba(255, 255, 255, 1)", // โปร่งใสให้เห็น bg
+  border: "rgba(0,0,0,0.06)",
+  surface: "#FFFFFF",
+  bannerBg: "#F3F4F6",
 };
 
-const radius = { xl: 22 };
+const radius = { xl: 22, banner: 16 };
 const gap = 14;
-const cardWidth = (W - 36 - gap) / 2;
+const side = 18;
+
+/** ใช้ 2 คอลัมน์ให้บาลานซ์กับจำนวนสเตตัส */
+const columns = 2;
+const cardWidth = (W - side * 2 - gap * (columns - 1)) / columns;
 
 const shadow = Platform.select({
   ios: {
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 12,
+    shadowOpacity: 0.12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 16,
   },
-  android: { elevation: 5 },
+  android: { elevation: 6 },
 });
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 18,
-    backgroundColor: theme.secondary_2
+    paddingHorizontal: side,
+    backgroundColor: theme.secondary_2,
   },
+
+  /** -------- HERO (พื้นหลังรูปด้านบน) -------- */
+  heroWrap: {
+    width: "100%",
+    aspectRatio: 16 / 9,
+    borderRadius: radius.banner,
+    overflow: "hidden",
+    backgroundColor: color.bannerBg,
+    ...shadow,
+    marginBottom: 18,
+  },
+  heroImage: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  heroImageRadius: {
+    borderRadius: radius.banner,
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.18)",
+  },
+  heroContent: {
+    padding: 14,
+  },
+  heroTitle: {
+    ...theme.setFont,
+    color: "#FFFFFF",
+    fontSize: 18,
+  },
+  heroSubtitle: {
+    ...theme.setFont,
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 13,
+    marginTop: 2,
+  },
+
+  /** -------- กลุ่มการ์ด -------- */
   groupContainer: {
     marginBottom: 28,
   },
   groupTitle: {
-     ...theme.setFont,
+    ...theme.setFont,
     fontSize: 18,
-    fontWeight: "700",
+    // fontWeight: "700",
     color: color.text,
     marginBottom: 12,
   },
@@ -60,26 +102,22 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
     ...shadow,
   },
-  iconPill: {
-    alignSelf: "flex-start",
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    backgroundColor: "rgba(0,0,0,0.06)",
-    marginBottom: 6,
+  /** กรณีการ์ดสุดท้ายแล้วจำนวนทั้งหมดเป็นคี่ -> จัดกลางแถว */
+  cardSingleCenter: {
+    alignSelf: "center",
   },
   cardCount: {
     ...theme.setFont,
     fontSize: 28,
-    fontWeight: "800",
     color: color.text,
   },
   cardText: {
     ...theme.setFont,
     fontSize: 13,
-    fontWeight: "600",
     color: color.textMuted,
   },
+
+  /** -------- misc -------- */
   spinnerWrap: {
     flex: 1,
     alignItems: "center",
@@ -88,5 +126,6 @@ export const styles = StyleSheet.create({
   scrollPad: {
     flexGrow: 1,
     paddingTop: 16,
+    paddingBottom: 24,
   },
 });

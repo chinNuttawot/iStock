@@ -19,7 +19,6 @@ export const styles = StyleSheet.create({
     ...theme.setFont,
     color: theme.white,
     fontSize: 18,
-    fontWeight: "bold",
   },
   headerSubTitle: { ...theme.setFont, color: theme.white, fontSize: 14 },
   menuContainer: { ...theme.setFont, paddingHorizontal: 16, marginTop: 24 },
@@ -81,6 +80,5 @@ export const stylesDeleteAccountScreen = StyleSheet.create({
     color: theme.white,
     textAlign: "center",
     fontSize: 16,
-    fontWeight: "bold",
   },
 });
