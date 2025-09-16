@@ -2,8 +2,7 @@
 import {
   emitter,
   filterScanIn,
-  getDataScanIn,
-  getDataScanOut,
+  getDataScanIn
 } from "@/common/emitter";
 import CustomButton from "@/components/CustomButton";
 import Header from "@/components/Header";
@@ -14,9 +13,8 @@ import LoadingView from "@/components/State/LoadingView";
 import type { UploadPickerHandle } from "@/components/UploadPicker"; // <<— ใช้ชนิด handle จาก UploadPicker
 import { theme } from "@/providers/Theme";
 import {
-  ApproveDocumentsNAVService,
   cardListService,
-  getProfile,
+  getProfile
 } from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -159,9 +157,11 @@ export default function ScanInScreen() {
       if (selectedIds.length === 0) return;
       setIsload(true);
       let _selectedIds = selectedIds;
-      setSelectedIds([]);
-      await ApproveDocumentsNAVService({ docNo: _selectedIds.join("|") });
-      emitter.emit(getDataScanOut);
+      for (const docNo of _selectedIds) {
+        const handle = uploadRefs.current[docNo];
+        await handle?.uploadAllInOneRequests?.();
+      }
+      emitter.emit(getDataScanIn);
     } catch (err) {
       Alert.alert("เกิดข้อผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {
