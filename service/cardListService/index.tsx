@@ -24,9 +24,6 @@ export const cardListService = async (params: paramsModel) => {
         ),
       };
     }
-
-    console.log("newParma ===>", newParma);
-    
     const response = await api.get(
       `api/CardList?menuId=${menuId}&branchCode=${branchCode}`,
       {
