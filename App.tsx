@@ -41,6 +41,50 @@ import { useLoadFonts } from "./useLoadFonts";
 
 const RootStack = createNativeStackNavigator<any>();
 const Tab = createBottomTabNavigator<any>();
+
+// === Force Gregorian year for Thai locale (with guard & wider coverage) ===
+if (!(Date as any).__patchedGregorian) {
+  const fixLocale = (loc?: string) =>
+    loc && /^th(-|$)/i.test(loc)
+      ? "th-TH-u-ca-gregory"
+      : loc ?? "th-TH-u-ca-gregory";
+
+  const wrap = <T extends (...args: any[]) => any>(fn: T) =>
+    function (
+      this: Date,
+      locale?: string | string[],
+      options?: Intl.DateTimeFormatOptions
+    ) {
+      const patchOne = (l: string) => fixLocale(l);
+      const patched = Array.isArray(locale)
+        ? locale.map(patchOne)
+        : fixLocale(locale as any);
+      return fn.call(this, patched as any, options);
+    } as T;
+
+  const proto = Date.prototype;
+  proto.toLocaleDateString = wrap(proto.toLocaleDateString);
+  proto.toLocaleString = wrap(proto.toLocaleString);
+  proto.toLocaleTimeString = wrap(proto.toLocaleTimeString);
+
+  (Date as any).__patchedGregorian = true;
+}
+// ==========================================================================
+
+/** Optional helper: แปลง "DD/MM/พ.ศ." → Date(ค.ศ.) */
+export function parseThaiDateToJSDate(input: string): Date | null {
+  // รองรับ "dd/mm/yyyy" ที่ y อาจเป็น พ.ศ. (>= 2400) หรือ ค.ศ.
+  const m = input?.trim().match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (!m) return null;
+  let [, dStr, mStr, yStr] = m;
+  const d = parseInt(dStr, 10);
+  const mo = parseInt(mStr, 10);
+  let y = parseInt(yStr, 10);
+  if (y >= 2400) y -= 543; // พ.ศ. → ค.ศ.
+  const dt = new Date(y, mo - 1, d);
+  return isNaN(dt.getTime()) ? null : dt;
+}
+
 SplashScreen.preventAutoHideAsync();
 
 function Tabs() {
