@@ -34,6 +34,7 @@ export default function ConfirmForgotPasswordScreen() {
         index: 0,
         routes: [{ name: "Login" }],
       });
+      Alert.alert("แจ้งเตือน", "เปลี่ยนรหัสผ่านสำเร็จ");
     } catch (err) {
       Alert.alert("เกิดข้อผิดพลาด", "ลองใหม่อีกครั้ง");
     }

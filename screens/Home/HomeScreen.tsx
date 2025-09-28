@@ -108,18 +108,9 @@ export default function HomeScreen() {
                 <View style={styles.cardRow}>
                   {group.items.map((item, idx) => {
                     const { name, color } = getStatusIcon(item.status);
-                    const isLastOdd =
-                      group.items.length % 2 === 1 &&
-                      idx === group.items.length - 1;
 
                     return (
-                      <View
-                        key={idx}
-                        style={[
-                          styles.card,
-                          isLastOdd && styles.cardSingleCenter,
-                        ]}
-                      >
+                      <View key={idx} style={[styles.card]}>
                         <Ionicons name={name as any} size={24} color={color} />
                         <Text style={styles.cardCount}>{item.count}</Text>
                         <Text style={styles.cardText}>{item.status}</Text>

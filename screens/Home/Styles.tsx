@@ -18,8 +18,8 @@ const gap = 14;
 const side = 18;
 
 /** ใช้ 2 คอลัมน์ให้บาลานซ์กับจำนวนสเตตัส */
-const columns = 2;
-const cardWidth = (W - side * 2 - gap * (columns - 1)) / columns;
+const columns = 3;
+const cardWidth = (W - side * 3 - gap * (columns - 1)) / columns;
 
 const shadow = Platform.select({
   ios: {
