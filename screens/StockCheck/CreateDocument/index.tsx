@@ -18,7 +18,7 @@ import {
   filterDataDashboard,
   getDataStockCheck,
 } from "@/common/emitter";
-import { formatThaiDate } from "@/screens/ScanOut/CreateDocument";
+import { formatEngDate } from "@/screens/ScanOut/CreateDocument";
 import {
   binCodesByLocationService,
   createDocumentSaveService,
@@ -43,7 +43,7 @@ import { RenderGoBackItem } from "../Detail";
 export default function CreateDocumentStockCheckScreen() {
   const navigation = useNavigation<any>();
   const [docNo, setDocumentNo] = useState("");
-  const [stockOutDate, setStockOutDate] = useState(formatThaiDate(new Date()));
+  const [stockOutDate, setStockOutDate] = useState(formatEngDate(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [remark, setRemark] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);

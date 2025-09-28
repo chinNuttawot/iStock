@@ -14,7 +14,7 @@ import ModalComponent from "@/providers/Modal";
 import { AddItemProduct } from "@/providers/Modal/AddItemProduct/indx";
 import { Modeloption } from "@/providers/Modal/Model";
 import { theme } from "@/providers/Theme";
-import { formatThaiDate } from "@/screens/ScanOut/CreateDocument";
+import { formatEngDate } from "@/screens/ScanOut/CreateDocument";
 import {
   binCodesByLocationService,
   createDocumentSaveService,
@@ -54,7 +54,7 @@ export default function CreateDocumentTransferScreen() {
   const route = useRoute();
   const { menuId } = route.params as { menuId: number };
   const [docNo, setDocumentNo] = useState("");
-  const [stockOutDate, setStockOutDate] = useState(formatThaiDate(new Date()));
+  const [stockOutDate, setStockOutDate] = useState(formatEngDate(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [locationCodeFrom, setLocationCodeFrom] = useState("");
   const [binCodeFrom, setBinCodeFrom] = useState("");

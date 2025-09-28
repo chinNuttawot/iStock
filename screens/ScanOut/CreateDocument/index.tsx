@@ -39,17 +39,17 @@ import { SelectList } from "react-native-dropdown-select-list";
 import { Divider } from "react-native-elements";
 import { RenderGoBackItem } from "../Detail";
 
-export function formatThaiDate(date: Date): string {
+export function formatEngDate(date: Date): string {
   const d = date.getDate().toString().padStart(2, "0");
   const m = (date.getMonth() + 1).toString().padStart(2, "0");
-  const y = (date.getFullYear() + 543).toString(); // ✅ แปลงเป็น พ.ศ.
+  const y = date.getFullYear().toString(); // ✅ แปลงเป็น พ.ศ.
   return `${d}/${m}/${y}`;
 }
 
 export default function CreateDocumentScreen() {
   const navigation = useNavigation<any>();
   const [docNo, setDocumentNo] = useState("");
-  const [stockOutDate, setStockOutDate] = useState(formatThaiDate(new Date()));
+  const [stockOutDate, setStockOutDate] = useState(formatEngDate(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [locationCodeFrom, setLocationCodeFrom] = useState("");
   const [binCodeFrom, setBinCodeFrom] = useState("");
