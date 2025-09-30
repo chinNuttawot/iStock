@@ -221,7 +221,13 @@ export default function StockCheckDetailScreen() {
                 onToggle={() => toggleExpand(item.id)}
                 textGoTo="ลบ"
                 colorButton={theme.red}
-                goTo={() => onDeleteItem(item)}
+                isEdit={true}
+                goTo={(res) => {
+                  if (res.mode === "edit") {
+                  } else {
+                    onDeleteItem(item as any);
+                  }
+                }}
                 viewMode={status !== "Open"}
               />
             ))}

@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { Divider } from "react-native-elements";
-import CustomButton from "../CustomButton";
+import CustomButtons from "../CustomButtons";
 import { styles as s } from "./styles";
 
 /** ================== SmartImage ==================
@@ -92,12 +92,14 @@ export default function DetailCard({
   textGoTo,
   colorButton,
   customButton,
+  isEdit = false,
 }: {
   data: ProductItem;
   isExpanded: boolean;
   onToggle: (res: string) => void;
   goTo?: (res?: any) => void;
   viewMode?: boolean;
+  isEdit?: boolean;
   textGoTo?: string;
   colorButton?: string;
   customButton?: any;
@@ -148,16 +150,22 @@ export default function DetailCard({
           {customButton && (
             <View style={{ marginTop: 32 }}>{customButton}</View>
           )}
-
-          {!viewMode && !customButton && (
-            <View style={{ paddingHorizontal: 120, marginTop: 32 }}>
-              <CustomButton
+          <View style={{ padding: 16, marginBottom: 16, flexDirection: "row" }}>
+            {!viewMode && !customButton && isEdit && (
+              <CustomButtons
+                label={"แก้ไข"}
+                onPress={() => goTo?.({ ...data, mode: "edit" })}
+                color={theme.mainApp}
+              />
+            )}
+            {!viewMode && !customButton && (
+              <CustomButtons
                 label={textGoTo || "แก้ไข"}
                 onPress={() => goTo?.(data)}
                 color={colorButton}
               />
-            </View>
-          )}
+            )}
+          </View>
         </View>
       )}
     </View>

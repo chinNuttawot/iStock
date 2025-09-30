@@ -6,7 +6,9 @@ export type ProductDetail = {
 export type ProductItem = {
   id: string;
   docNo: string;
+  uuid: string;
   model: string;
+  productCode: string;
   qtyReceived: number | null;
   qtyShipped: number | null;
   details: ProductDetail[];

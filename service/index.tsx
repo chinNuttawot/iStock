@@ -16,6 +16,7 @@ import { DashboardService } from "./DashboardService";
 import { deleteAccountService } from "./deleteAccountService";
 import { deleteDocumentProducts } from "./deleteDocumentProducts";
 import { deleteFileService } from "./deleteFileService";
+import { editDocumentProducts } from "./editDocumentProducts";
 import { fileService } from "./fileService";
 import { ForgotPasswordService } from "./ForgotPasswordService";
 import { itemProductWSService } from "./itemProductWSService";
@@ -49,6 +50,7 @@ export {
     deleteDocumentProducts,
     deleteFileService,
     delProfile,
+    editDocumentProducts,
     fileService,
     ForgotPasswordService,
     getProfile,

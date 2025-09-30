@@ -352,7 +352,12 @@ export default function ScanInDetailScreen() {
               data={item as any}
               isExpanded={expandedIds.includes(item.id)}
               onToggle={() => toggleExpand(item.id)}
-              goTo={() => onShowDetail(item as any)}
+              goTo={(res) => {
+                if (res.mode === "edit") {
+                } else {
+                  onShowDetail(item as any);
+                }
+              }}
             />
           ))}
         </ScrollView>
