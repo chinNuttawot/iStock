@@ -29,7 +29,7 @@ export default () => {
       package: "com.echonovatech.istock",
       versionCode: 1,
       adaptiveIcon: {
-        foregroundImage: "./assets/images/icon.png",
+        foregroundImage: "./assets/images/adaptive-icon-2.png",
         backgroundColor: "#ffffff",
       },
       edgeToEdgeEnabled: true,
