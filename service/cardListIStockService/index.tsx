@@ -24,6 +24,7 @@ export const cardListIStockService = async (params: any) => {
         createdBy: profile?.userName,
         isApprover: profile?.isApprover,
         branchCode: profile?.branchCode,
+        status: "Pending Approval",
       },
       headers: {
         Authorization: `Bearer ${token}`,

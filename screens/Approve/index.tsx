@@ -210,6 +210,7 @@ export default function ApproveScreen() {
       statusName: "สถานะเอกสาร",
       isTypeDoc: true,
       TypeDocOptions: dataAll,
+      showFilterStatus: false,
       statusOptions: [
         { key: "All", value: "All" },
         { key: "Pending Approval", value: "Pending Approval" },
