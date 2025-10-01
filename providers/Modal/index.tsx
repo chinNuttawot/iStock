@@ -1,7 +1,6 @@
 import CustomButtons from "@/components/CustomButtons";
 import React, { cloneElement, useMemo } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
-import Modal from "react-native-modal";
+import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { theme } from "../Theme";
 import { ModalComponentModel } from "./Model";
 
@@ -57,25 +56,36 @@ function ModalComponent(props: ModalComponentModel) {
     );
   };
   return (
-    <Modal isVisible={isOpen}>
+    <Modal visible={isOpen} transparent animationType="fade">
       <View
-        style={{
-          backgroundColor: props.backgroundColor || theme.white,
-          borderRadius: 8,
-          padding: 16,
-          alignItems: "center",
-        }}
+        style={[
+          {
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            padding: 16,
+          },
+        ]}
       >
-        {onBackdropPress && <IconCancel />}
-        {clonedChild}
-        <View style={{ flexDirection: "row" }}>
-          {onChangeCancel && (
-            <CustomButtons
-              onPress={onChangeCancel}
-              {...props.option?.changeCancel}
-            />
-          )}
-          {!hideCustomButtons && changeButton}
+        <View
+          style={{
+            backgroundColor: props.backgroundColor || theme.white,
+            borderRadius: 8,
+            padding: 16,
+            alignItems: "center",
+          }}
+        >
+          {onBackdropPress && <IconCancel />}
+          {clonedChild}
+          <View style={{ flexDirection: "row" }}>
+            {onChangeCancel && (
+              <CustomButtons
+                onPress={onChangeCancel}
+                {...props.option?.changeCancel}
+              />
+            )}
+            {!hideCustomButtons && changeButton}
+          </View>
         </View>
       </View>
     </Modal>
