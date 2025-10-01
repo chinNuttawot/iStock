@@ -244,6 +244,9 @@ function UploadPicker(props: Props, ref: React.Ref<UploadPickerHandle>) {
       await deleteFileService(params);
       setPreviewVisible(false);
       setPdfVisible(false);
+      // รีเฟรชรายการไฟล์
+      await getFile();
+      // แจ้งหน้าอื่น ๆ
       emitter.emit(getDataScanOut);
       emitter.emit(getDataScanIn);
       emitter.emit(getDataStockCheck);
@@ -397,7 +400,112 @@ function UploadPicker(props: Props, ref: React.Ref<UploadPickerHandle>) {
     [addItems]
   );
 
-  // ---------- pickers ----------
+  // ---------- อัปโหลด (แก้ให้รองรับอัปโหลดทันทีหลังเลือก) ----------
+  const internalUpload = useCallback(
+    async (targets: PickedItem[]) => {
+      if (!targets || targets.length === 0) return;
+
+      try {
+        // mark uploading
+        setItems((prev) =>
+          prev.map((p) =>
+            targets.some((t) => t.id === p.id)
+              ? { ...p, status: "uploading", progress: 0 }
+              : p
+          )
+        );
+
+        const parts = await Promise.all(
+          targets.map(async (f) => {
+            let safeUri = await ensureFileUriForFormData(f.uri, f.name);
+            let name = f.name;
+            let type =
+              f.mime ||
+              (f.type === "image" ? "image/jpeg" : "application/octet-stream");
+
+            if (f.type === "image") {
+              const downsized = await downsizeToLimit(
+                safeUri,
+                name,
+                MAX_IMAGE_BYTES
+              );
+              safeUri = downsized.uri;
+              name = downsized.name;
+              type = downsized.type;
+            }
+
+            return { uri: safeUri, name, type };
+          })
+        );
+
+        const createdBy = (await Profile()).userName;
+        await uploadMultiFetch(
+          parts,
+          toStr(keyRef1),
+          keyRef2,
+          keyRef3,
+          remark,
+          createdBy
+        );
+
+        // mark success for targets
+        setItems((prev) =>
+          prev.map((p) =>
+            targets.some((t) => t.id === p.id)
+              ? { ...p, status: "success", progress: 1 }
+              : p
+          )
+        );
+
+        // รีเฟรชรายการจากเซิร์ฟเวอร์ให้เป็นแหล่งจริง และ emit อีเวนต์
+        await getFile();
+        emitter.emit(getDataScanOut);
+        emitter.emit(getDataScanIn);
+        emitter.emit(getDataStockCheck);
+        emitter.emit(getDataTransfer);
+
+        // callback ภายนอก (ถ้ามี)
+        onAllUploaded?.(targets);
+      } catch (e: any) {
+        const msg = String(e?.message || e);
+        setItems((prev) =>
+          prev.map((p) =>
+            targets.some((t) => t.id === p.id)
+              ? { ...p, status: "error", errorMsg: msg }
+              : p
+          )
+        );
+        Alert.alert("อัปโหลดไม่สำเร็จ", msg);
+      }
+    },
+    [
+      ensureFileUriForFormData,
+      downsizeToLimit,
+      MAX_IMAGE_BYTES,
+      keyRef1,
+      keyRef2,
+      keyRef3,
+      remark,
+      onAllUploaded,
+    ]
+  );
+
+  // เดิม: อัปโหลดทั้งหมดในคิว -> คงไว้ (เผื่อมีการเรียกใช้จากภายนอก)
+  const uploadAllInOneRequest = useCallback(async () => {
+    const queued = items.filter((x) => x.status === "queued" || !x.status);
+    await internalUpload(queued);
+  }, [items, internalUpload]);
+
+  // ---------- imperative handle ----------
+  useImperativeHandle(
+    ref,
+    () => ({
+      uploadAllInOneRequests: () => uploadAllInOneRequest(),
+    }),
+    [uploadAllInOneRequest]
+  );
+
+  // ---------- pickers (อัปโหลดทันทีหลังเพิ่ม) ----------
   const pickImages = useCallback(async () => {
     if (isFull) {
       Alert.alert("จำนวนไฟล์เต็ม", `เพิ่มได้สูงสุด ${MAX_ITEMS} รายการ`);
@@ -412,7 +520,7 @@ function UploadPicker(props: Props, ref: React.Ref<UploadPickerHandle>) {
       mediaTypes: ["images"],
       allowsMultipleSelection: allowsMultiple,
       quality: 0.9,
-      selectionLimit, // อาจถูกเมินบนบางแพลตฟอร์ม → เรามี clamp ซ้ำชั้นล่าง
+      selectionLimit,
     });
     if (res.canceled) return;
 
@@ -425,16 +533,23 @@ function UploadPicker(props: Props, ref: React.Ref<UploadPickerHandle>) {
       type: "image",
       status: "queued",
       progress: 0,
-      isDelete: false, // ไฟล์ใหม่จากเครื่อง ยังไม่ลบบนเซิร์ฟเวอร์
+      isDelete: false,
     }));
 
-    addItems(picked);
+    const clamped = clampItems([...items, ...picked], { showAlert: true });
+    const justAdded = clamped.slice(items.length); // ชุดที่เพิ่มจริง ๆ
+    setItems(clamped);
+
+    // อัปโหลดเฉพาะที่เพิ่งเลือก
+    await internalUpload(justAdded);
   }, [
     allowsMultiple,
     requestImagePermission,
-    addItems,
     isFull,
     remainingSlots,
+    items,
+    clampItems,
+    internalUpload,
   ]);
 
   const takePhoto = useCallback(async () => {
@@ -454,7 +569,7 @@ function UploadPicker(props: Props, ref: React.Ref<UploadPickerHandle>) {
     const a = res.assets?.[0];
     if (!a) return;
 
-    addItem({
+    const picked: PickedItem = {
       id: `${Date.now()}`,
       uri: a.uri,
       name: a.fileName || a.uri.split("/").pop() || `photo.jpg`,
@@ -464,8 +579,15 @@ function UploadPicker(props: Props, ref: React.Ref<UploadPickerHandle>) {
       status: "queued",
       progress: 0,
       isDelete: false,
-    });
-  }, [addItem, requestCameraPermission, isFull]);
+    };
+
+    const clamped = clampItems([...items, picked], { showAlert: true });
+    const justAdded =
+      clamped.length > items.length ? [clamped[clamped.length - 1]] : [];
+    setItems(clamped);
+
+    await internalUpload(justAdded);
+  }, [requestCameraPermission, isFull, items, clampItems, internalUpload]);
 
   const pickDocuments = useCallback(async () => {
     if (isFull) {
@@ -490,80 +612,16 @@ function UploadPicker(props: Props, ref: React.Ref<UploadPickerHandle>) {
       isDelete: false,
     }));
 
-    addItems(picked);
-  }, [addItems, allowsMultiple, isFull]);
+    const clamped = clampItems([...items, ...picked], { showAlert: true });
+    const justAdded = clamped.slice(items.length);
+    setItems(clamped);
+
+    await internalUpload(justAdded);
+  }, [allowsMultiple, isFull, items, clampItems, internalUpload]);
 
   const removeItem = useCallback((id: string) => {
     setItems((prev) => prev.filter((x) => x.id !== id));
   }, []);
-
-  // ---------- upload: รวม (multi via uploadMultiFetch) ----------
-  const uploadAllInOneRequest = useCallback(async () => {
-    const queued = items.filter((x) => x.status === "queued" || !x.status);
-    if (queued.length === 0) return;
-
-    try {
-      const parts = await Promise.all(
-        queued.map(async (f) => {
-          let safeUri = await ensureFileUriForFormData(f.uri, f.name);
-          let name = f.name;
-          let type =
-            f.mime ||
-            (f.type === "image" ? "image/jpeg" : "application/octet-stream");
-
-          if (f.type === "image") {
-            const downsized = await downsizeToLimit(
-              safeUri,
-              name,
-              MAX_IMAGE_BYTES
-            );
-            safeUri = downsized.uri;
-            name = downsized.name;
-            type = downsized.type;
-          }
-
-          return { uri: safeUri, name, type };
-        })
-      );
-      const createdBy = (await Profile()).userName;
-      await uploadMultiFetch(
-        parts,
-        toStr(keyRef1),
-        keyRef2,
-        keyRef3,
-        remark,
-        createdBy
-      );
-    } catch (e: any) {
-      setItems((prev) =>
-        prev.map((p) =>
-          queued.some((q) => q.id === p.id)
-            ? { ...p, status: "error", errorMsg: String(e?.message || e) }
-            : p
-        )
-      );
-    } finally {
-      setItems([]);
-    }
-  }, [
-    items,
-    keyRef1,
-    keyRef2,
-    keyRef3,
-    remark,
-    onAllUploaded,
-    ensureFileUriForFormData,
-    downsizeToLimit,
-  ]);
-
-  // ---------- imperative handle ----------
-  useImperativeHandle(
-    ref,
-    () => ({
-      uploadAllInOneRequests: () => uploadAllInOneRequest(),
-    }),
-    [uploadAllInOneRequest]
-  );
 
   // ---------- UI ----------
   const renderItem = ({ item }: { item: PickedItem }) => {
@@ -614,6 +672,36 @@ function UploadPicker(props: Props, ref: React.Ref<UploadPickerHandle>) {
               {item.mime || "unknown"}{" "}
               {item.size ? `• ${(item.size / 1024).toFixed(1)} KB` : ""}
             </Text>
+            {item.status && item.status !== "success" && (
+              <>
+                <View style={styles.progressBar}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      {
+                        width:
+                          item.status === "uploading"
+                            ? "70%"
+                            : item.status === "error"
+                            ? "0%"
+                            : "100%",
+                      },
+                    ]}
+                  />
+                </View>
+                <Text style={styles.statusText}>
+                  {item.status === "uploading"
+                    ? "กำลังอัปโหลด..."
+                    : item.status === "error"
+                    ? `อัปโหลดล้มเหลว${
+                        item.errorMsg ? `: ${item.errorMsg}` : ""
+                      }`
+                    : item.status === "queued"
+                    ? "รออัปโหลด"
+                    : ""}
+                </Text>
+              </>
+            )}
           </View>
 
           {item.status !== "success" && (

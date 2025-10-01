@@ -84,6 +84,7 @@ export const styles = StyleSheet.create({
     color: "#374151",
   },
   inputBox: {
+    color: theme.text,
     borderWidth: 1,
     borderColor: "#D1D5DB",
     borderRadius: 10,

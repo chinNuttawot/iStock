@@ -12,12 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 
-import {
-  emitter,
-  filterCreateDocumentScanOut,
-  filterDataDashboard,
-  getDataScanOut,
-} from "@/common/emitter";
+import { emitter, filterCreateDocumentScanOut, filterDataDashboard, getDataScanOut } from "@/common/emitter";
 import {
   binCodesByLocationService,
   createDocumentSaveService,
@@ -190,6 +185,7 @@ export default function CreateDocumentScreen() {
       qtyShipped: null,
       isDelete: false,
       details: [
+        { label: "ชื่อสินค้า", value: list.description || "ไม่มีชื่อสินค้า" },
         { label: "รหัสแบบ", value: list.model || "-" },
         { label: "คงเหลือ", value: stockQty.toString() || "-" },
         { label: "จำนวนสินค้า", value: list.quantity || "-" },
@@ -418,6 +414,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   input: {
+    color: theme.text,
     backgroundColor: theme.background,
     borderRadius: 8,
     paddingHorizontal: 12,

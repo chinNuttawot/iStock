@@ -68,6 +68,7 @@ export const stylesDeleteAccountScreen = StyleSheet.create({
     ...theme.setFont,
     flex: 1,
     marginLeft: 8,
+    color: theme.text,
   },
   button: {
     backgroundColor: theme.mainApp,

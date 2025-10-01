@@ -1,3 +1,4 @@
+import { addDocumentProducts } from "./addDocumentProducts";
 import { ApproveDocumentsNAVService } from "./ApproveDocumentsNAVService";
 import { ApproveDocumentsService } from "./ApproveDocumentsService";
 import { BagnumberService } from "./BagnumberService";
@@ -33,6 +34,7 @@ import { transactionHistoryService } from "./transactionHistoryService";
 import { uploadMultiFetch } from "./upload";
 
 export {
+    addDocumentProducts,
     ApproveDocumentsNAVService,
     ApproveDocumentsService,
     BagnumberService,

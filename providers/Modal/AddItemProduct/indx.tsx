@@ -6,4 +6,5 @@ export interface AddItemProduct {
   serialNo: string;
   uuid: string;
   picURL: string;
+  description?: string;
 }

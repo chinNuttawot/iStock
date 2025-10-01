@@ -189,6 +189,7 @@ export default function CreateDocumentStockCheckScreen() {
       qtyShipped: null,
       isDelete: false,
       details: [
+        { label: "ชื่อสินค้า", value: list.description || "ไม่มีชื่อสินค้า" },
         { label: "รหัสแบบ", value: list.model || "-" },
         { label: "คงเหลือ", value: stockQty.toString() || "-" },
         { label: "จำนวนสินค้า", value: list.quantity || "-" },
@@ -417,6 +418,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
     ...theme.setFont,
+    color: theme.text,
   },
   inputWrapper: {
     backgroundColor: theme.background,

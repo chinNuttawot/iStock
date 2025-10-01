@@ -79,5 +79,5 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 34,
   },
-  input: { ...theme.setFont, flex: 1, marginLeft: 8 },
+  input: { ...theme.setFont, flex: 1, marginLeft: 8, color: theme.text },
 });

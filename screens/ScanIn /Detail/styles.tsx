@@ -37,7 +37,7 @@ export const styles = StyleSheet.create({
   cardContent: {
     marginTop: 8,
   },
-  input: { ...theme.setFont, flex: 1, marginLeft: 8 },
+  input: { ...theme.setFont, flex: 1, marginLeft: 8, color: theme.text },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",

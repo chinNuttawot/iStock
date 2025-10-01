@@ -418,6 +418,7 @@ const styles = StyleSheet.create({
     ...theme.setFont,
     flex: 1,
     marginLeft: 8,
+    color: theme.text,
   },
   lineIcon: {
     width: 20,

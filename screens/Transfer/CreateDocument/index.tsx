@@ -248,6 +248,7 @@ export default function CreateDocumentTransferScreen() {
       qtyShipped: null,
       isDelete: false,
       details: [
+        { label: "ชื่อสินค้า", value: list.description || "ไม่มีชื่อสินค้า" },
         { label: "รหัสแบบ", value: list.model || "-" },
         { label: "คงเหลือ", value: stockQty.toString() || "-" },
         { label: "จำนวนสินค้า", value: list.quantity || "-" },
@@ -311,7 +312,9 @@ export default function CreateDocumentTransferScreen() {
             search={true}
             placeholder="Select"
             save="key"
-            defaultOption={defaultBinFrom}
+            defaultOption={
+              binCodesFrom.length > 0 ? binCodesFrom[0] : undefined
+            }
           />
         </View>
       </View>
@@ -347,7 +350,7 @@ export default function CreateDocumentTransferScreen() {
             search={true}
             placeholder="Select"
             save="key"
-            defaultOption={defaultBinTo}
+            defaultOption={binCodesTo.length > 0 ? binCodesTo[0] : undefined}
           />
         </View>
       </View>
@@ -515,6 +518,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   input: {
+    color: theme.text,
     backgroundColor: theme.background,
     borderRadius: 8,
     paddingHorizontal: 12,

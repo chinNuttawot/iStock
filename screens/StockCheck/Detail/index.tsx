@@ -6,16 +6,33 @@ import {
 import CustomButton from "@/components/CustomButton";
 import DetailCard from "@/components/DetailCard";
 import Header from "@/components/Header";
+import ProductAddModalComponent from "@/components/ProductAdd";
 import EmptyState from "@/components/State/EmptyState";
 import { ProductItem } from "@/dataModel/ScanIn/Detail";
 import ModalComponent from "@/providers/Modal";
+import { AddItemProduct } from "@/providers/Modal/AddItemProduct/indx";
 import { Modeloption } from "@/providers/Modal/Model";
 import { theme } from "@/providers/Theme";
 import { RouteParams } from "@/screens/Approve/Detail";
-import { cardDetailIStockListService, deleteDocumentProducts } from "@/service";
+import {
+  addDocumentProducts,
+  cardDetailIStockListService,
+  deleteDocumentProducts,
+  editDocumentProducts,
+  itemProductWSService,
+  itemVariantWSService,
+} from "@/service";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, ScrollView, Text, View } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { styles } from "./styles";
 
 export const RenderGoBackItem = (
@@ -52,8 +69,46 @@ export default function StockCheckDetailScreen() {
   const isShowGoBackScreenRef = useRef<boolean>(false);
   const textGray = (theme as any).textGray ?? (theme as any).gray ?? "#9ca3af";
 
+  const [productCode, setProductCode] = useState("");
+  const [stockQty, setStockQty] = useState(0);
+  const [description, setDescription] = useState("");
+  const [modelOptions, setModelOptions] = useState<any[]>([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editProducts, setEditProducts] = useState<any>({});
+  const [products, setProducts] = useState<any[]>([]);
+  // Edit modal
+  const [editOpen, setEditOpen] = useState(false);
+  const [editItem, setEditItem] = useState<ProductItem | null>(null);
+  const [editForm, setEditForm] = useState<{
+    quantity?: string;
+    serialNo?: string;
+    remark?: string;
+  }>({});
+  const [savingEdit, setSavingEdit] = useState(false);
+
   useEffect(() => {
-    const onFilterChanged = (data: any) => setFilter(data);
+    const onFilterChanged = async ({ docNo: itemNo }: any) => {
+      if (!itemNo) {
+        Alert.alert("เกิดขอผิดพลาด", "ไม่มีรหัสสินค้า");
+        return;
+      }
+      const { data } = await itemProductWSService({ itemNo });
+      if (data.length === 0) {
+        Alert.alert("เกิดขอผิดพลาด", "ไม่พบข้อมูล");
+        return;
+      }
+      const { data: dataVariant } = await itemVariantWSService({ itemNo });
+      if (dataVariant.length === 0) {
+        Alert.alert("เกิดขอผิดพลาด", "ไม่พบข้อมูล");
+        return;
+      }
+      const _data = data[0];
+      setProductCode(itemNo);
+      setStockQty(_data.qtyShipped);
+      setDescription(_data.description);
+      setModelOptions(dataVariant);
+      setShowAddModal(true);
+    };
     emitter.on(filterStockCheckDetail, onFilterChanged);
     return () => emitter.off(filterStockCheckDetail, onFilterChanged);
   }, []);
@@ -150,16 +205,170 @@ export default function StockCheckDetailScreen() {
       if (hasDeleted) {
         const delItem = productData
           .filter((v) => v.isDelete)
-          .map((v: any) => ({ uuid: v.uuid, docNo: v.docNo }));
+          .map((v: any) => ({ uuid: v.uuid, productCode: v.productCode }));
         await deleteDocumentProducts({ items: delItem });
-        emitter.emit(getDataStockCheck, menuId);
-        navigation.goBack();
-      } else {
-        navigation.goBack();
       }
+      if (products.length > 0) {
+        const payload = {
+          docNo: products[0].docNo,
+          products: products.map((item) => ({
+            productCode: item.productCode,
+            model: item.model,
+            quantity: item.quantity,
+            serialNo: item.serialNo,
+            remark: item.remark,
+            uuid: item.uuid,
+            picURL: item.picURL,
+          })),
+        };
+        await addDocumentProducts(payload);
+      }
+      emitter.emit(getDataStockCheck, menuId);
+      navigation.goBack();
     } catch (err) {
       Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
     }
+  };
+  const onCloseEdit = () => {
+    if (savingEdit) return; // กันปิดระหว่างบันทึก
+    setEditOpen(false);
+    setEditItem(null);
+    setEditForm({});
+  };
+
+  const submitEdit = async () => {
+    if (!editItem) return;
+
+    const norm = (v?: string) => (typeof v === "string" ? v.trim() : "");
+    const qRaw = norm(editForm.quantity);
+    const snRaw = norm(editForm.serialNo);
+    const rmRaw = norm(editForm.remark);
+    const patch: any = {};
+    if (qRaw !== "") patch.quantity = Number(qRaw);
+    if (snRaw !== "") patch.serialNo = snRaw;
+    if (rmRaw !== "") patch.remark = rmRaw;
+
+    if (Object.keys(patch).length === 0) {
+      onCloseEdit();
+      return;
+    }
+    const uuid = editItem.uuid;
+    const resData = productData.filter((v) => v.uuid === uuid);
+    setSavingEdit(true);
+    try {
+      const payload = {
+        items: [
+          {
+            uuid: resData[0].uuid,
+            productCode: resData[0].productCode,
+            patch,
+          },
+        ],
+      };
+      await editDocumentProducts(payload);
+      onCloseEdit();
+    } catch (e: any) {
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const RenderEditItem = (
+    <View style={[{ height: "auto", marginBottom: 16, width: "100%" }]}>
+      <Text style={[styles.label, { fontWeight: "700", fontSize: 16 }]}>
+        แก้ไขรายการ
+      </Text>
+
+      {/* Quantity */}
+      <View style={styles.fieldGroup}>
+        <Text style={styles.fieldLabel}>จำนวน (quantity)</Text>
+        <TextInput
+          value={editForm.quantity}
+          onChangeText={(t) =>
+            setEditForm((s) => ({ ...s, quantity: t.replace(/[^\d]/g, "") }))
+          }
+          keyboardType="number-pad"
+          placeholder="เช่น 10"
+          style={styles.inputBox}
+        />
+      </View>
+
+      {/* Serial No */}
+      <View style={styles.fieldGroup}>
+        <Text style={styles.fieldLabel}>Serial No</Text>
+        <TextInput
+          value={editForm.serialNo}
+          onChangeText={(t) => setEditForm((s) => ({ ...s, serialNo: t }))}
+          placeholder="เช่น SN001"
+          style={styles.inputBox}
+        />
+      </View>
+
+      {/* Remark */}
+      <View style={styles.fieldGroup}>
+        <Text style={styles.fieldLabel}>หมายเหตุ (remark)</Text>
+        <TextInput
+          value={editForm.remark}
+          onChangeText={(t) => setEditForm((s) => ({ ...s, remark: t }))}
+          placeholder="เพิ่มหมายเหตุ"
+          multiline
+          style={[styles.inputBox, { minHeight: 96, textAlignVertical: "top" }]}
+        />
+      </View>
+    </View>
+  );
+
+  // เปิด Modal แก้ไข
+  const onOpenEdit = (item: ProductItem) => {
+    setEditItem(item);
+    setEditForm({
+      quantity:
+        (item as any).quantity != null ? String((item as any).quantity) : "",
+      serialNo: (item as any).serialNo ?? "",
+      remark: (item as any).remark ?? "",
+    });
+    setEditOpen(true);
+  };
+
+  const handleAddProduct = () => {
+    navigation.navigate("Filter", {
+      ScanName: "รหัสสินค้า",
+      showFilterDate: false,
+      showFilterStatus: false,
+      showFilterReset: false,
+      textSearch: "ถัดไป",
+    });
+  };
+
+  const onSaveList = (list: AddItemProduct) => {
+    const dataView = {
+      id: list.uuid,
+      docNo: list.productCode,
+      model: list.model,
+      qtyReceived: null,
+      qtyShipped: null,
+      isDelete: false,
+      newItem: true,
+      details: [
+        { label: "ชื่อสินค้า", value: list.description || "ไม่มีชื่อสินค้า" },
+        { label: "รหัสแบบ", value: list.model || "-" },
+        { label: "คงเหลือ", value: stockQty.toString() || "-" },
+        { label: "จำนวนสินค้า", value: list.quantity || "-" },
+        { label: "Serial No", value: list.serialNo || "-" },
+        { label: "หมายเหตุ", value: list.remark || "-" },
+      ],
+      picURL: list.picURL,
+    };
+    const updatedViewMode = productData.some((item) => item.id === dataView.id)
+      ? productData.map((item) => (item.id === dataView.id ? dataView : item))
+      : [...productData, dataView];
+    setProductData(updatedViewMode as any);
+    const updatedProducts = products.some((item) => item.uuid === list.uuid)
+      ? products.map((item) =>
+          item.uuid === list.uuid ? { ...list, docNo: docNo } : item
+        )
+      : [...products, { ...list, docNo: docNo }];
+    setProducts(updatedProducts);
   };
 
   return (
@@ -173,21 +382,60 @@ export default function StockCheckDetailScreen() {
       >
         {isShowGoBackScreen ? RenderGoBackItem : RenderDeleteItem}
       </ModalComponent>
+
+      {/* โมดัลแก้ไข */}
+      <ModalComponent
+        isOpen={editOpen}
+        onChange={submitEdit} // ✅ ยิง API พร้อม patch ที่มีเฉพาะค่า
+        option={{
+          change: {
+            label: savingEdit ? "กำลังบันทึก..." : "ตกลง",
+            color: theme.mainApp,
+          },
+          changeCancel: {
+            label: "ยกเลิก",
+            color: theme.cancel,
+            colorText: theme.black,
+          },
+          disabled: savingEdit as any,
+        }}
+        onBackdropPress={savingEdit ? undefined : onCloseEdit}
+        onChangeCancel={savingEdit ? undefined : onCloseEdit}
+      >
+        {RenderEditItem}
+      </ModalComponent>
+
+      <ProductAddModalComponent
+        isVisible={showAddModal}
+        onClose={() => {
+          setEditProducts({});
+          setShowAddModal(false);
+        }}
+        onSave={onSaveList}
+        description={description}
+        productCode={productCode}
+        modelOptions={modelOptions}
+        stockQty={stockQty}
+        value={editProducts}
+      />
+
       <Header
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
         hideGoback={false}
         title={docNo}
         onGoBack={onGoBack}
-        // IconComponent={[
-        //   <TouchableOpacity key="filter" onPress={openFilter}>
-        //     <MaterialCommunityIcons
-        //       name={filter?.isFilter ? "filter-check" : "filter"}
-        //       size={30}
-        //       color="white"
-        //     />
-        //   </TouchableOpacity>,
-        // ]}
+        IconComponent={
+          status === "Open" && [
+            <TouchableOpacity key="plus" onPress={handleAddProduct}>
+              <MaterialCommunityIcons
+                name="plus"
+                size={30}
+                color={theme.white}
+              />
+            </TouchableOpacity>,
+          ]
+        }
       />
       {productData.length === 0 && (
         <View
@@ -221,12 +469,10 @@ export default function StockCheckDetailScreen() {
                 onToggle={() => toggleExpand(item.id)}
                 textGoTo="ลบ"
                 colorButton={theme.red}
-                isEdit={true}
+                isEdit={!item.newItem}
                 goTo={(res) => {
-                  if (res.mode === "edit") {
-                  } else {
-                    onDeleteItem(item as any);
-                  }
+                  if (res.mode === "edit") onOpenEdit(item as any);
+                  else onDeleteItem(item as any);
                 }}
                 viewMode={status !== "Open"}
               />

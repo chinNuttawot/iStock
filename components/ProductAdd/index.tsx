@@ -62,6 +62,7 @@ const ProductAddModalComponent = ({
         remark,
         uuid: uuid.v4(),
         picURL,
+        description,
       });
     } else {
       onSave({
@@ -72,6 +73,7 @@ const ProductAddModalComponent = ({
         remark,
         uuid: value?.uuid,
         picURL,
+        description,
       });
     }
 
@@ -141,6 +143,7 @@ const ProductAddModalComponent = ({
 
           <Text style={styles.textLink}>จำนวนสินค้า</Text>
           <TextInput
+            placeholder="จำนวนสินค้า"
             style={styles.input}
             value={quantity.toString()}
             onChangeText={(num) => {
@@ -159,18 +162,22 @@ const ProductAddModalComponent = ({
 
           <Text style={styles.textLink}>Serial No</Text>
           <TextInput
+            placeholder="Serial No"
             style={styles.input}
             value={serialNo}
             onChangeText={setSerialNo}
           />
 
           <Text style={styles.textLink}>หมายเหตุ</Text>
-          <TextInput
-            style={[styles.input, { height: 150 }]}
-            value={remark}
-            onChangeText={setRemark}
-            multiline={true}
-          />
+          <View style={[styles.input, { height: 150 }]}>
+            <TextInput
+              placeholder="หมายเหตุ....."
+              style={[styles.mainInput, { alignItems: "flex-start" }]}
+              value={remark}
+              onChangeText={setRemark}
+              multiline={true}
+            />
+          </View>
           <Text style={styles.textError}>{description}</Text>
 
           {picURL && (
@@ -255,11 +262,18 @@ const styles = StyleSheet.create({
     backgroundColor: theme.background,
   },
   input: {
+    color: theme.text,
     backgroundColor: theme.background,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
     marginBottom: 8,
+    ...theme.setFont,
+    justifyContent: "flex-start",
+  },
+  mainInput: {
+    color: theme.text,
+    backgroundColor: theme.background,
     ...theme.setFont,
     justifyContent: "flex-start",
   },

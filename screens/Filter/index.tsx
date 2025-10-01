@@ -213,7 +213,7 @@ export default function FilterScreen() {
 
         {showFilterDate && (
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>วันที่เอกสาร</Text>
+            <Text style={styles.label}>วันที่ของสินค้า</Text>
             <TouchableOpacity
               style={styles.inputWrapper}
               onPress={() => setShowDatePicker(true)}
@@ -331,6 +331,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    color: theme.text,
     ...theme.setFont,
   },
   resetButton: {

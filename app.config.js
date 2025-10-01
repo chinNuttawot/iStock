@@ -6,7 +6,7 @@ export default () => {
     slug: "iStock",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/images/icon.png",
+    icon: "./assets/images/icon-3.png",
     scheme: "istock",
     userInterfaceStyle: "automatic",
     ios: {

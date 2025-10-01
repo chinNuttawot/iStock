@@ -252,6 +252,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 4,
     marginBottom: 8,
+    color: theme.text,
   },
   rememberRow: {
     flexDirection: "row",

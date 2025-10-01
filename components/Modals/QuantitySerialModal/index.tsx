@@ -81,7 +81,7 @@ export default function QuantitySerialModal({
                   setQty(text);
                 }
               }}
-              style={{ height: 42 }}
+              style={{ height: 42, color: theme.text }}
             />
           </View>
         </View>
@@ -99,7 +99,7 @@ export default function QuantitySerialModal({
             <TextInput
               value={serialNo}
               onChangeText={setSerialNo}
-              style={{ height: 42 }}
+              style={{ height: 42, color: theme.text }}
             />
           </View>
         </View>
