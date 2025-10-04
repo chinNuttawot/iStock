@@ -254,6 +254,7 @@ export default function ScanInScreen() {
 
               {cardData.map((card) => (
                 <ScanCard
+                  menuType={card.menuType}
                   key={card.id}
                   // ✅ ผูก ref ของแต่ละการ์ดให้เก็บไว้ใน uploadRefs.current[card.id]
                   ref={(h) => {

@@ -286,6 +286,7 @@ export default function TransferScreen() {
 
               {cardData.map((card) => (
                 <ScanCard
+                  menuType={card.menuType}
                   key={card.id}
                   // ✅ ผูก ref ตัวอัปโหลดกับ docNo
                   ref={(h) => {

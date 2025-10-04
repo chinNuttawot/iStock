@@ -159,6 +159,8 @@ export default function FilterScreen() {
         dataToscreen = filterCreateDocumentTransfer;
         break;
     }
+    console.log("item ==>", item);
+    
     emitter.emit(dataToscreen, item);
   };
 

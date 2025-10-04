@@ -18,13 +18,18 @@ export const cardListIStockService = async (params: any) => {
     const token = await StorageUtility.get(authToken);
     const profile = await getProfile();
     params = cleanParams(params);
+    if (profile?.isApprover) {
+      params = {
+        ...params,
+        status: "Pending Approval",
+      };
+    }
     const response = await api.get(`api/documents`, {
       params: {
         ...params,
         createdBy: profile?.userName,
         isApprover: profile?.isApprover,
         branchCode: profile?.branchCode,
-        status: "Pending Approval",
       },
       headers: {
         Authorization: `Bearer ${token}`,

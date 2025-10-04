@@ -87,9 +87,10 @@ export default function StockCheckScreen() {
       try {
         const menuIdNum = Number(menuId);
         if (Number.isNaN(menuIdNum)) throw new Error("menuId ไม่ถูกต้อง");
+
         const { data } = await cardListIStockService({
-          menuId: menuIdNum,
           ...params,
+          menuId: menuIdNum,
         });
         setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
       } catch (err: any) {
@@ -98,8 +99,8 @@ export default function StockCheckScreen() {
           err?.message ||
           "เกิดข้อผิดพลาดในการดึงข้อมูล";
         console.log("StockCheck fetchData error:", err?.response?.data || err);
-        setError(msg);
         setCardData([]);
+        setError(msg);
       } finally {
         setLoading(false);
       }
@@ -107,7 +108,6 @@ export default function StockCheckScreen() {
     [menuId]
   );
 
-  // ครั้งแรก + เมื่อ menuId เปลี่ยน
   useEffect(() => {
     setSelectedIds([]);
     setExpandedIds([]);
@@ -169,7 +169,6 @@ export default function StockCheckScreen() {
 
   const goToDetail = useCallback(
     (card: CardListModel) => {
-      // menuId=3 สำหรับตรวจนับ
       navigation.navigate("StockCheckDetail", {
         docNo: card.docNo,
         menuId: 3,
@@ -286,6 +285,7 @@ export default function StockCheckScreen() {
 
               {cardData.map((card) => (
                 <ScanCard
+                  menuType={card.menuType}
                   key={card.id}
                   // ✅ ผูก ref ของ UploadPicker ต่อ docNo
                   ref={(h) => {

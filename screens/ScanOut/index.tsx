@@ -280,6 +280,7 @@ export default function ScanOutScreen() {
 
               {cardData.map((card) => (
                 <ScanCard
+                  menuType={card.menuType}
                   key={card.id}
                   ref={(h) => {
                     uploadRefs.current[card.docNo] = h;
