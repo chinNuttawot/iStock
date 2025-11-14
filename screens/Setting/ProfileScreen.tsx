@@ -57,7 +57,7 @@ export default function ProfileScreen() {
           />
           <FormItem
             icon={<Entypo name="location" size={20} />}
-            label={profile?.branch || "Branch"}
+            label={profile?.branch || "Location"}
           />
           <FormItem
             icon={<Ionicons name="mail-outline" size={20} />}

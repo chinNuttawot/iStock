@@ -30,13 +30,19 @@ export default function TransactionHistoryScreen() {
 
   useEffect(() => {
     const onFilterChanged = (data: any) => {
+      const { stockOutEndDate, stockOutStartDate, ...myData } = data;
+      if (stockOutStartDate === stockOutEndDate) {
+        myData.stockOutDate = stockOutStartDate;
+      } else {
+        myData.stockDateFromTH = stockOutStartDate;
+        myData.stockDateToTH = stockOutEndDate;
+      }
       if (data.isFilter) {
-        if (data.status === "All") {
-          const { status, ...newData } = data;
+        if (myData.status === "All") {
+          const { status, ...newData } = myData;
           fetchData(newData);
-        } else {
-          fetchData(data);
         }
+        fetchData(myData);
       } else {
         fetchData();
       }
@@ -52,6 +58,7 @@ export default function TransactionHistoryScreen() {
     try {
       const { data } = await transactionHistoryService({
         ...option,
+        // status: "Approved",
       });
       setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
     } catch (err: any) {
@@ -214,30 +221,34 @@ export default function TransactionHistoryScreen() {
             //   <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             // }
           >
-            {cardData.map((card) => (
-              <ScanCard
-                isShowOnExpandBy={"id"}
-                menuType={card.menuType}
-                key={card.id}
-                id={card.id}
-                keyRef1={"XX-XX"}
-                keyRef2={null}
-                keyRef3={null}
-                remark={null}
-                hideAddFile={true}
-                docNo={card.docNo}
-                date={card.date}
-                status={card.status as any}
-                details={card.details}
-                hideSelectedIds
-                selectedIds={selectedIds}
-                isSelected={selectedIds.includes(card.id)}
-                isExpanded={expandedIds.includes(card.id)}
-                onSelect={onSelectSafe}
-                onExpand={onExpandSafe}
-                goTo={() => goToDetail(card)}
-              />
-            ))}
+            {cardData.map((card) => {
+              console.log(card);
+
+              return (
+                <ScanCard
+                  isShowOnExpandBy={"id"}
+                  menuType={card.menuType}
+                  key={card.id}
+                  id={card.id}
+                  keyRef1={card.docNo}
+                  keyRef2={null}
+                  keyRef3={null}
+                  remark={null}
+                  hideAddFile={true}
+                  docNo={card.docNo}
+                  date={card.date}
+                  status={card.status as any}
+                  details={card.details}
+                  hideSelectedIds
+                  selectedIds={selectedIds}
+                  isSelected={selectedIds.includes(card.id)}
+                  isExpanded={expandedIds.includes(card.id)}
+                  onSelect={onSelectSafe}
+                  onExpand={onExpandSafe}
+                  goTo={() => goToDetail(card)}
+                />
+              );
+            })}
           </ScrollView>
         )}
       </View>

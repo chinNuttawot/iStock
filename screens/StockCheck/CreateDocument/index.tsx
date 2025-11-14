@@ -249,6 +249,7 @@ export default function CreateDocumentStockCheckScreen() {
         modelOptions={modelOptions}
         stockQty={stockQty}
         value={editProducts}
+        bypassCheckStockQty={true}
       />
       {showDatePicker && (
         <CustomDatePicker

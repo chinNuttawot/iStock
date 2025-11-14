@@ -148,15 +148,23 @@ export default function ApproveDetailScreen() {
   const callAPIApproveDocuments = async (status: string) => {
     try {
       const profile = await getProfile();
-      let { data } = await cardListIStockBydocNoForTransactionHistoryService({
-        docNo,
-      });
-      data = data.map((v: any) => ({
-        ...v,
-        createdBy: profile?.userName,
-        status,
-      }));
-      await transactionHistorySaveService(data);
+      if (status === "Approved") {
+        let { data } = await cardListIStockBydocNoForTransactionHistoryService({
+          docNo,
+        });
+        data = [data].map((v: any) => ({
+          ...v,
+          createdBy: profile?.userName,
+          status: "Approved",
+        }))[0];
+        await transactionHistorySaveService(data);
+
+        data = [data].map((v: any) => ({
+          ...v,
+          status: "Approved",
+        }))[0];
+        await transactionHistorySaveService(data);
+      }
       await ApproveDocumentsService({ docNo, status });
       await ApproveDocumentsNAVService({ docNo, status });
       navigation.goBack();

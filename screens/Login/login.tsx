@@ -149,7 +149,6 @@ export default function LoginScreen() {
               }}
               style={styles.input}
               autoCapitalize="none"
-              placeholderTextColor={theme.border}
               returnKeyType="next"
             />
           </View>
@@ -164,9 +163,9 @@ export default function LoginScreen() {
               }}
               style={styles.input}
               secureTextEntry={hidePassword}
-              placeholderTextColor={theme.border}
               returnKeyType="done"
               onSubmitEditing={handleLogin}
+              
             />
             <TouchableOpacity onPress={() => setHidePassword(!hidePassword)}>
               <Ionicons
@@ -245,7 +244,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 16,
   },
-  input: { ...theme.setFont, flex: 1, marginLeft: 8 },
+  input: { ...theme.setFont, flex: 1, marginLeft: 8, color: theme.text },
   rowBetween: {
     flexDirection: "row",
     alignItems: "center",

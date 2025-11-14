@@ -11,8 +11,7 @@ import {
   binCodesByLocationService,
   cardDetailListService,
   Profile,
-  saveDocumentsNAVService,
-  transactionHistorySaveService,
+  saveDocumentsNAVService
 } from "@/service";
 import { CardListModel } from "@/service/myInterface";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -129,6 +128,9 @@ export default function ScanInDetailScreen() {
       lineNo,
     } = props.itemDetail;
 
+    const disabled = qtyShipped - qtyReceived === 0;
+
+    // sync lineNo
     useEffect(() => {
       scanInDetailForm.setValue(
         `${myDocId}_lineNo_${myModel}_${lineNo}`,
@@ -143,8 +145,9 @@ export default function ScanInDetailScreen() {
       } else {
         setQty("");
       }
-    }, [myDocId, myModel]);
+    }, [myDocId, myModel, lineNo]);
 
+    // sync serialNo
     useEffect(() => {
       const currentserialNo = scanInDetailForm.getValues(
         `${myDocId}_serialNo_${myModel}_${lineNo}`
@@ -155,7 +158,29 @@ export default function ScanInDetailScreen() {
       } else {
         setSerialNo("");
       }
-    }, [myDocId, myModel]);
+    }, [myDocId, myModel, lineNo]);
+
+    // ❌ ห้ามเรียก Alert / onChange ใน render → ✅ ย้ายมา useEffect
+    useEffect(() => {
+      if (!disabled) return;
+
+      Alert.alert("ไม่สามารถทำรายการได้", "จำนวนคงเหลือไม่เพียงพอ สำหรับทำรายการ", [
+        {
+          text: "ตกลง",
+          onPress: () => {
+            props.onChange && props.onChange(false);
+          },
+        },
+      ]);
+
+      // เผื่ออยากปิด modal ทันทีโดยไม่ต้องรอกด (ถ้าไม่ต้องการบรรทัดนี้ ลบออกได้)
+      props.onChange && props.onChange(false);
+    }, [disabled, props.onChange]);
+
+    // ถ้าจำนวนเป็น 0 ก็ไม่ต้อง render UI อะไร
+    if (disabled) {
+      return null;
+    }
 
     return (
       <View style={{ width: "100%" }}>
@@ -178,6 +203,7 @@ export default function ScanInDetailScreen() {
             />
           </View>
         </View>
+
         <View style={styles.inputGroup}>
           <Text style={styles.label}>{`Serial No`}</Text>
           <View style={styles.inputWrapper}>
@@ -190,6 +216,7 @@ export default function ScanInDetailScreen() {
             />
           </View>
         </View>
+
         <View style={{ paddingHorizontal: 64 }}>
           <CustomButton
             label="บันทึก"
@@ -284,7 +311,7 @@ export default function ScanInDetailScreen() {
         binCode: dataBinCodesByLocationService[0].value ?? "",
       };
       const { data } = await saveDocumentsNAVService(payload);
-      await transactionHistorySaveService(data);
+      // await transactionHistorySaveService(data);
       emitter.emit(getDataScanIn);
       navigation.goBack();
     } catch (err) {

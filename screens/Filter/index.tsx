@@ -25,6 +25,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Platform,
   ScrollView,
   StyleSheet,
@@ -35,9 +36,40 @@ import {
 } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
 
+// helper แปลง Date -> string รูปแบบ th-TH
+const formatThDate = (date: Date) => {
+  return date.toLocaleDateString("th-TH", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+};
+
+// helper แปลง string รูปแบบ th-TH (dd/MM/yyyy, พ.ศ.) -> Date
+const parseThDateString = (value: string | undefined | null): Date | null => {
+  if (!value) return null;
+  const parts = value.split("/");
+  if (parts.length !== 3) return null;
+
+  const [dayStr, monthStr, yearStr] = parts;
+  const day = Number(dayStr);
+  const month = Number(monthStr);
+  const yearTh = Number(yearStr);
+
+  if (!day || !month || !yearTh) return null;
+
+  // ปีไทย -> ค.ศ.
+  const year = yearTh - 543;
+  return new Date(year, month - 1, day);
+};
+
 export default function FilterScreen() {
   const [docNo, setDocumentNo] = useState("");
-  const [stockOutDate, setDocumentDate] = useState("");
+  const [selectTextDate, setSelectTextDate] = useState<"start" | "end" | "">(
+    ""
+  );
+  const [stockOutStartDate, setDocumentStartDate] = useState("");
+  const [stockOutEndDate, setDocumentEndDate] = useState("");
   const [status, setStatus] = useState("All");
   const [menuId, setDocType] = useState("All");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -83,16 +115,24 @@ export default function FilterScreen() {
   useEffect(() => {
     if (filter) {
       setStatus(filter?.status);
-      setDocumentDate(filter?.stockOutDate);
+      setDocumentStartDate(filter?.stockOutStartDate);
+      setDocumentEndDate(filter?.stockOutEndDate);
       setDocumentNo(filter?.docNo);
       setDocType(filter?.menuId);
     }
   }, []);
 
+  useEffect(() => {
+    if (showFilterDate) {
+      // future use
+    }
+  }, [showFilterDate]);
+
   const resetFilterForm = () => {
     Promise.all([
       setDocumentNo(""),
-      setDocumentDate(""),
+      setDocumentStartDate(""),
+      setDocumentEndDate(""),
       setStatus("All"),
       setDocType("All"),
     ]);
@@ -160,14 +200,15 @@ export default function FilterScreen() {
         break;
     }
     console.log("item ==>", item);
-    
+
     emitter.emit(dataToscreen, item);
   };
 
   const onSearch = () => {
     const parmas = {
       status,
-      stockOutDate,
+      stockOutStartDate,
+      stockOutEndDate,
       docNo,
       menuId,
       isFilter: true,
@@ -175,14 +216,6 @@ export default function FilterScreen() {
     };
     goEmitter(parmas);
     navigation.goBack();
-  };
-
-  const onDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      const formatted = selectedDate.toLocaleDateString("th-TH");
-      setDocumentDate(formatted);
-    }
   };
 
   return (
@@ -216,19 +249,61 @@ export default function FilterScreen() {
         {showFilterDate && (
           <View style={styles.inputGroup}>
             <Text style={styles.label}>วันที่ของสินค้า</Text>
-            <TouchableOpacity
-              style={styles.inputWrapper}
-              onPress={() => setShowDatePicker(true)}
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                marginTop: 10,
+              }}
             >
-              <TextInput
-                value={stockOutDate}
-                editable={false}
-                style={styles.input}
-                placeholder=""
-                placeholderTextColor={theme.border}
-              />
-              <Ionicons name="calendar-outline" size={20} color={theme.gray} />
-            </TouchableOpacity>
+              <View style={{ flex: 1, flexDirection: "column" }}>
+                <Text style={styles.label}>เริ่ม</Text>
+                <TouchableOpacity
+                  style={{ ...styles.inputWrapper, flex: 1, marginRight: 8 }}
+                  onPress={() => {
+                    setSelectTextDate("start");
+                    setShowDatePicker(true);
+                  }}
+                >
+                  <TextInput
+                    value={stockOutStartDate}
+                    editable={false}
+                    style={styles.input}
+                    placeholder=""
+                    placeholderTextColor={theme.border}
+                  />
+                  <Ionicons
+                    name="calendar-outline"
+                    size={20}
+                    color={theme.gray}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <View style={{ flex: 1, flexDirection: "column" }}>
+                <Text style={[styles.label, { marginLeft: 8 }]}>สิ้นสุด</Text>
+                <TouchableOpacity
+                  style={{ ...styles.inputWrapper, flex: 1, marginLeft: 8 }}
+                  onPress={() => {
+                    setSelectTextDate("end");
+                    setShowDatePicker(true);
+                  }}
+                >
+                  <TextInput
+                    value={stockOutEndDate}
+                    editable={false}
+                    style={styles.input}
+                    placeholder=""
+                    placeholderTextColor={theme.border}
+                  />
+                  <Ionicons
+                    name="calendar-outline"
+                    size={20}
+                    color={theme.gray}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         )}
 
@@ -247,7 +322,7 @@ export default function FilterScreen() {
               search={true}
               placeholder="Select Status"
               save="key"
-              defaultOption={statusOptions.find((s) => s.key === status)}
+              defaultOption={statusOptions.find((s: any) => s.key === status)}
             />
           </View>
         )}
@@ -267,7 +342,7 @@ export default function FilterScreen() {
               search={true}
               placeholder="Select Status"
               save="key"
-              defaultOption={TypeDocOptions.find((s) => s.key === menuId)}
+              defaultOption={TypeDocOptions.find((s: any) => s.key === menuId)}
             />
           </View>
         )}
@@ -282,30 +357,73 @@ export default function FilterScreen() {
           </TouchableOpacity>
         )}
       </ScrollView>
+
       <View style={{ padding: 16, marginBottom: 16 }}>
         <CustomButton label={textSearch} onPress={onSearch} />
       </View>
+
       {showDatePicker && (
         <CustomDatePicker
           value={selectedDate}
           onConfirm={(date) => {
             setSelectedDate(date);
             setShowDatePicker(false);
-            setDocumentDate(
-              date.toLocaleDateString("th-TH", {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-              })
-            );
+
+            // -------------------------
+            // เงื่อนไขวันที่
+            // -------------------------
+            if (selectTextDate === "start") {
+              const formatted = formatThDate(date);
+              // set start
+              setDocumentStartDate(formatted);
+
+              // ถ้ายังไม่มี end ให้ตาม start ไปเลย
+              // หรือถ้า end เดิม < start ใหม่ ก็ให้ขยับ end มาเท่ากับ start
+              if (!stockOutEndDate) {
+                setDocumentEndDate(formatted);
+              } else {
+                const endDateObj = parseThDateString(stockOutEndDate);
+                if (endDateObj && endDateObj < date) {
+                  setDocumentEndDate(formatted);
+                }
+              }
+            }
+
+            if (selectTextDate === "end") {
+              // ✅ ถ้ายังไม่มี start เลย ให้ set ทั้ง start และ end เป็นวันเดียวกัน
+              if (!stockOutStartDate) {
+                const formatted = formatThDate(date);
+                setDocumentStartDate(formatted);
+                setDocumentEndDate(formatted);
+                return;
+              }
+
+              const startDateObj = parseThDateString(stockOutStartDate);
+
+              // ถ้ามี start แล้ว และ end ที่เลือกต่ำกว่า start → ไม่ให้เลือก
+              if (startDateObj && date < startDateObj) {
+                Alert.alert(
+                  "เลือกวันที่ไม่ถูกต้อง",
+                  "วันที่สิ้นสุดต้องไม่น้อยกว่าวันที่เริ่มต้น"
+                );
+                return;
+              }
+
+              const formatted = formatThDate(date);
+              setDocumentEndDate(formatted);
+            }
           }}
           onCancel={() => setShowDatePicker(false)}
         />
       )}
+
       <ScannerModal
         visible={showScanner}
         onClose={() => setShowScanner(false)}
-        onScan={(data: any) => setDocumentNo(data)}
+        onScan={(data: any) => {
+          setDocumentNo(data);
+          onSearch();
+        }}
       />
     </View>
   );

@@ -77,14 +77,21 @@ export default function CreateDocumentTransferScreen() {
   const [modelOptions, setModelOptions] = useState<any[]>([]);
   const [description, setDescription] = useState("");
   const [stockQty, setStockQty] = useState(0);
+
   const isValid =
-    !!docNo &&
-    !!stockOutDate &&
-    !!locationCodeFrom &&
-    !!binCodeFrom &&
-    !!locationCodeTo &&
-    !!binCodeTo &&
-    products.length > 0;
+    String(locationCodeTo).toUpperCase() === "00HO"
+      ? !!docNo &&
+        !!stockOutDate &&
+        !!locationCodeFrom &&
+        !!binCodeFrom &&
+        products.length > 0
+      : !!docNo &&
+        !!stockOutDate &&
+        !!locationCodeFrom &&
+        !!binCodeFrom &&
+        !!locationCodeTo &&
+        !!binCodeTo &&
+        products.length > 0;
 
   const optionModalComponent: Modeloption = {
     change: { label: "ลบ", color: theme.red },

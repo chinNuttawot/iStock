@@ -29,7 +29,7 @@ export const cardListIStockService = async (params: any) => {
         ...params,
         createdBy: profile?.userName,
         isApprover: profile?.isApprover,
-        branchCode: profile?.branchCode,
+        branchCode: params.branchCode ?? profile?.branchCode,
       },
       headers: {
         Authorization: `Bearer ${token}`,

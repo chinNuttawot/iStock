@@ -98,12 +98,19 @@ export default function ScanInScreen() {
 
   useEffect(() => {
     const onFilterChanged = (data: any) => {
+      const { stockOutEndDate, stockOutStartDate, ...myData } = data;
+      if (stockOutStartDate === stockOutEndDate) {
+        myData.stockOutDate = stockOutStartDate;
+      } else {
+        myData.stockDateFromTH = stockOutStartDate;
+        myData.stockDateToTH = stockOutEndDate;
+      }
       if (data.isFilter) {
-        if (data.status === "All") {
-          const { status, ...newData } = data;
+        if (myData.status === "All") {
+          const { status, ...newData } = myData;
           fetchData(newData);
         }
-        fetchData(data);
+        fetchData(myData);
       } else {
         fetchData();
       }
@@ -286,7 +293,7 @@ export default function ScanInScreen() {
             <View style={{ padding: 16, marginBottom: 16 }}>
               <CustomButton
                 isload={isload}
-                label="ส่งรูปและไฟล์"
+                label="บันทึกรับของ"
                 disabled={selectedIds.length === 0}
                 onPress={submitSelected}
               />

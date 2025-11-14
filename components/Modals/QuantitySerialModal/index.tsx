@@ -59,7 +59,17 @@ export default function QuantitySerialModal({
         <View style={{ marginBottom: 12 }}>
           <Text style={{ color: theme.text, marginBottom: 6 }}>
             {`จำนวนที่เพิ่มได้ไม่เกิน `}
-            <Text style={{ fontWeight: "700" }}>{maxCanAdd}</Text>
+            <Text
+              style={{
+                fontWeight: "700",
+                ...theme.setFont,
+                color: theme.red,
+                fontSize: 30,
+                marginBottom: 4,
+              }}
+            >
+              {maxCanAdd}
+            </Text>
           </Text>
           <View
             style={{

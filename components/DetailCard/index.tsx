@@ -129,6 +129,7 @@ export default function DetailCard({
                   {
                     width: "70%",
                     color: !item.value ? theme.mainApp : theme.black,
+                    fontSize: 18
                   },
                 ]}
               >

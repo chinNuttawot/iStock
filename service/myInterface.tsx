@@ -65,6 +65,7 @@ export interface CardListModel {
   date: string;
   details: CardListDetail[];
   product?: any[];
+  branchCode?: string;
 }
 
 export interface CardListDetail {

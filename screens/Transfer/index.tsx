@@ -14,11 +14,9 @@ import LoadingView from "@/components/State/LoadingView";
 import type { UploadPickerHandle } from "@/components/UploadPicker";
 import { theme } from "@/providers/Theme";
 import {
-  cardListIStockBydocNoForTransactionHistoryService,
   cardListIStockService,
   getProfile,
-  SendToApproveDocuments,
-  transactionHistorySaveService,
+  SendToApproveDocuments
 } from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -58,12 +56,19 @@ export default function TransferScreen() {
   // ====== รับค่า filter ======
   useEffect(() => {
     const onFilterChanged = (data: any) => {
+      const { stockOutEndDate, stockOutStartDate, ...myData } = data;
+      if (stockOutStartDate === stockOutEndDate) {
+        myData.stockOutDate = stockOutStartDate;
+      } else {
+        myData.stockDateFromTH = stockOutStartDate;
+        myData.stockDateToTH = stockOutEndDate;
+      }
       if (data.isFilter) {
-        if (data.status === "All") {
-          const { status, ...newData } = data;
+        if (myData.status === "All") {
+          const { status, ...newData } = myData;
           fetchData(newData);
         }
-        fetchData(data);
+        fetchData(myData);
       } else {
         fetchData();
       }
@@ -187,19 +192,19 @@ export default function TransferScreen() {
       let _selectedIds = selectedIds;
       setSelectedIds([]);
       const profile = await getProfile();
-      for (const docNo of _selectedIds) {
-        const handle = uploadRefs.current[docNo];
-        await handle?.uploadAllInOneRequests?.();
-        let { data } = await cardListIStockBydocNoForTransactionHistoryService({
-          docNo,
-        });
-        data = [data].map((v: any) => ({
-          ...v,
-          createdBy: profile?.userName,
-          status: "Pending Approval",
-        }))[0];
-        await transactionHistorySaveService(data);
-      }
+      // for (const docNo of _selectedIds) {
+      //   const handle = uploadRefs.current[docNo];
+      //   await handle?.uploadAllInOneRequests?.();
+      //   let { data } = await cardListIStockBydocNoForTransactionHistoryService({
+      //     docNo,
+      //   });
+      //   data = [data].map((v: any) => ({
+      //     ...v,
+      //     createdBy: profile?.userName,
+      //     status: "Pending Approval",
+      //   }))[0];
+      //   await transactionHistorySaveService(data);
+      // }
       await SendToApproveDocuments({ docNo: _selectedIds.join("|") });
       emitter.emit(getDataTransfer);
       emitter.emit(filterDataDashboard);

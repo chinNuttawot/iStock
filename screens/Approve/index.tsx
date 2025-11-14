@@ -65,32 +65,40 @@ export default function ApproveScreen() {
 
   useEffect(() => {
     const onFilterChanged = (data: any) => {
-      if (data.isFilter) {
-        if (data.status === "All") {
-          if (data.menuId === "All") {
-            const { status, menuId, ...newData } = data;
+      const { stockOutEndDate, stockOutStartDate, ...myData } = data;
+      if (stockOutStartDate === stockOutEndDate) {
+        myData.stockOutDate = stockOutStartDate;
+      } else {
+        myData.stockDateFromTH = stockOutStartDate;
+        myData.stockDateToTH = stockOutEndDate;
+      }
+      myData.branchCode = data.status;
+      if (myData.isFilter) {
+        if (myData.status === "All") {
+          if (myData.menuId === "All") {
+            const { status, menuId, ...newData } = myData;
             fetchData(newData);
           } else {
-            const { status, ...newData } = data;
+            const { status, ...newData } = myData;
             fetchData(newData);
           }
         }
-        if (data.menuId === "All") {
-          if (data.status === "All") {
-            const { status, menuId, ...newData } = data;
+        if (myData.menuId === "All") {
+          if (myData.status === "All") {
+            const { status, menuId, ...newData } = myData;
             fetchData(newData);
           } else {
-            const { menuId, ...newData } = data;
+            const { menuId, ...newData } = myData;
             fetchData(newData);
           }
         }
-        if (data.menuId !== "All" && data.status !== "All") {
-          fetchData(data);
+        if (myData.menuId !== "All" && myData.status !== "All") {
+          fetchData(myData);
         }
       } else {
         fetchData();
       }
-      setFilter(data);
+      setFilter(myData);
     };
     emitter.on(filterApprove, onFilterChanged);
     return () => emitter.off(filterApprove, onFilterChanged);
@@ -194,6 +202,15 @@ export default function ApproveScreen() {
     const [datamenuService] = await Promise.all([
       menuService({ isApprover: false }),
     ]);
+    const profile = await getProfile();
+
+    const _branchCode = [
+      { key: "All", value: "All" },
+      ...(profile?.branchCode?.split("|") || []).map((item) => ({
+        key: item,
+        value: item,
+      })),
+    ];
 
     const { data } = datamenuService;
     let dataAll = [{ key: "All", value: "All" }];
@@ -207,16 +224,11 @@ export default function ApproveScreen() {
     setSelectedIds([]);
     navigation.navigate("Filter", {
       filter,
-      statusName: "สถานะเอกสาร",
+      statusName: "สาขา",
       isTypeDoc: true,
       TypeDocOptions: dataAll,
-      showFilterStatus: false,
-      statusOptions: [
-        { key: "All", value: "All" },
-        { key: "Pending Approval", value: "Pending Approval" },
-        { key: "Approved", value: "Approved" },
-        { key: "Rejected", value: "Rejected" },
-      ],
+      showFilterStatus: true,
+      statusOptions: _branchCode,
     });
   }, [filter, navigation]);
 
@@ -234,16 +246,26 @@ export default function ApproveScreen() {
     try {
       setIsload(true);
       const profile = await getProfile();
-      for (const docNo of selectedIds) {
-        let { data } = await cardListIStockBydocNoForTransactionHistoryService({
-          docNo,
-        });
-        data = [data].map((v: any) => ({
-          ...v,
-          createdBy: profile?.userName,
-          status,
-        }))[0];
-        await transactionHistorySaveService(data);
+
+      if (status === "Approved") {
+        for (const docNo of selectedIds) {
+          let { data } =
+            await cardListIStockBydocNoForTransactionHistoryService({
+              docNo,
+            });
+          data = [data].map((v: any) => ({
+            ...v,
+            createdBy: profile?.userName,
+            status: "Approved",
+          }))[0];
+          await transactionHistorySaveService(data);
+
+          data = [data].map((v: any) => ({
+            ...v,
+            status: "Approved",
+          }))[0];
+          await transactionHistorySaveService(data);
+        }
       }
       Promise.all([
         ApproveDocumentsService({ docNo: selectedIds.join("|"), status }),
@@ -428,6 +450,7 @@ export default function ApproveScreen() {
                   onSelect={toggleSelect}
                   onExpand={toggleExpand}
                   goTo={() => goToDetail(card)}
+                  branchCode={card.branchCode}
                 />
               ))}
             </ScrollView>

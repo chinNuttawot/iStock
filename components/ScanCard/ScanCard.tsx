@@ -46,6 +46,7 @@ type ScanCardProps = {
   keyRef3?: any;
   remark?: any;
   hideAddFile: boolean;
+  branchCode?: string;
 };
 
 // ✅ ref = UploadPickerHandle (ไม่ใช่ View)
@@ -72,6 +73,7 @@ const ScanCard = React.forwardRef<any, ScanCardProps>(
       date,
       isShowOnExpandBy = "docNo",
       menuType,
+      branchCode,
     },
     ref
   ) => {
@@ -102,6 +104,7 @@ const ScanCard = React.forwardRef<any, ScanCardProps>(
           return null;
       }
     };
+    console.log("branchCode ===>", branchCode);
 
     const StatusForScanIn = (menuType: string) => {
       return (
@@ -197,6 +200,11 @@ const ScanCard = React.forwardRef<any, ScanCardProps>(
             <Text style={styles.cardTitle}>{docNo}</Text>
             {menuType && StatusForScanIn(menuType)}
             {renderStatusIcon()}
+            {branchCode && (
+              <Text style={[styles.text, { marginLeft: 8, color: theme.gray }]}>
+                {branchCode}
+              </Text>
+            )}
 
             <Ionicons
               name={isExpanded ? "chevron-up" : "chevron-down"}

@@ -3,6 +3,7 @@ import { theme } from "@/providers/Theme";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Image,
   Modal,
   StyleSheet,
@@ -16,10 +17,11 @@ import uuid from "react-native-uuid";
 
 type Props = {
   isVisible: boolean;
+  bypassCheckStockQty: boolean;
   onClose: () => void;
   onSave: (data: any) => void;
   productCode: string;
-  modelOptions: { key: string; value: string }[];
+  modelOptions: { key: string; value: string; picURL?: string }[];
   stockQty: number;
   value: any;
   description: string;
@@ -34,6 +36,7 @@ const ProductAddModalComponent = ({
   stockQty,
   value,
   description,
+  bypassCheckStockQty = false,
 }: Props) => {
   const [model, setModel] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -42,41 +45,73 @@ const ProductAddModalComponent = ({
   const [picURL, setPicURL] = useState("");
 
   useEffect(() => {
-    const isEmptyObject = Object.keys(value).length === 0;
+    const isEmptyObject = Object.keys(value || {}).length === 0;
     if (!isEmptyObject) {
-      setQuantity(value.quantity);
-      setModel(value.model);
-      setSerialNo(value.serialNo);
-      setRemark(value.remark);
+      setQuantity(value.quantity?.toString?.() ?? "");
+      setModel(value.model ?? "");
+      setSerialNo(value.serialNo ?? "");
+      setRemark(value.remark ?? "");
+      setPicURL(value.picURL ?? "");
+    } else {
+      // ถ้าเป็นเคสเพิ่มใหม่ รีเซ็ตค่าตอนเปิด modal รอบใหม่
+      setQuantity("");
+      setModel("");
+      setSerialNo("");
+      setRemark("");
+      setPicURL("");
     }
   }, [value]);
 
-  const handleSave = () => {
-    const isEmptyObject = Object.keys(value).length === 0;
-    if (isEmptyObject) {
-      onSave({
-        productCode,
-        model,
-        quantity,
-        serialNo,
-        remark,
-        uuid: uuid.v4(),
-        picURL,
-        description,
-      });
-    } else {
-      onSave({
-        productCode,
-        model,
-        quantity,
-        serialNo,
-        remark,
-        uuid: value?.uuid,
-        picURL,
-        description,
-      });
+  useEffect(() => {
+    if (model) {
+      setModel(model);
+      const found = modelOptions.find((v) => v.value === model);
+      const _picURL = found?.picURL ?? "";
+      setPicURL(_picURL);
+    } else if (modelOptions) {
+      setModel(modelOptions[0]?.value ?? "");
+      const _picURL = modelOptions[0]?.picURL ?? "";
+      setPicURL(_picURL);
     }
+  }, [model, modelOptions]);
 
+  // ✅ ถ้า stockQty = 0 แล้ว modal เปิดอยู่ → เด้ง popup แล้วปิด modal เลย
+  useEffect(() => {
+    if (bypassCheckStockQty) {
+      return;
+    }
+    if (!isVisible) return;
+    if (Number(stockQty) !== 0) return;
+
+    Alert.alert(
+      "ไม่สามารถทำรายการได้",
+      "จำนวนคงเหลือไม่เพียงพอ สำหรับทำรายการ",
+      [
+        {
+          text: "ตกลง",
+          onPress: () => {
+            _onClose();
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  }, [isVisible, stockQty, bypassCheckStockQty]);
+
+  const handleSave = () => {
+    const isEmptyObject = Object.keys(value || {}).length === 0;
+    const payload = {
+      productCode,
+      model,
+      quantity,
+      serialNo,
+      remark,
+      uuid: isEmptyObject ? uuid.v4() : value?.uuid,
+      picURL,
+      description,
+    };
+
+    onSave(payload);
     _onClose();
   };
 
@@ -92,6 +127,9 @@ const ProductAddModalComponent = ({
     setRemark("");
     setPicURL("");
   };
+  console.log(model === "" || quantity === "");
+  console.log(model);
+  console.log(quantity);
 
   return (
     <Modal visible={isVisible} transparent animationType="fade">
@@ -114,10 +152,8 @@ const ProductAddModalComponent = ({
               <SelectList
                 setSelected={(res: any) => {
                   setModel(res);
-                  const _picURL =
-                    modelOptions.filter((v) => v.value === res)[0]?.picURL ??
-                    "";
-
+                  const found = modelOptions.find((v) => v.value === res);
+                  const _picURL = found?.picURL ?? "";
                   setPicURL(_picURL);
                 }}
                 data={modelOptions}
@@ -126,10 +162,14 @@ const ProductAddModalComponent = ({
                 search={true}
                 save="key"
                 placeholder="เลือก"
-                defaultOption={{
-                  key: modelOptions[0]?.key ?? "",
-                  value: modelOptions[0]?.value ?? "",
-                }}
+                defaultOption={
+                model
+                  ? { key: model, value: model }
+                  : {
+                      key: modelOptions[0]?.key ?? "",
+                      value: modelOptions[0]?.value ?? "",
+                    }
+                }
               />
             </View>
           </View>
@@ -151,9 +191,13 @@ const ProductAddModalComponent = ({
                 setQuantity("");
                 return;
               }
-
-              const parsed = Number(num);
-              if (!isNaN(parsed) && parsed <= stockQty) {
+              if (!bypassCheckStockQty) {
+                const parsed = Number(num);
+                if (!isNaN(parsed) && parsed <= stockQty) {
+                  setQuantity(parsed.toString());
+                }
+              } else {
+                const parsed = Number(num);
                 setQuantity(parsed.toString());
               }
             }}
@@ -193,7 +237,7 @@ const ProductAddModalComponent = ({
           <CustomButton
             label="บันทึก"
             onPress={handleSave}
-            disabled={model === "" || quantity === "" || Number(stockQty) === 0}
+            disabled={model === "" || quantity === ""}
           />
         </View>
       </View>

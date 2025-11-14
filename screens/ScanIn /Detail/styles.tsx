@@ -14,8 +14,8 @@ export const styles = StyleSheet.create({
   },
   Sublabel: {
     ...theme.setFont,
-    color: theme.mainApp,
-    fontSize: 20,
+    color: theme.red,
+    fontSize: 30,
     marginBottom: 4,
   },
   card: {
