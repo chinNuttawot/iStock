@@ -12,11 +12,12 @@ import EmptyState from "@/components/State/EmptyState";
 import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
 import type { UploadPickerHandle } from "@/components/UploadPicker";
+import { useFilterData } from "@/hooks/useFilterData";
 import { theme } from "@/providers/Theme";
 import {
   cardListIStockService,
   getProfile,
-  SendToApproveDocuments
+  SendToApproveDocuments,
 } from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -97,7 +98,8 @@ export default function TransferScreen() {
           ...params,
           menuId: menuIdNum,
         });
-        setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
+        let _data = useFilterData({ data });
+        setCardData(Array.isArray(_data) ? (_data as CardListModel[]) : []);
       } catch (err: any) {
         const msg =
           err?.response?.data?.message ||

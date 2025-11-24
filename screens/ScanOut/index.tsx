@@ -11,11 +11,12 @@ import EmptyState from "@/components/State/EmptyState";
 import ErrorState from "@/components/State/ErrorState";
 import LoadingView from "@/components/State/LoadingView";
 import { UploadPickerHandle } from "@/components/UploadPicker";
+import { useFilterData } from "@/hooks/useFilterData";
 import { theme } from "@/providers/Theme";
 import {
   cardListIStockService,
   getProfile,
-  SendToApproveDocuments
+  SendToApproveDocuments,
 } from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -95,7 +96,8 @@ export default function ScanOutScreen() {
           ...params,
           menuId: menuIdNum,
         });
-        setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
+        let _data = useFilterData({ data });
+        setCardData(Array.isArray(_data) ? (_data as CardListModel[]) : []);
       } catch (err: any) {
         setError(err?.message ?? "เกิดข้อผิดพลาดในการดึงข้อมูล");
         setCardData([]);

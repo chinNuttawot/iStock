@@ -104,8 +104,6 @@ const ScanCard = React.forwardRef<any, ScanCardProps>(
           return null;
       }
     };
-    console.log("branchCode ===>", branchCode);
-
     const StatusForScanIn = (menuType: string) => {
       return (
         <View style={styles.mainStatus}>
