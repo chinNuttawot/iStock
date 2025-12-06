@@ -218,6 +218,22 @@ export default function FilterScreen() {
     navigation.goBack();
   };
 
+
+  const onSearchAuto = (docNoScan: string) => {
+    const parmas = {
+      status,
+      stockOutStartDate,
+      stockOutEndDate,
+      docNo: docNoScan,
+      menuId,
+      isFilter: true,
+      isReset: false,
+    };
+    setDocumentNo(docNoScan);
+    goEmitter(parmas);
+    navigation.goBack();
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.white }}>
       <Header
@@ -420,9 +436,8 @@ export default function FilterScreen() {
       <ScannerModal
         visible={showScanner}
         onClose={() => setShowScanner(false)}
-        onScan={(data: any) => {
-          setDocumentNo(data.trim());
-          onSearch();
+        onScan={async (data: any) => {
+          onSearchAuto(data.trim());
         }}
       />
     </View>

@@ -5,7 +5,7 @@ import {
     CameraView,
     useCameraPermissions,
 } from "expo-camera";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type Props = {
@@ -16,6 +16,7 @@ type Props = {
 
 export default function ScannerModal({ visible, onClose, onScan }: Props) {
   const [permission, requestPermission] = useCameraPermissions();
+  const scannedRef = useRef(false);
 
   useEffect(() => {
     if (!permission?.granted) {
@@ -23,12 +24,19 @@ export default function ScannerModal({ visible, onClose, onScan }: Props) {
     }
   }, [permission]);
 
-  const handleBarCodeScanned = (result: BarcodeScanningResult) => {
-    if (result.data) {
+  useEffect(() => {
+    if (visible) {
+      scannedRef.current = false;
+    }
+  }, [visible]);
+
+  const handleBarCodeScanned = useCallback((result: BarcodeScanningResult) => {
+    if (result.data && !scannedRef.current) {
+      scannedRef.current = true;
       onScan(result.data || "");
       onClose();
     }
-  };
+  }, [onScan, onClose]);
 
   if (!permission) return null;
   if (!permission.granted)
