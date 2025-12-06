@@ -152,17 +152,11 @@ export default function ApproveDetailScreen() {
         let { data } = await cardListIStockBydocNoForTransactionHistoryService({
           docNo,
         });
-        data = [data].map((v: any) => ({
+        data = data.map((v: any) => ({
           ...v,
           createdBy: profile?.userName,
-          status: "Approved",
-        }))[0];
-        await transactionHistorySaveService(data);
-
-        data = [data].map((v: any) => ({
-          ...v,
-          status: "Approved",
-        }))[0];
+          status,
+        }));
         await transactionHistorySaveService(data);
       }
       await ApproveDocumentsService({ docNo, status });
