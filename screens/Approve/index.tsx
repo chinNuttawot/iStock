@@ -246,7 +246,9 @@ export default function ApproveScreen() {
     try {
       setIsload(true);
       const profile = await getProfile();
-
+      Promise.all([
+        ApproveDocumentsService({ docNo: selectedIds.join("|"), status }),
+      ]);
       if (status === "Approved") {
         for (const docNo of selectedIds) {
           let { data } =
@@ -256,24 +258,15 @@ export default function ApproveScreen() {
           data = [data].map((v: any) => ({
             ...v,
             createdBy: profile?.userName,
-            status: "Approved",
-          }))[0];
-          await transactionHistorySaveService(data);
-
-          data = [data].map((v: any) => ({
-            ...v,
-            status: "Approved",
+            status,
           }))[0];
           await transactionHistorySaveService(data);
         }
-      }
-      Promise.all([
-        ApproveDocumentsService({ docNo: selectedIds.join("|"), status }),
         ApproveDocumentsNAVService({
           docNo: selectedIds.join("|"),
           status,
-        }),
-      ]);
+        });
+      }
       setSelectedIds([]);
     } catch (err) {
       Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");

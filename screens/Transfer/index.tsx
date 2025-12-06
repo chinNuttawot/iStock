@@ -15,9 +15,11 @@ import type { UploadPickerHandle } from "@/components/UploadPicker";
 import { useFilterData } from "@/hooks/useFilterData";
 import { theme } from "@/providers/Theme";
 import {
+  cardListIStockBydocNoForTransactionHistoryService,
   cardListIStockService,
   getProfile,
   SendToApproveDocuments,
+  transactionHistorySaveService,
 } from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -194,19 +196,19 @@ export default function TransferScreen() {
       let _selectedIds = selectedIds;
       setSelectedIds([]);
       const profile = await getProfile();
-      // for (const docNo of _selectedIds) {
-      //   const handle = uploadRefs.current[docNo];
-      //   await handle?.uploadAllInOneRequests?.();
-      //   let { data } = await cardListIStockBydocNoForTransactionHistoryService({
-      //     docNo,
-      //   });
-      //   data = [data].map((v: any) => ({
-      //     ...v,
-      //     createdBy: profile?.userName,
-      //     status: "Pending Approval",
-      //   }))[0];
-      //   await transactionHistorySaveService(data);
-      // }
+      for (const docNo of _selectedIds) {
+        const handle = uploadRefs.current[docNo];
+        await handle?.uploadAllInOneRequests?.();
+        let { data } = await cardListIStockBydocNoForTransactionHistoryService({
+          docNo,
+        });
+        data = [data].map((v: any) => ({
+          ...v,
+          createdBy: profile?.userName,
+          status: "Pending Approval",
+        }))[0];
+        await transactionHistorySaveService(data);
+      }
       await SendToApproveDocuments({ docNo: _selectedIds.join("|") });
       emitter.emit(getDataTransfer);
       emitter.emit(filterDataDashboard);
@@ -302,14 +304,18 @@ export default function TransferScreen() {
                   id={card.id}
                   // ✅ ส่ง keyRef ให้ UploadPicker ภายในการ์ดใช้ดึง/แสดงไฟล์เดิม
                   keyRef1={card.docNo}
-                  hideAddFile={card.status !== "Open"}
                   keyRef2={null}
                   keyRef3={null}
                   remark={null}
                   docNo={card.docNo}
                   date={card.date}
                   status={card.status as StatusType}
-                  hideSelectedIds={card.status !== "Open"}
+                  hideSelectedIds={
+                    card.status !== "Open" && card.status !== "Rejected"
+                  }
+                  hideAddFile={
+                    card.status !== "Open" && card.status !== "Rejected"
+                  }
                   details={card.details}
                   selectedIds={selectedIds}
                   isSelected={selectedIds.includes(card.docNo)}

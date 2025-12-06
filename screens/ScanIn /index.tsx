@@ -12,6 +12,7 @@ import { cardListService, getProfile } from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import moment from "moment";
 import React, {
   useCallback,
   useEffect,
@@ -102,8 +103,12 @@ export default function ScanInScreen() {
       if (stockOutStartDate === stockOutEndDate) {
         myData.stockOutDate = stockOutStartDate;
       } else {
-        myData.stockDateFromTH = stockOutStartDate;
-        myData.stockDateToTH = stockOutEndDate;
+        myData.stockDateFromTH = moment(stockOutStartDate, "DD/MM/YYYY").format(
+          "YYYY-MM-DD"
+        );
+        myData.stockDateToTH = moment(stockOutEndDate, "DD/MM/YYYY").format(
+          "YYYY-MM-DD"
+        );
       }
       if (data.isFilter) {
         if (myData.status === "All") {
@@ -267,9 +272,14 @@ export default function ScanInScreen() {
                   ref={(h) => {
                     uploadRefs.current[card.docNo] = h;
                   }}
+                  hideSelectedIds={
+                    card.status !== "Open" && card.status !== "Rejected"
+                  }
+                  hideAddFile={
+                    card.status !== "Open" && card.status !== "Rejected"
+                  }
                   isShowStatusForScanIn
                   id={card.id}
-                  hideAddFile={card.status !== "Open"}
                   keyRef1={card.docNo}
                   keyRef2={null}
                   keyRef3={null}
@@ -277,7 +287,6 @@ export default function ScanInScreen() {
                   docNo={card.docNo}
                   date={card.date || ""}
                   status={card.status as StatusType}
-                  hideSelectedIds={card.status !== "Open"}
                   details={card.details}
                   selectedIds={selectedIds}
                   isSelected={selectedIds.includes(card.docNo)}

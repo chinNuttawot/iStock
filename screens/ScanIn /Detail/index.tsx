@@ -11,11 +11,16 @@ import {
   binCodesByLocationService,
   cardDetailListService,
   Profile,
-  saveDocumentsNAVService
+  saveDocumentsNAVService,
 } from "@/service";
 import { CardListModel } from "@/service/myInterface";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import React, { memo, useCallback, useEffect, useState } from "react";
+import draftCache from "@/utils/draftCache";
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
+import React, { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Alert, ScrollView, Text, TextInput, View } from "react-native";
 import { styles } from "./styles";
@@ -53,7 +58,6 @@ export default function ScanInDetailScreen() {
 
   useEffect(() => {
     const onFilterChanged = (data: any) => {
-      console.log(`${filterScanInDetail} =====> `, data);
       setFilter(data);
     };
     emitter.on(filterScanInDetail, onFilterChanged);
@@ -66,6 +70,58 @@ export default function ScanInDetailScreen() {
     fetchData();
     setExpandedIds([]);
   }, [docNo]);
+
+  // โหลด draft ทุกครั้งที่กลับมาหน้านี้
+  useFocusEffect(
+    useCallback(() => {
+      // หน่วงเวลาเล็กน้อยเพื่อให้ AsyncStorage ทันโหลดข้อมูล
+      const timer = setTimeout(() => {
+        loadDraftData();
+      }, 100);
+      return () => clearTimeout(timer);
+    }, [docNo])
+  );
+
+  // โหลด draft ข้อมูลจาก Global Cache
+  const loadDraftData = async () => {
+    try {
+      const draftKey = `scanin_draft_${docNo}`;
+      const draftData = await draftCache.get(draftKey);
+
+      if (draftData) {
+        // โหลดข้อมูลกลับเข้า form
+        Object.entries(draftData).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            scanInDetailForm.setValue(key, value);
+          }
+        });
+      } else {
+      }
+    } catch (error) {}
+  };
+
+  // บันทึก draft ข้อมูลลง Global Cache
+  const saveDraftData = async () => {
+    try {
+      const draftKey = `scanin_draft_${docNo}`;
+      const formValues = scanInDetailForm.getValues();
+
+      // กรองเฉพาะค่าที่ไม่ใช่ undefined/null/''
+      const filteredValues = Object.entries(formValues).reduce(
+        (acc, [key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            acc[key] = value;
+          }
+          return acc;
+        },
+        {} as Record<string, any>
+      );
+
+      await draftCache.set(draftKey, filteredValues);
+      // Verify
+      const verify = await draftCache.get(draftKey);
+    } catch (error) {}
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -117,7 +173,7 @@ export default function ScanInDetailScreen() {
     setIsOpen(isOpen);
   };
 
-  const Render = memo((props: any) => {
+  const Render = (props: any) => {
     const [qty, setQty] = useState("");
     const [serialNo, setSerialNo] = useState("");
     const {
@@ -126,54 +182,46 @@ export default function ScanInDetailScreen() {
       docNo: myDocId,
       model: myModel,
       lineNo,
-    } = props.itemDetail;
+    } = props.itemDetail || {};
 
     const disabled = qtyShipped - qtyReceived === 0;
 
-    // sync lineNo
+    // sync qty และ serialNo จาก form เมื่อ modal เปิด
     useEffect(() => {
+      // รันเฉพาะตอน modal เปิด
+      if (!props.isOpen || !myDocId) return;
+
       scanInDetailForm.setValue(
         `${myDocId}_lineNo_${myModel}_${lineNo}`,
         lineNo
       );
-      const currentQty = scanInDetailForm.getValues(
-        `${myDocId}_qty_${myModel}_${lineNo}`
-      );
 
-      if (currentQty) {
-        setQty(currentQty);
-      } else {
-        setQty("");
-      }
-    }, [myDocId, myModel, lineNo]);
+      const qtyKey = `${myDocId}_qty_${myModel}_${lineNo}`;
+      const serialKey = `${myDocId}_serialNo_${myModel}_${lineNo}`;
+      const currentQty = scanInDetailForm.getValues(qtyKey);
+      const currentSerialNo = scanInDetailForm.getValues(serialKey);
 
-    // sync serialNo
-    useEffect(() => {
-      const currentserialNo = scanInDetailForm.getValues(
-        `${myDocId}_serialNo_${myModel}_${lineNo}`
-      );
+      setQty((currentQty as string) || "");
+      setSerialNo((currentSerialNo as string) || "");
+    }, [myDocId, myModel, lineNo, props.isOpen]);
 
-      if (currentserialNo) {
-        setSerialNo(currentserialNo);
-      } else {
-        setSerialNo("");
-      }
-    }, [myDocId, myModel, lineNo]);
-
-    // ❌ ห้ามเรียก Alert / onChange ใน render → ✅ ย้ายมา useEffect
+    // แจ้งเตือนเมื่อ disabled
     useEffect(() => {
       if (!disabled) return;
 
-      Alert.alert("ไม่สามารถทำรายการได้", "จำนวนคงเหลือไม่เพียงพอ สำหรับทำรายการ", [
-        {
-          text: "ตกลง",
-          onPress: () => {
-            props.onChange && props.onChange(false);
+      Alert.alert(
+        "ไม่สามารถทำรายการได้",
+        "จำนวนคงเหลือไม่เพียงพอ สำหรับทำรายการ",
+        [
+          {
+            text: "ตกลง",
+            onPress: () => {
+              props.onChange && props.onChange(false);
+            },
           },
-        },
-      ]);
+        ]
+      );
 
-      // เผื่ออยากปิด modal ทันทีโดยไม่ต้องรอกด (ถ้าไม่ต้องการบรรทัดนี้ ลบออกได้)
       props.onChange && props.onChange(false);
     }, [disabled, props.onChange]);
 
@@ -181,6 +229,8 @@ export default function ScanInDetailScreen() {
     if (disabled) {
       return null;
     }
+
+    if (!myDocId) return null;
 
     return (
       <View style={{ width: "100%" }}>
@@ -195,8 +245,19 @@ export default function ScanInDetailScreen() {
               keyboardType={keyboardTypeNumber}
               onChangeText={(text) => {
                 const num = Number(text);
-                if (!isNaN(num) && num <= qtyShipped - qtyReceived) {
+                const maxCanAdd = qtyShipped - qtyReceived;
+                if (text === "") {
                   setQty(text);
+                } else if (!isNaN(num) && num >= 0) {
+                  if (num <= maxCanAdd) {
+                    setQty(text);
+                  } else {
+                    Alert.alert(
+                      "จำนวนเกินที่กำหนด",
+                      `จำนวนที่รับได้สูงสุดคือ ${maxCanAdd} ชิ้น`,
+                      [{ text: "ตกลง" }]
+                    );
+                  }
                 }
               }}
               style={styles.input}
@@ -221,22 +282,26 @@ export default function ScanInDetailScreen() {
           <CustomButton
             label="บันทึก"
             disabled={!qty}
-            onPress={() => {
-              scanInDetailForm.setValue(
-                `${myDocId}_qty_${myModel}_${lineNo}`,
-                qty
-              );
-              scanInDetailForm.setValue(
-                `${myDocId}_serialNo_${myModel}_${lineNo}`,
-                serialNo
-              );
+            onPress={async () => {
+              const qtyKey = `${myDocId}_qty_${myModel}_${lineNo}`;
+              const serialKey = `${myDocId}_serialNo_${myModel}_${lineNo}`;
+              // บันทึกลง form
+              scanInDetailForm.setValue(qtyKey, qty);
+              scanInDetailForm.setValue(serialKey, serialNo);
+
+              // บันทึก draft ทุกครั้งที่ปิด modal (รอให้ setValue เสร็จก่อน)
+              await saveDraftData();
+
+              // รอให้ AsyncStorage เขียนข้อมูลเสร็จก่อนปิด modal
+              await new Promise((resolve) => setTimeout(resolve, 100));
+
               props.onChange && props.onChange(false);
             }}
           />
         </View>
       </View>
     );
-  });
+  };
 
   const onSave = async () => {
     try {
@@ -250,15 +315,15 @@ export default function ScanInDetailScreen() {
       const keyPattern =
         /^(?<productCode>[A-Za-z0-9]+)_(?<field>qty|serialNo|lineNo)_(?<model>[A-Za-z0-9]+)_(?<lineNo>\d+)$/;
 
-      type ProductRow = {
+      type ProductRowLocal = {
         productCode: string;
-        model: string; // ถ้า backend ยังไม่ต้องใช้ ลบ property นี้ออกได้
+        model: string;
         quantity: string;
         serialNo: string;
         lineNo: number;
       };
 
-      const grouped: Record<string, ProductRow> = Object.entries(
+      const grouped: Record<string, ProductRowLocal> = Object.entries(
         rawValues
       ).reduce((acc, [key, value]) => {
         const m = keyPattern.exec(key);
@@ -268,10 +333,9 @@ export default function ScanInDetailScreen() {
           productCode: string;
           field: "qty" | "serialNo" | "lineNo";
           model: string;
-          lineNo: string; // มาจาก suffix ตามที่กำหนด
+          lineNo: string;
         };
 
-        // ใช้ (productCode + model + lineNo จาก key) เป็นตัวรวม
         const rowKey = `${productCode}_${model}_${lineNo}`;
         const val = String(value ?? "");
 
@@ -281,28 +345,28 @@ export default function ScanInDetailScreen() {
             model,
             quantity: "",
             serialNo: "",
-            lineNo: parseInt(lineNo, 10) || 0, // ตั้งต้นจากค่าใน key
+            lineNo: parseInt(lineNo, 10) || 0,
           };
         }
 
         if (field === "qty") acc[rowKey].quantity = val;
         else if (field === "serialNo") acc[rowKey].serialNo = val;
         else if (field === "lineNo") {
-          // ถ้ามี field lineNo ในฟอร์ม ก็ยอมให้ override จากค่าที่ผู้ใช้กรอก
           const n = parseInt(val, 10);
           acc[rowKey].lineNo = Number.isFinite(n) ? n : acc[rowKey].lineNo;
         }
 
         return acc;
-      }, {} as Record<string, ProductRow>);
+      }, {} as Record<string, ProductRowLocal>);
 
-      const products: ProductRow[] = Object.values(grouped);
+      const products: ProductRowLocal[] = Object.values(grouped);
       const profile = await Profile();
 
       const { data: dataBinCodesByLocationService } =
         await binCodesByLocationService({
           locationCodeFrom: profile.branchCode,
         });
+
       const payload = {
         docNo,
         products,
@@ -310,10 +374,34 @@ export default function ScanInDetailScreen() {
         branchCode: profile.branchCode,
         binCode: dataBinCodesByLocationService[0].value ?? "",
       };
+
       const { data } = await saveDocumentsNAVService(payload);
-      // await transactionHistorySaveService(data);
+      
       emitter.emit(getDataScanIn);
-      navigation.goBack();
+
+      // ⛔️ ไม่ลบ draft แล้ว เพื่อให้กลับหน้าแรกแล้วเข้ามาใหม่ยังเห็นค่าที่กรอกไว้
+      // const draftKey = `scanin_draft_${docNo}`;
+      // draftCache.delete(draftKey);
+
+      // ⛔️ ไม่ reset form เพื่อให้ค่าปัจจุบันยังอยู่ใน form แล้วเราเอาไป saveDraft ได้
+      // scanInDetailForm.reset();
+
+      // เซฟค่าปัจจุบันลง draft อีกครั้ง (ค่าที่บันทึกล่าสุด)
+      await saveDraftData();
+
+      // Refresh ข้อมูลจาก backend
+      await fetchData();
+
+      Alert.alert("สำเร็จ", "บันทึกข้อมูลเรียบร้อยแล้ว", [
+        {
+          text: "กลับไปหน้าแรก",
+          onPress: () => navigation.goBack(),
+        },
+        {
+          text: "ทำรายการต่อ",
+          style: "cancel",
+        },
+      ]);
     } catch (err) {
       Alert.alert("เกิดขอผิดพลาด", "ลองใหม่อีกครั้ง");
     } finally {
@@ -330,27 +418,20 @@ export default function ScanInDetailScreen() {
         hideCustomButtons={true}
         onBackdropPress={onBackdropPress}
       >
-        <Render itemDetail={itemDetail} onChange={onSavedataDetail} />
+        <Render
+          itemDetail={itemDetail}
+          onChange={onSavedataDetail}
+          isOpen={isOpen}
+        />
       </ModalComponent>
+
       <Header
         backgroundColor={theme.mainApp}
         colorIcon={theme.white}
         hideGoback={false}
         title={docNo}
-        // IconComponent={[
-        //   <TouchableOpacity
-        //     onPress={() => {
-        //       openFilter();
-        //     }}
-        //   >
-        //     <MaterialCommunityIcons
-        //       name={filter?.isFilter ? "filter-check" : "filter"}
-        //       size={30}
-        //       color="white"
-        //     />
-        //   </TouchableOpacity>,
-        // ]}
       />
+
       {cardDetailData.length === 0 && (
         <View
           style={{
@@ -365,12 +446,12 @@ export default function ScanInDetailScreen() {
             icon="file-search-outline"
             color={textGray}
             actionLabel="รีโหลด"
-            // onAction={fetchData}
             buttonBg={theme.mainApp}
             buttonTextColor={theme.white}
           />
         </View>
       )}
+
       {cardDetailData.length !== 0 && (
         <ScrollView contentContainerStyle={styles.content}>
           {cardDetailData.map((item) => (
@@ -381,6 +462,7 @@ export default function ScanInDetailScreen() {
               onToggle={() => toggleExpand(item.id)}
               goTo={(res) => {
                 if (res.mode === "edit") {
+                  // future edit mode
                 } else {
                   onShowDetail(item as any);
                 }

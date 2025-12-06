@@ -15,9 +15,11 @@ import type { UploadPickerHandle } from "@/components/UploadPicker";
 import { useFilterData } from "@/hooks/useFilterData";
 import { theme } from "@/providers/Theme";
 import {
+  cardListIStockBydocNoForTransactionHistoryService,
   cardListIStockService,
   getProfile,
   SendToApproveDocuments,
+  transactionHistorySaveService,
 } from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -193,19 +195,19 @@ export default function StockCheckScreen() {
       let _selectedIds = selectedIds;
       setSelectedIds([]);
       const profile = await getProfile();
-      // for (const docNo of _selectedIds) {
-      //   const handle = uploadRefs.current[docNo];
-      //   await handle?.uploadAllInOneRequests?.();
-      //   let { data } = await cardListIStockBydocNoForTransactionHistoryService({
-      //     docNo,
-      //   });
-      //   data = [data].map((v: any) => ({
-      //     ...v,
-      //     createdBy: profile?.userName,
-      //     status: "Pending Approval",
-      //   }))[0];
-      //   await transactionHistorySaveService(data);
-      // }
+      for (const docNo of _selectedIds) {
+        const handle = uploadRefs.current[docNo];
+        await handle?.uploadAllInOneRequests?.();
+        let { data } = await cardListIStockBydocNoForTransactionHistoryService({
+          docNo,
+        });
+        data = [data].map((v: any) => ({
+          ...v,
+          createdBy: profile?.userName,
+          status: "Pending Approval",
+        }))[0];
+        await transactionHistorySaveService(data);
+      }
       await SendToApproveDocuments({ docNo: _selectedIds.join("|") });
       emitter.emit(getDataStockCheck);
       emitter.emit(filterDataDashboard);

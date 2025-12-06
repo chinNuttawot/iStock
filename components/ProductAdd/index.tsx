@@ -195,6 +195,12 @@ const ProductAddModalComponent = ({
                 const parsed = Number(num);
                 if (!isNaN(parsed) && parsed <= stockQty) {
                   setQuantity(parsed.toString());
+                } else if (!isNaN(parsed) && parsed > stockQty) {
+                  Alert.alert(
+                    "ไม่สามารถทำรายการได้",
+                    "จำนวนคงเหลือไม่เพียงพอ สำหรับทำรายการ",
+                    [{ text: "ตกลง" }]
+                  );
                 }
               } else {
                 const parsed = Number(num);

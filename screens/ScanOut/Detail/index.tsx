@@ -16,7 +16,7 @@ import {
   deleteDocumentProducts,
   editDocumentProducts,
   itemProductWSService,
-  itemVariantWSService, // ✅ ใช้ service แก้ไข
+  itemVariantWSService
 } from "@/service";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -465,13 +465,13 @@ export default function ScanOutDetailScreen() {
                   if (res.mode === "edit") onOpenEdit(item as any);
                   else onDeleteItem(item as any);
                 }}
-                viewMode={status !== "Open"}
+                viewMode={status !== "Open" && status !== "Rejected"}
               />
             ))}
         </ScrollView>
       )}
 
-      {status === "Open" && (
+      {(status === "Open" || status === "Rejected") && (
         <View style={{ padding: 16, marginBottom: 16 }}>
           <CustomButton label="บันทึก" onPress={onSave} />
         </View>

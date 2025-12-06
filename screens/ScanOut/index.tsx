@@ -14,9 +14,11 @@ import { UploadPickerHandle } from "@/components/UploadPicker";
 import { useFilterData } from "@/hooks/useFilterData";
 import { theme } from "@/providers/Theme";
 import {
+  cardListIStockBydocNoForTransactionHistoryService,
   cardListIStockService,
   getProfile,
   SendToApproveDocuments,
+  transactionHistorySaveService,
 } from "@/service";
 import { CardListModel, RouteParams } from "@/service/myInterface";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -187,19 +189,19 @@ export default function ScanOutScreen() {
       let _selectedIds = selectedIds;
       setSelectedIds([]);
       const profile = await getProfile();
-      // for (const docNo of _selectedIds) {
-      //   const handle = uploadRefs.current[docNo];
-      //   await handle?.uploadAllInOneRequests?.();
-      //   let { data } = await cardListIStockBydocNoForTransactionHistoryService({
-      //     docNo,
-      //   });
-      //   data = [data].map((v: any) => ({
-      //     ...v,
-      //     createdBy: profile?.userName,
-      //     status: "Pending Approval",
-      //   }))[0];
-      //   await transactionHistorySaveService(data);
-      // }
+      for (const docNo of _selectedIds) {
+        const handle = uploadRefs.current[docNo];
+        await handle?.uploadAllInOneRequests?.();
+        let { data } = await cardListIStockBydocNoForTransactionHistoryService({
+          docNo,
+        });
+        data = [data].map((v: any) => ({
+          ...v,
+          createdBy: profile?.userName,
+          status: "Pending Approval",
+        }))[0];
+        await transactionHistorySaveService(data);
+      }
       await SendToApproveDocuments({ docNo: _selectedIds.join("|") });
       emitter.emit(getDataScanOut);
       emitter.emit(filterDataDashboard);
@@ -292,8 +294,13 @@ export default function ScanOutScreen() {
                   ref={(h) => {
                     uploadRefs.current[card.docNo] = h;
                   }}
+                  hideSelectedIds={
+                    card.status !== "Open" && card.status !== "Rejected"
+                  }
+                  hideAddFile={
+                    card.status !== "Open" && card.status !== "Rejected"
+                  }
                   id={card.docNo}
-                  hideAddFile={card.status !== "Open"}
                   keyRef1={card.docNo}
                   keyRef2={null}
                   keyRef3={null}
@@ -301,7 +308,6 @@ export default function ScanOutScreen() {
                   docNo={card.docNo}
                   date={card.date}
                   status={card.status as StatusType}
-                  hideSelectedIds={card.status !== "Open"}
                   details={card.details}
                   selectedIds={selectedIds}
                   isSelected={selectedIds.includes(card.docNo)}

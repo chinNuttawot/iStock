@@ -58,7 +58,7 @@ export default function TransactionHistoryScreen() {
     try {
       const { data } = await transactionHistoryService({
         ...option,
-        // status: "Approved",
+        status: "Approved",
       });
       setCardData(Array.isArray(data) ? (data as CardListModel[]) : []);
     } catch (err: any) {

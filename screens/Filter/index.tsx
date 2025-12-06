@@ -421,7 +421,7 @@ export default function FilterScreen() {
         visible={showScanner}
         onClose={() => setShowScanner(false)}
         onScan={(data: any) => {
-          setDocumentNo(data);
+          setDocumentNo(data.trim());
           onSearch();
         }}
       />

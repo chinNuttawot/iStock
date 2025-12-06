@@ -5,7 +5,7 @@ export default function CustomButton(props: any) {
   const { isload = false } = props;
   return (
     <TouchableOpacity
-      disabled={props.disabled}
+      disabled={props.disabled || isload}
       onPress={props.onPress}
       style={{
         ...theme.setFont,
